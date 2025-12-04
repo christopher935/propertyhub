@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You - PropertyHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/css/design-tokens.min.css">
+    <link rel="stylesheet" href="/static/css/scout-utilities.min.css">
+    <link rel="stylesheet" href="/static/css/scout-layouts.min.css">
+    <link rel="stylesheet" href="/static/css/scout-components.min.css">
+</head>
+<body class="consumer-thank-you-page">
+
+    <!-- Consumer Header -->
+    <header class="consumer-header">
+        <div class="consumer-header-content">
+            <div class="consumer-header-logo">
+                <h1>PropertyHub</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="consumer-main-content">
+        <div class="confirmation-container">
+            <!-- Success Icon -->
+            <div class="confirmation-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+            </div>
+
+            <!-- Thank You Message -->
+            <div class="confirmation-content">
+                <h1 class="confirmation-title">Thank You for Your Feedback!</h1>
+                <p class="confirmation-message">
+                    We really appreciate you taking the time to share your thoughts about your showing experience. Your feedback helps us improve our service and find you the perfect home.
+                </p>
+            </div>
+
+            <!-- What's Next -->
+            <div class="next-steps-card">
+                <h2 class="next-steps-title">What happens next?</h2>
+                <div class="next-steps-list">
+                    <div class="next-step-item">
+                        <div class="next-step-icon">📧</div>
+                        <div class="next-step-content">
+                            <h3 class="next-step-heading">We'll review your feedback</h3>
+                            <p class="next-step-description">Your comments will be shared with our team to help us serve you better</p>
+                        </div>
+                    </div>
+
+                    <div class="next-step-item">
+                        <div class="next-step-icon">📞</div>
+                        <div class="next-step-content">
+                            <h3 class="next-step-heading">We'll be in touch</h3>
+                            <p class="next-step-description">If you requested follow-up, we'll contact you within 24 hours</p>
+                        </div>
+                    </div>
+
+                    <div class="next-step-item">
+                        <div class="next-step-icon">🏠</div>
+                        <div class="next-step-content">
+                            <h3 class="next-step-heading">Continue your search</h3>
+                            <p class="next-step-description">Browse more properties and schedule additional showings</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="confirmation-actions">
+                <a href="/properties" class="btn btn-primary-consumer btn-lg">Browse More Properties</a>
+                <a href="/" class="btn btn-secondary btn-lg">Return to Home</a>
+            </div>
+
+            <!-- Additional Help -->
+            <div class="help-section">
+                <p class="help-text">Have questions or need assistance?</p>
+                <div class="help-links">
+                    <a href="/contact" class="help-link">Contact Us</a>
+                    <span class="help-separator">•</span>
+                    <a href="tel:+17135550123" class="help-link">Call (713) 555-0123</a>
+                    <span class="help-separator">•</span>
+                    <a href="mailto:info@propertyhub.com" class="help-link">Email Us</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Consumer Footer -->
+    <footer class="consumer-footer">
+        <div class="consumer-footer-content">
+            <p>&copy; 2025 PropertyHub. All rights reserved.</p>
+            <div class="consumer-footer-links">
+                <a href="/privacy-policy">Privacy Policy</a>
+                <a href="/terms-of-service">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        /* Thank You Page Styles */
+        .confirmation-container {
+            max-width: 700px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+            text-align: center;
+        }
+
+        .confirmation-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 120px;
+            background: var(--success-50);
+            border-radius: 50%;
+            margin-bottom: 2rem;
+        }
+
+        .confirmation-icon svg {
+            color: var(--success);
+        }
+
+        .confirmation-content {
+            margin-bottom: 3rem;
+        }
+
+        .confirmation-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+
+        .confirmation-message {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            line-height: 1.7;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Next Steps Card */
+        .next-steps-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .next-steps-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .next-steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .next-step-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .next-step-icon {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: var(--gray-50);
+            border-radius: 8px;
+        }
+
+        .next-step-content {
+            flex: 1;
+        }
+
+        .next-step-heading {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .next-step-description {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+
+        /* Action Buttons */
+        .confirmation-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        @media (min-width: 640px) {
+            .confirmation-actions {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+
+        /* Help Section */
+        .help-section {
+            padding-top: 2rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .help-text {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-bottom: 0.75rem;
+        }
+
+        .help-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .help-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .help-link:hover {
+            text-decoration: underline;
+        }
+
+        .help-separator {
+            color: var(--gray-400);
+        }
+    </style>
+</body>
+</html>
