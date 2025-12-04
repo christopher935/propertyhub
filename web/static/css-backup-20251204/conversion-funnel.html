@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversion Funnel - Landlords of Texas Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/css/design-tokens.css">
+    <link rel="stylesheet" href="/static/css/scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    
+    <style>
+        .stat-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        .funnel-stage {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .funnel-stage:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .funnel-stage.warning {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .funnel-stage.danger {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .stage-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1b3559;
+        }
+        
+        .stage-count {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1b3559;
+        }
+        
+        .stage-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f3f4f6;
+        }
+        
+        .metric {
+            text-align: center;
+        }
+        
+        .metric-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1b3559;
+        }
+        
+        .metric-value.positive {
+            color: #10b981;
+        }
+        
+        .metric-value.negative {
+            color: #ef4444;
+        }
+        
+        .warning-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        
+        .lead-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .lead-list-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="conversion-funnel-page">
+    <div class="admin-layout">
+
+
+<aside class="admin-sidebar">
+    <div class="sidebar-header">
+        <a href="/" class="sidebar-logo">
+            <div class="sidebar-logo-icon">PH</div>
+            <span>PropertyHub</span>
+        </a>
+    </div>
+
+    <nav class="admin-sidebar-nav">
+        
+        
+        <div class="nav-section">
+            <a href="/admin/dashboard" class="nav-section-header active" data-section="overview">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg></span>
+                <span class="nav-section-title">Overview</span>
+            </a>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="properties">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg></span>
+                <span class="nav-section-title">Properties & Showings</span>
+                <span class="nav-section-badge">0</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/property-list" class="nav-item">All Properties <span class="nav-item-badge">0</span></a></li>
+                <li><a href="/admin/property-performance" class="nav-item">Property Performance</a></li>
+                <li><a href="/admin/photo-management" class="nav-item">Photos</a></li>
+                <li><a href="/admin/calendar-management" class="nav-item">Showing Calendar</a></li>
+                <li><a href="/admin/bookings" class="nav-item">Pre-Listing Manager <span class="nav-item-badge">0</span></a></li>
+                <li><a href="/admin/har-sync" class="nav-item">HAR Sync</a></li>
+                <li><a href="/admin/pre-listing-manager" class="nav-item">Pre-Listing Manager</a></li>
+                <li><a href="/admin/property-valuation" class="nav-item">Valuations</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="leads">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg></span>
+                <span class="nav-section-title">Leads & Conversion</span>
+                <span class="nav-section-badge">0</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/lead-management" class="nav-item">Lead Management <span class="nav-item-badge">0</span></a></li>
+                <li><a href="/admin/lead-sources" class="nav-item">Lead Sources</a></li>
+                <li><a href="/admin/conversion-funnel" class="nav-item">Conversion Funnel</a></li>
+                <li><a href="/admin/client-portal" class="nav-item">Client Portal</a></li>
+                <li><a href="/admin/behavioral-intelligence" class="nav-item">Behavioral Intelligence</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="communications">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg></span>
+                <span class="nav-section-title">Communications</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/communication-center" class="nav-item">Communication Center</a></li>
+                <li><a href="/admin/email-senders" class="nav-item">Email Management</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="workflow">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg></span>
+                <span class="nav-section-title">Workflow</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/application-workflow" class="nav-item">Applications</a></li>
+                <li><a href="/admin/approvals" class="nav-item">Approvals</a></li>
+                <li><a href="/admin/closing-pipeline" class="nav-item">Closing Pipeline</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="analytics">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg></span>
+                <span class="nav-section-title">Analytics & Reports</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/business-intelligence" class="nav-item">Business Intelligence</a></li>
+                <li><a href="/admin/market-intelligence" class="nav-item">Market Analytics</a></li>
+                <li><a href="/admin/performance-reports" class="nav-item">Performance Reports</a></li>
+                <li><a href="/admin/custom-reports" class="nav-item">Custom Reports</a></li>
+                <li><a href="/admin/friday-reports" class="nav-item">Friday Reports</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="system">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg></span>
+                <span class="nav-section-title">System</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/settings" class="nav-item">Settings</a></li>
+                <li><a href="/admin/security-dashboard" class="nav-item">Security</a></li>
+                <li><a href="/admin/user-management" class="nav-item">User Management</a></li>
+                <li><a href="/admin/rbac" class="nav-item">Access Control (RBAC)</a></li>
+                <li><a href="/admin/audit-logs" class="nav-item">Audit Logs</a></li>
+                <li><a href="/admin/integrations" class="nav-item">Integrations</a></li>
+                <li><a href="/admin/data-migration" class="nav-item">Data Migration</a></li>
+            </ul>
+        </div>
+    </nav>
+</aside>
+
+
+<main class="admin-main">
+
+
+<div class="admin-top-bar">
+    <div class="admin-page-header">
+        <h1 class="admin-page-title">Conversion Funnel</h1>
+    </div>
+    
+    <div class="admin-top-bar-right">
+        
+        <div class="admin-search">
+            <input type="text" class="admin-search-input" placeholder="Search bookings..." id="globalSearch">
+            <span class="admin-search-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1.125rem;height:1.125rem"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg></span>
+        </div>
+
+        
+        <div class="admin-user-section">
+            <div class="admin-user-display">
+                <div class="admin-user-avatar">CG</div>
+                <div class="admin-user-info">
+                    <div class="admin-user-name">Christopher Gross</div>
+                    <div class="admin-user-role">Administrator</div>
+                </div>
+            </div>
+            <a href="/logout" class="admin-logout-link">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle;margin-right:0.375rem"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" /></svg>
+                Logout
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<div style="width: 100%; clear: both; padding: 12px 24px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+    <nav class="breadcrumb" style="margin: 0;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle;margin-right:0.375rem"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg><a href="/">Home</a>
+        <span>›</span>
+        <a href="/admin/dashboard">Admin</a>
+        <span>›</span>
+        <span>Conversion Funnel</span>
+    </nav>
+</div>
+
+
+<div class="admin-content" style="margin-left:0;">
+        <div class="page-header" style="margin-bottom: 2rem;">
+            <div>
+                <h1 style="font-size: 2rem; font-weight: 700; color: #1b3559; margin: 0 0 0.5rem 0;">Conversion Funnel</h1>
+                <p style="color: #6b7280; margin: 0;">Track lead progression through your pipeline and identify drop-off points</p>
+            </div>
+        </div>
+
+        <!-- Overview Stats -->
+        <div class="stat-cards-grid">
+            <!-- Total Leads -->
+            <div class="stat-card">
+                <svg viewBox="0 20 120 110" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <filter id="numberShadow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                            <feOffset dx="0" dy="2" result="offsetblur"/>
+                            <feComponentTransfer>
+                                <feFuncA type="linear" slope="0.2"/>
+                            </feComponentTransfer>
+                            <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    
+                    <text x="60" y="58" text-anchor="middle" font-family="Playfair Display, serif" font-size="36" font-weight="700" fill="#1b3559" letter-spacing="-1" filter="url(#numberShadow)">847</text>
+                    
+                    <!-- Bar chart -->
+                    <rect x="15" y="75" width="8" height="30" fill="#1b3559" rx="2"/>
+                    <rect x="28" y="65" width="8" height="40" fill="#1b3559" rx="2"/>
+                    <rect x="41" y="70" width="8" height="35" fill="#1b3559" rx="2"/>
+                    <rect x="54" y="60" width="8" height="45" fill="#0891b2" rx="2"/>
+                    <rect x="67" y="68" width="8" height="37" fill="#1b3559" rx="2"/>
+                    <rect x="80" y="72" width="8" height="33" fill="#1b3559" rx="2"/>
+                    <rect x="93" y="66" width="8" height="39" fill="#1b3559" rx="2"/>
+                    
+                    <text x="60" y="128" text-anchor="middle" font-size="8" fill="#6b7280" letter-spacing="0.5" text-transform="uppercase" font-family="system-ui, sans-serif">TOTAL LEADS</text>
+                </svg>
+            </div>
+
+            <!-- Overall Conversion -->
+            <div class="stat-card">
+                <svg viewBox="0 20 120 110" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="60" r="35" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+                    <circle cx="60" cy="60" r="35" fill="none" stroke="#f59e0b" stroke-width="8" 
+                            stroke-dasharray="49.5 219.8" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+                    
+                    <text x="60" y="58" text-anchor="middle" font-family="Playfair Display, serif" font-size="26" font-weight="700" fill="#1b3559" letter-spacing="-1" filter="url(#numberShadow)">22.3</text>
+                    <text x="60" y="72" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">%</text>
+                    
+                    <text x="60" y="128" text-anchor="middle" font-size="8" fill="#6b7280" letter-spacing="0.5" text-transform="uppercase" font-family="system-ui, sans-serif">OVERALL CONVERSION</text>
+                </svg>
+            </div>
+
+            <!-- Avg Time to Close -->
+            <div class="stat-card">
+                <svg viewBox="0 20 120 110" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="50" r="28" fill="white" opacity="0.92"/>
+                    <text x="60" y="56" text-anchor="middle" font-family="Playfair Display, serif" font-size="26" font-weight="700" fill="#1b3559" letter-spacing="-1" filter="url(#numberShadow)">13.5</text>
+                    <text x="60" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">days</text>
+                    
+                    <!-- Clock icon -->
+                    <circle cx="60" cy="95" r="12" fill="none" stroke="#0891b2" stroke-width="2"/>
+                    <line x1="60" y1="95" x2="60" y2="88" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="60" y1="95" x2="65" y2="95" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
+                    
+                    <text x="60" y="128" text-anchor="middle" font-size="8" fill="#6b7280" letter-spacing="0.5" text-transform="uppercase" font-family="system-ui, sans-serif">AVG TIME TO CLOSE</text>
+                </svg>
+            </div>
+
+            <!-- Leases Signed -->
+            <div class="stat-card">
+                <svg viewBox="0 20 120 110" xmlns="http://www.w3.org/2000/svg">
+                    <text x="60" y="58" text-anchor="middle" font-family="Playfair Display, serif" font-size="36" font-weight="700" fill="#1b3559" letter-spacing="-1" filter="url(#numberShadow)">189</text>
+                    
+                    <!-- Trend line -->
+                    <polyline points="20,80 35,75 50,78 65,70 80,68 95,65 100,63" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="100" cy="63" r="3" fill="#10b981"/>
+                    
+                    <text x="60" y="128" text-anchor="middle" font-size="8" fill="#6b7280" letter-spacing="0.5" text-transform="uppercase" font-family="system-ui, sans-serif">LEASES SIGNED</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0 1.5rem 0; padding: 1.5rem; background: white; border-radius: 12px; border: 1px solid #e5e7eb;">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <select class="form-select" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" onchange="filterByDateRange(this.value)">
+                    <option value="30">Last 30 Days</option>
+                    <option value="90">Last 90 Days</option>
+                    <option value="quarter">This Quarter</option>
+                    <option value="year">This Year</option>
+                    <option value="all">All Time</option>
+                </select>
+                
+                <select class="form-select" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" onchange="filterBySource(this.value)">
+                    <option value="">All Sources</option>
+                    <option value="referrals">Referrals</option>
+                    <option value="zillow">Zillow</option>
+                    <option value="website">Website</option>
+                    <option value="facebook">Facebook Ads</option>
+                    <option value="har">HAR</option>
+                </select>
+                
+                <select class="form-select" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" onchange="filterByAgent(this.value)">
+                    <option value="">All Agents</option>
+                    <option value="agent1">Sarah Johnson</option>
+                    <option value="agent2">Mike Chen</option>
+                    <option value="agent3">Lisa Rodriguez</option>
+                </select>
+                
+                <select class="form-select" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" onchange="filterByPropertyType(this.value)">
+                    <option value="">All Property Types</option>
+                    <option value="1br">1 Bedroom</option>
+                    <option value="2br">2 Bedroom</option>
+                    <option value="3br">3+ Bedroom</option>
+                </select>
+                
+                <button class="btn btn-outline btn-sm" onclick="clearFilters()" style="padding: 0.5rem 1rem;">Clear Filters</button>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem;">
+                <button class="btn btn-primary-consumer btn-sm" onclick="exportFunnelData()" style="padding: 0.5rem 1rem;">
+                    <span style="margin-right: 0.5rem;">↓</span> Export Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Funnel Visualization -->
+        <div style="background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 2rem; margin-bottom: 2rem;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #1b3559; margin: 0 0 1.5rem 0;">Pipeline Stages</h2>
+            
+            <!-- Stage 1: Leads Generated -->
+            <div class="funnel-stage" onclick="openStageDetail('leads-generated')">
+                <div class="stage-header">
+                    <div>
+                        <div class="stage-title">1. Leads Generated</div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Initial lead capture from all sources</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="stage-count">847</div>
+                        <div style="font-size: 0.875rem; color: #10b981; margin-top: 0.25rem;">
+                            <svg width="60" height="20" style="vertical-align: middle;">
+                                <polyline points="0,15 10,12 20,14 30,10 40,11 50,8 60,9" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="stage-metrics">
+                    <div class="metric">
+                        <div class="metric-label">Conversion to Next</div>
+                        <div class="metric-value positive">71.2%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Drop-off</div>
+                        <div class="metric-value">244 leads</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Avg Time in Stage</div>
+                        <div class="metric-value">1.2 days</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Trend</div>
+                        <div class="metric-value positive">↑ 12.3%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 2: Contacted -->
+            <div class="funnel-stage" onclick="openStageDetail('contacted')">
+                <div class="stage-header">
+                    <div>
+                        <div class="stage-title">2. Contacted</div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Lead was reached by team (first response made)</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="stage-count">603</div>
+                        <div style="font-size: 0.875rem; color: #10b981; margin-top: 0.25rem;">
+                            <svg width="60" height="20" style="vertical-align: middle;">
+                                <polyline points="0,14 10,13 20,15 30,11 40,10 50,9 60,8" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="stage-metrics">
+                    <div class="metric">
+                        <div class="metric-label">Conversion to Next</div>
+                        <div class="metric-value positive">68.5%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Drop-off</div>
+                        <div class="metric-value">190 leads</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Avg Time in Stage</div>
+                        <div class="metric-value">0.8 days</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Trend</div>
+                        <div class="metric-value positive">↑ 8.1%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 3: Showing Scheduled -->
+            <div class="funnel-stage warning" onclick="openStageDetail('showing-scheduled')">
+                <div class="stage-header">
+                    <div>
+                        <div class="stage-title">3. Showing Scheduled</div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Lead scheduled a property tour</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="stage-count">413</div>
+                        <div style="font-size: 0.875rem; color: #f59e0b; margin-top: 0.25rem;">
+                            <span class="warning-badge">⚠ Low conversion</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stage-metrics">
+                    <div class="metric">
+                        <div class="metric-label">Conversion to Next</div>
+                        <div class="metric-value negative">58.1%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Drop-off (No-shows)</div>
+                        <div class="metric-value">173 leads</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Avg Time in Stage</div>
+                        <div class="metric-value">2.1 days</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Trend</div>
+                        <div class="metric-value negative">↓ 8.5%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 4: Showing Completed -->
+            <div class="funnel-stage" onclick="openStageDetail('showing-completed')">
+                <div class="stage-header">
+                    <div>
+                        <div class="stage-title">4. Showing Completed</div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Lead attended the showing</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="stage-count">240</div>
+                        <div style="font-size: 0.875rem; color: #10b981; margin-top: 0.25rem;">
+                            <svg width="60" height="20" style="vertical-align: middle;">
+                                <polyline points="0,16 10,14 20,15 30,12 40,11 50,10 60,9" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="stage-metrics">
+                    <div class="metric">
+                        <div class="metric-label">Conversion to Next</div>
+                        <div class="metric-value positive">87.5%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Drop-off</div>
+                        <div class="metric-value">30 leads</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Avg Time in Stage</div>
+                        <div class="metric-value">0.5 days</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Trend</div>
+                        <div class="metric-value positive">↑ 5.2%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 5: Application Started -->
+            <div class="funnel-stage" onclick="openStageDetail('application-started')">
+                <div class="stage-header">
+                    <div>
+                        <div class="stage-title">5. Application Started</div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Lead began application process</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="stage-count">210</div>
+                        <div style="font-size: 0.875rem; color: #0891b2; margin-top: 0.25rem;">
+                            <svg width="60" height="20" style="vertical-align: middle;">
+                                <polyline points="0,12 10,12 20,13 30,12 40,11 50,11 60,10" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="stage-metrics">
+                    <div class="metric">
+                        <div class="metric-label">Conversion to Next</div>
+                        <div class="metric-value positive">79.0%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Drop-off</div>
+                        <div class="metric-value">44 leads</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Avg Time in Stage</div>
+                        <div class="metric-value">2.8 days</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Trend</div>
+                        <div class="metric-value">→ Stable</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 6: Application Approved -->
+            <div class="funnel-stage" onclick="openStageDetail('application-approved')">
+                <div class="stage-header">
+                    <div>
+                        <div class="stage-title">6. Application Approved</div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Application passed screening</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="stage-count">166</div>
+                        <div style="font-size: 0.875rem; color: #10b981; margin-top: 0.25rem;">
+                            <svg width="60" height="20" style="vertical-align: middle;">
+                                <polyline points="0,13 10,12 20,14 30,11 40,10 50,9 60,8" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="stage-metrics">
+                    <div class="metric">
+                        <div class="metric-label">Conversion to Next</div>
+                        <div class="metric-value positive">90.4%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Drop-off</div>
+                        <div class="metric-value">16 leads</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Avg Time in Stage</div>
+                        <div class="metric-value">6.5 days</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Trend</div>
+                        <div class="metric-value positive">↑ 4.2%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stage 7: Lease Signed -->
+            <div class="funnel-stage" style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border: 2px solid #10b981;" onclick="openStageDetail('lease-signed')">
+                <div class="stage-header">
+                    <div>
+                        <div class="stage-title" style="color: #10b981;">7. Lease Signed ✓</div>
+                        <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Deal closed, lease executed</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="stage-count" style="color: #10b981;">150</div>
+                        <div style="font-size: 0.875rem; color: #10b981; margin-top: 0.25rem;">
+                            <svg width="60" height="20" style="vertical-align: middle;">
+                                <polyline points="0,15 10,13 20,14 30,11 40,10 50,8 60,7" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="stage-metrics">
+                    <div class="metric">
+                        <div class="metric-label">Overall Conversion</div>
+                        <div class="metric-value positive">17.7%</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Total Revenue</div>
+                        <div class="metric-value">$2.1M</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Avg Lease Value</div>
+                        <div class="metric-value">$14,000</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Trend</div>
+                        <div class="metric-value positive">↑ 18.2%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time-to-Convert Metrics (existing table) -->
+        <div style="background: white; border-radius: 12px; border: 1px solid #e5e7eb; padding: 2rem; margin-bottom: 2rem;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #1b3559; margin: 0 0 1.5rem 0;">Time-to-Convert Metrics</h2>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #e5e7eb;">
+                        <th style="text-align: left; padding: 0.75rem; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Stage Transition</th>
+                        <th style="text-align: center; padding: 0.75rem; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Avg Time</th>
+                        <th style="text-align: center; padding: 0.75rem; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Median Time</th>
+                        <th style="text-align: center; padding: 0.75rem; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">90th Percentile</th>
+                        <th style="text-align: center; padding: 0.75rem; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Trend</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 1rem; font-weight: 600; color: #1b3559;">Lead → Contacted</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">1.2 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">0.8 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">2.5 days</td>
+                        <td style="padding: 1rem; text-align: center;"><span style="color: #10b981; font-weight: 600;">↓ IMPROVING</span></td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 1rem; font-weight: 600; color: #1b3559;">Contacted → Showing Scheduled</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">1.8 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">1.2 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">3.5 days</td>
+                        <td style="padding: 1rem; text-align: center;"><span style="color: #0891b2; font-weight: 600;">→ STABLE</span></td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 1rem; font-weight: 600; color: #1b3559;">Showing Scheduled → Completed</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">2.1 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">1.5 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">4.2 days</td>
+                        <td style="padding: 1rem; text-align: center;"><span style="color: #f59e0b; font-weight: 600;">↑ SLOWING</span></td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 1rem; font-weight: 600; color: #1b3559;">Showing Completed → Application</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">0.5 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">0.3 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">1.0 days</td>
+                        <td style="padding: 1rem; text-align: center;"><span style="color: #10b981; font-weight: 600;">↓ IMPROVING</span></td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 1rem; font-weight: 600; color: #1b3559;">Application → Approval</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">2.8 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">2.5 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">4.2 days</td>
+                        <td style="padding: 1rem; text-align: center;"><span style="color: #0891b2; font-weight: 600;">→ STABLE</span></td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td style="padding: 1rem; font-weight: 600; color: #1b3559;">Approval → Lease Signed</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">6.5 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">5.0 days</td>
+                        <td style="padding: 1rem; text-align: center; color: #1b3559;">12.3 days</td>
+                        <td style="padding: 1rem; text-align: center;"><span style="color: #f59e0b; font-weight: 600;">↑ SLOWING</span></td>
+                    </tr>
+                    <tr style="background: #f9fafb;">
+                        <td style="padding: 1rem; font-weight: 700; color: #1b3559;">Total: Lead → Lease</td>
+                        <td style="padding: 1rem; text-align: center; font-weight: 700; color: #1b3559;">14.9 days</td>
+                        <td style="padding: 1rem; text-align: center; font-weight: 700; color: #1b3559;">11.3 days</td>
+                        <td style="padding: 1rem; text-align: center; font-weight: 700; color: #1b3559;">28.2 days</td>
+                        <td style="padding: 1rem; text-align: center;"><span style="color: #0891b2; font-weight: 600;">→ STABLE</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- Stage Detail Modal -->
+<div id="stageDetailModal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 id="modalTitle" style="font-size: 1.5rem; font-weight: 700; color: #1b3559; margin: 0;">Stage Details</h2>
+            <button onclick="closeStageDetail()" style="background: none; border: none; font-size: 1.5rem; color: #6b7280; cursor: pointer; padding: 0.5rem;">&times;</button>
+        </div>
+        
+        <div id="modalContent">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
+            <button class="btn btn-primary-consumer" onclick="exportStageData()">Export This Stage</button>
+            <button class="btn btn-outline" onclick="viewLeadsInStage()">View in Lead Management</button>
+            <button class="btn btn-outline" onclick="closeStageDetail()">Close</button>
+        </div>
+    </div>
+</div>
+
+</div>
+</main>
+</div>
+
+<script>
+function filterByDateRange(value) {
+    console.log('Filter by date range:', value);
+    // Backend integration point
+}
+
+function filterBySource(value) {
+    console.log('Filter by source:', value);
+    // Backend integration point
+}
+
+function filterByAgent(value) {
+    console.log('Filter by agent:', value);
+    // Backend integration point
+}
+
+function filterByPropertyType(value) {
+    console.log('Filter by property type:', value);
+    // Backend integration point
+}
+
+function clearFilters() {
+    document.querySelectorAll('.form-select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+    console.log('Filters cleared');
+    // Backend integration point
+}
+
+function exportFunnelData() {
+    console.log('Exporting funnel data');
+    // Backend integration point
+}
+
+let currentStage = null;
+
+function openStageDetail(stageId) {
+    currentStage = stageId;
+    const modal = document.getElementById('stageDetailModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Stage data (would come from backend)
+    const stageData = {
+        'leads-generated': {
+            title: 'Leads Generated',
+            count: 847,
+            leads: [
+                { name: 'John Smith', source: 'Zillow', date: '2025-11-01', agent: 'Sarah Johnson' },
+                { name: 'Mary Johnson', source: 'Website', date: '2025-11-01', agent: 'Mike Chen' },
+                { name: 'Robert Davis', source: 'Referral', date: '2025-11-02', agent: 'Sarah Johnson' },
+                { name: 'Jennifer Wilson', source: 'Facebook', date: '2025-11-02', agent: 'Lisa Rodriguez' },
+                { name: 'Michael Brown', source: 'HAR', date: '2025-11-03', agent: 'Mike Chen' }
+            ]
+        },
+        'contacted': {
+            title: 'Contacted',
+            count: 603,
+            leads: [
+                { name: 'John Smith', source: 'Zillow', date: '2025-11-01', agent: 'Sarah Johnson' },
+                { name: 'Mary Johnson', source: 'Website', date: '2025-11-01', agent: 'Mike Chen' },
+                { name: 'Robert Davis', source: 'Referral', date: '2025-11-02', agent: 'Sarah Johnson' }
+            ]
+        },
+        'showing-scheduled': {
+            title: 'Showing Scheduled',
+            count: 413,
+            leads: [
+                { name: 'John Smith', source: 'Zillow', date: '2025-11-02', agent: 'Sarah Johnson' },
+                { name: 'Mary Johnson', source: 'Website', date: '2025-11-02', agent: 'Mike Chen' }
+            ]
+        },
+        'showing-completed': {
+            title: 'Showing Completed',
+            count: 240,
+            leads: [
+                { name: 'John Smith', source: 'Zillow', date: '2025-11-02', agent: 'Sarah Johnson' }
+            ]
+        },
+        'application-started': {
+            title: 'Application Started',
+            count: 210,
+            leads: [
+                { name: 'John Smith', source: 'Zillow', date: '2025-11-03', agent: 'Sarah Johnson' }
+            ]
+        },
+        'application-approved': {
+            title: 'Application Approved',
+            count: 166,
+            leads: [
+                { name: 'John Smith', source: 'Zillow', date: '2025-11-05', agent: 'Sarah Johnson' }
+            ]
+        },
+        'lease-signed': {
+            title: 'Lease Signed',
+            count: 150,
+            leads: [
+                { name: 'John Smith', source: 'Zillow', date: '2025-11-10', agent: 'Sarah Johnson' }
+            ]
+        }
+    };
+    
+    const data = stageData[stageId];
+    modalTitle.textContent = data.title;
+    
+    let leadsHTML = `
+        <div style="margin-bottom: 1rem;">
+            <div style="font-size: 0.875rem; color: #6b7280;">Showing ${Math.min(5, data.leads.length)} of ${data.count} leads in this stage</div>
+        </div>
+        <div style="max-height: 400px; overflow-y: auto;">
+    `;
+    
+    data.leads.forEach(lead => {
+        leadsHTML += `
+            <div class="lead-list-item">
+                <div>
+                    <div style="font-weight: 600; color: #1b3559;">${lead.name}</div>
+                    <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">Source: ${lead.source} • Agent: ${lead.agent}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 0.875rem; color: #6b7280;">${lead.date}</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    leadsHTML += '</div>';
+    modalContent.innerHTML = leadsHTML;
+    modal.classList.add('active');
+}
+
+function closeStageDetail() {
+    const modal = document.getElementById('stageDetailModal');
+    modal.classList.remove('active');
+    currentStage = null;
+}
+
+function exportStageData() {
+    console.log('Exporting stage data for:', currentStage);
+    // Backend integration point
+}
+
+function viewLeadsInStage() {
+    console.log('Viewing leads in stage:', currentStage);
+    // Navigate to lead management page with filter
+    window.location.href = `/admin/leads?stage=${currentStage}`;
+}
+
+// Close modal when clicking outside
+document.getElementById('stageDetailModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeStageDetail();
+    }
+});
+</script>
+
+</body>
+</html>
