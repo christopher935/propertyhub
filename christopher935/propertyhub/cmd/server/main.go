@@ -28,7 +28,7 @@ import (
 )
 
 func main() {
-        log.Println("🚀 Starting PropertyHub Enterprise System...")
+        log.Println("🚀 Starting PropertyHub Enterprise System v2.0...")
 
         // Load enterprise configuration
         cfg := config.LoadConfig()
