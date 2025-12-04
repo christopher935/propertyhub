@@ -23,7 +23,6 @@ jobs:
           go-version: '1.22'
 
       - name: Build PropertyHub for Linux
-        working-directory: ./christopher935/propertyhub
         run: |
           echo "🔨 Building PropertyHub..."
           GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build \
@@ -48,11 +47,11 @@ jobs:
           echo "📤 Uploading to droplet (209.38.116.238)..."
           
           # Upload new binary
-          scp -i ~/.ssh/deploy_key christopher935/propertyhub/propertyhub root@209.38.116.238:/opt/propertyhub/propertyhub.new
+          scp -i ~/.ssh/deploy_key propertyhub root@209.38.116.238:/opt/propertyhub/propertyhub.new
           
           # Upload web folder (templates, CSS, JS)
-          scp -i ~/.ssh/deploy_key -r christopher935/propertyhub/web/templates root@209.38.116.238:/opt/propertyhub/web/
-          scp -i ~/.ssh/deploy_key -r christopher935/propertyhub/web/static root@209.38.116.238:/opt/propertyhub/web/
+          scp -i ~/.ssh/deploy_key -r web/templates root@209.38.116.238:/opt/propertyhub/web/
+          scp -i ~/.ssh/deploy_key -r web/static root@209.38.116.238:/opt/propertyhub/web/
           
           echo "✅ Upload complete"
 
