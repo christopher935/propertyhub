@@ -220,6 +220,9 @@ log.Println("🔗 Webhook handlers initialized")
 	emailService := services.NewEmailService()
 	propertyAlertsHandler := handlers.NewPropertyAlertsHandler(gormDB, emailService)
 	log.Println("🔔 Property alerts handler initialized")
+	
+	liveActivityHandler := handlers.NewLiveActivityHandler(gormDB)
+	log.Println("📡 Live activity handler initialized")
 
 	log.Println("✅ All enterprise handlers initialized successfully")
 
@@ -246,6 +249,7 @@ log.Println("🔗 Webhook handlers initialized")
 		SavedProperties:       savedPropertiesHandler,
 		Recommendations:       recommendationsHandler,
 		PropertyAlerts:        propertyAlertsHandler,
+		LiveActivity:          liveActivityHandler,
 		SecurityMonitoring:    securityMonitoringHandler,
 		AdvancedSecurityAPI:   advancedSecurityAPIHandler,
 		Webhook:               webhookHandler,

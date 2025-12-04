@@ -52,6 +52,7 @@ type AllHandlers struct {
 	SavedProperties       *handlers.SavedPropertiesHandler
 	Recommendations       *handlers.RecommendationsHandler
 	PropertyAlerts        *handlers.PropertyAlertsHandler
+	LiveActivity          *handlers.LiveActivityHandler
 
 	// Security
 	SecurityMonitoring    *handlers.SecurityMonitoringHandlers
