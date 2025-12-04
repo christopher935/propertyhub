@@ -30,7 +30,7 @@ func RegisterHealthRoutes(r *gin.Engine, gormDB *gorm.DB, authManager *auth.Simp
 	})
 
 	r.Use(gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
-		c.HTML(500, "error.html", gin.H{
+		c.HTML(500, "500.html", gin.H{
 			"Title": "Server Error",
 			"Error": recovered,
 		})
