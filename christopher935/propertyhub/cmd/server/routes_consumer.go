@@ -30,13 +30,13 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers) {
 		})
 	})
 	r.GET("/properties", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "properties-grid.html", gin.H{"Title": "Properties"})
+		c.HTML(http.StatusOK, "consumer/properties/properties-grid.html", gin.H{"Title": "Properties"})
 	})
 	r.GET("/saved-properties", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "saved-properties.html", gin.H{"Title": "Saved Properties"})
+		c.HTML(http.StatusOK, "consumer/properties/saved-properties.html", gin.H{"Title": "Saved Properties"})
 	})
 	r.GET("/property-alerts", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "property-alerts.html", gin.H{"Title": "Property Alerts"})
+		c.HTML(http.StatusOK, "consumer/properties/property-alerts.html", gin.H{"Title": "Property Alerts"})
 	})
 	r.GET("/property/:id", func(c *gin.Context) {
 		propertyID := c.Param("id")
@@ -58,7 +58,7 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers) {
 			property.Price+500,
 		).Limit(3).Find(&similarProperties)
 
-		c.HTML(http.StatusOK, "property-detail.html", gin.H{
+		c.HTML(http.StatusOK, "consumer/properties/property-detail.html", gin.H{
 			"Property":          property,
 			"DaysOnMarket":      daysOnMarket,
 			"SimilarProperties": similarProperties,
@@ -72,55 +72,55 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers) {
 		})
 	})
 	r.GET("/book-showing", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "book-showing.html", gin.H{"Title": "Book Showing"})
+		c.HTML(http.StatusOK, "consumer/bookings/book-showing.html", gin.H{"Title": "Book Showing"})
 	})
 	r.GET("/booking-confirmation", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "booking-confirmation.html", gin.H{"Title": "Booking Confirmed"})
+		c.HTML(http.StatusOK, "consumer/bookings/booking-confirmation.html", gin.H{"Title": "Booking Confirmed"})
 	})
 	r.GET("/contact", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "contact.html", gin.H{"Title": "Contact"})
+		c.HTML(http.StatusOK, "consumer/info/contact.html", gin.H{"Title": "Contact"})
 	})
 	r.GET("/about", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "about.html", gin.H{"Title": "About"})
+		c.HTML(http.StatusOK, "consumer/info/about.html", gin.H{"Title": "About"})
 	})
 
 	// Booking routes
 	r.GET("/booking", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "booking.html", gin.H{"Title": "Booking"})
+		c.HTML(http.StatusOK, "consumer/bookings/booking.html", gin.H{"Title": "Booking"})
 	})
 
 	r.GET("/manage-booking", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "manage-booking.html", gin.H{"Title": "Manage Booking"})
+		c.HTML(http.StatusOK, "consumer/bookings/manage-booking.html", gin.H{"Title": "Manage Booking"})
 	})
 
 	// Error pages
 	r.GET("/403", func(c *gin.Context) {
-		c.HTML(http.StatusForbidden, "403.html", gin.H{
+		c.HTML(http.StatusForbidden, "errors/403.html", gin.H{
 			"Title": "403 Forbidden",
 		})
 	})
 
 	r.GET("/404", func(c *gin.Context) {
-		c.HTML(http.StatusNotFound, "404.html", gin.H{"Title": "Page Not Found"})
+		c.HTML(http.StatusNotFound, "errors/404.html", gin.H{"Title": "Page Not Found"})
 	})
 	r.GET("/500", func(c *gin.Context) {
-		c.HTML(http.StatusInternalServerError, "500.html", gin.H{"Title": "Server Error"})
+		c.HTML(http.StatusInternalServerError, "errors/500.html", gin.H{"Title": "Server Error"})
 	})
 	r.GET("/503", func(c *gin.Context) {
-		c.HTML(http.StatusServiceUnavailable, "503.html", gin.H{"Title": "Service Unavailable"})
+		c.HTML(http.StatusServiceUnavailable, "errors/503.html", gin.H{"Title": "Service Unavailable"})
 	})
 
 	// Legal pages
 	r.GET("/terms", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "terms-of-service.html", gin.H{"Title": "Terms of Service"})
+		c.HTML(http.StatusOK, "consumer/legal/terms-of-service.html", gin.H{"Title": "Terms of Service"})
 	})
 	r.GET("/privacy", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "privacy-policy.html", gin.H{"Title": "Privacy Policy"})
+		c.HTML(http.StatusOK, "consumer/legal/privacy-policy.html", gin.H{"Title": "Privacy Policy"})
 	})
 
 	// Sitemap
 	r.GET("/sitemap", func(c *gin.Context) {
-		c.HTML(200, "sitemap.html", gin.H{"Title": "Sitemap"})
+		c.HTML(200, "consumer/info/sitemap.html", gin.H{"Title": "Sitemap"})
 	})
 	r.GET("/unsubscribe/error", func(c *gin.Context) {
 		c.HTML(200, "unsubscribe_error.html", gin.H{"Title": "Unsubscribe Error"})
