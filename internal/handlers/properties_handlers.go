@@ -864,3 +864,73 @@ func (h *PropertiesHandler) GetPropertiesGin(c *gin.Context) {
 		"stats": stats,
 	})
 }
+
+func (h *PropertiesHandler) SearchPropertiesPost(c *gin.Context) {
+	var searchReq struct {
+		Search       string   `json:"search"`
+		City         string   `json:"city"`
+		MinPrice     *float64 `json:"min_price"`
+		MaxPrice     *float64 `json:"max_price"`
+		Bedrooms     *int     `json:"bedrooms"`
+		Bathrooms    *float64 `json:"bathrooms"`
+		PropertyType string   `json:"property_type"`
+		Page         int      `json:"page"`
+		Limit        int      `json:"limit"`
+	}
+	
+	if err := c.ShouldBindJSON(&searchReq); err != nil {
+		searchReq.Page = 1
+		searchReq.Limit = 20
+	}
+	
+	if searchReq.Page < 1 {
+		searchReq.Page = 1
+	}
+	if searchReq.Limit < 1 || searchReq.Limit > 100 {
+		searchReq.Limit = 20
+	}
+	
+	query := h.db.Model(&models.Property{}).Where("status = ?", "active")
+	
+	if searchReq.City != "" {
+		query = query.Where("city ILIKE ?", "%"+searchReq.City+"%")
+	}
+	if searchReq.MinPrice != nil {
+		query = query.Where("price >= ?", *searchReq.MinPrice)
+	}
+	if searchReq.MaxPrice != nil {
+		query = query.Where("price <= ?", *searchReq.MaxPrice)
+	}
+	if searchReq.Bedrooms != nil {
+		query = query.Where("bedrooms >= ?", *searchReq.Bedrooms)
+	}
+	if searchReq.Bathrooms != nil {
+		query = query.Where("bathrooms >= ?", *searchReq.Bathrooms)
+	}
+	if searchReq.PropertyType != "" {
+		query = query.Where("property_type = ?", searchReq.PropertyType)
+	}
+	if searchReq.Search != "" {
+		searchTerm := "%"+searchReq.Search+"%"
+		query = query.Where("address ILIKE ? OR description ILIKE ? OR city ILIKE ?", 
+			searchTerm, searchTerm, searchTerm)
+	}
+	
+	var total int64
+	query.Count(&total)
+	
+	var properties []models.Property
+	offset := (searchReq.Page - 1) * searchReq.Limit
+	query.Order("created_at DESC").Limit(searchReq.Limit).Offset(offset).Find(&properties)
+	
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"properties": properties,
+		"pagination": gin.H{
+			"current_page": searchReq.Page,
+			"total_pages":  (total + int64(searchReq.Limit) - 1) / int64(searchReq.Limit),
+			"total_count":  total,
+			"per_page":     searchReq.Limit,
+		},
+	})
+}

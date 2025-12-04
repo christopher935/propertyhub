@@ -150,6 +150,7 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	
 	// Properties API
 	api.GET("/properties", h.Properties.GetPropertiesGin)
+	api.POST("/properties/search", h.Properties.SearchPropertiesPost)
 	
 	// Saved Properties API (Consumer Feature)
 	api.POST("/properties/save", h.SavedProperties.SaveProperty)
