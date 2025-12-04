@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Alerts | Landlords of Texas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/design-tokens.css">
+    <link rel="stylesheet" href="/static/css/scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components.css">
+</head>
+<body class="scout-consumer-layout">
+
+<header class="header">
+    <nav class="nav container">
+        <a href="/" class="logo">
+            <div class="logo-icon">🏠</div>
+            Landlords of Texas
+        </a>
+        <div class="nav-menu">
+            <a href="/properties" class="nav-link">Properties</a>
+            <a href="/property-alerts" class="nav-link active">Alerts</a>
+        </div>
+    </nav>
+</header>
+
+<main class="main-content">
+    <div class="container" style="max-width:700px;">
+        <div class="page-header" style="padding:60px 0 40px;">
+            <h1 class="text-heading-1 text-navy mb-2">Property Alerts</h1>
+            <p class="text-body text-gray-600">Get notified when new properties match your criteria</p>
+        </div>
+
+        <form id="alertForm" style="background:white;padding:32px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+            <div class="form-group" style="margin-bottom:24px;">
+                <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Email Address *</label>
+                <input type="email" id="email" required style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;font-size:16px;">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+                <div class="form-group">
+                    <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Min Price</label>
+                    <input type="number" id="minPrice" placeholder="$0" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+                </div>
+                <div class="form-group">
+                    <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Max Price</label>
+                    <input type="number" id="maxPrice" placeholder="Any" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+                <div class="form-group">
+                    <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Min Bedrooms</label>
+                    <select id="minBedrooms" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+                        <option value="0">Any</option>
+                        <option value="1">1+</option>
+                        <option value="2">2+</option>
+                        <option value="3">3+</option>
+                        <option value="4">4+</option>
+                        <option value="5">5+</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Min Bathrooms</label>
+                    <select id="minBathrooms" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+                        <option value="0">Any</option>
+                        <option value="1">1+</option>
+                        <option value="1.5">1.5+</option>
+                        <option value="2">2+</option>
+                        <option value="2.5">2.5+</option>
+                        <option value="3">3+</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Preferred Cities</label>
+                <input type="text" id="cities" placeholder="e.g., Houston, Austin, Dallas" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+                <p style="font-size:13px;color:#6b7280;margin-top:4px;">Comma-separated list</p>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Property Types</label>
+                <div style="display:flex;flex-wrap:wrap;gap:12px;">
+                    <label style="display:flex;align-items:center;gap:6px;">
+                        <input type="checkbox" class="property-type-check" value="Single Family"> Single Family
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;">
+                        <input type="checkbox" class="property-type-check" value="Apartment"> Apartment
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;">
+                        <input type="checkbox" class="property-type-check" value="Condo"> Condo
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;">
+                        <input type="checkbox" class="property-type-check" value="Townhouse"> Townhouse
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:32px;">
+                <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Alert Frequency</label>
+                <select id="frequency" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+                    <option value="instant">Instant (as soon as new properties are listed)</option>
+                    <option value="daily">Daily Digest</option>
+                    <option value="weekly">Weekly Summary</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;margin-right:8px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                </svg>
+                Save Alert Preferences
+            </button>
+        </form>
+
+        <div id="successMessage" style="display:none;background:#d1fae5;color:#065f46;padding:16px;border-radius:8px;margin-top:20px;text-align:center;font-weight:600;">
+            ✅ Alert preferences saved! You'll receive notifications for matching properties.
+        </div>
+    </div>
+</main>
+
+<script>
+document.getElementById('alertForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const propertyTypes = Array.from(document.querySelectorAll('.property-type-check:checked'))
+        .map(cb => cb.value).join(',');
+    
+    const preferences = {
+        email: document.getElementById('email').value,
+        session_id: localStorage.getItem('property_session_id'),
+        min_price: parseFloat(document.getElementById('minPrice').value) || 0,
+        max_price: parseFloat(document.getElementById('maxPrice').value) || 0,
+        min_bedrooms: parseInt(document.getElementById('minBedrooms').value) || 0,
+        min_bathrooms: parseFloat(document.getElementById('minBathrooms').value) || 0,
+        preferred_cities: document.getElementById('cities').value,
+        property_types: propertyTypes,
+        alert_frequency: document.getElementById('frequency').value,
+        active: true
+    };
+    
+    try {
+        const response = await fetch('/api/v1/alerts/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(preferences)
+        });
+        
+        if (response.ok) {
+            document.getElementById('successMessage').style.display = 'block';
+            setTimeout(() => {
+                window.location.href = '/properties';
+            }, 2000);
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.error || 'Failed to save preferences'));
+        }
+    } catch (error) {
+        console.error('Error saving preferences:', error);
+        alert('Failed to save alert preferences. Please try again.');
+    }
+});
+
+async function loadExistingPreferences() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get('email');
+    
+    if (!email) return;
+    
+    try {
+        const response = await fetch(`/api/v1/alerts/preferences?email=${encodeURIComponent(email)}`);
+        if (response.ok) {
+            const data = await response.json();
+            const pref = data.preferences;
+            
+            document.getElementById('email').value = pref.email;
+            document.getElementById('minPrice').value = pref.min_price || '';
+            document.getElementById('maxPrice').value = pref.max_price || '';
+            document.getElementById('minBedrooms').value = pref.min_bedrooms || 0;
+            document.getElementById('minBathrooms').value = pref.min_bathrooms || 0;
+            document.getElementById('cities').value = pref.preferred_cities || '';
+            document.getElementById('frequency').value = pref.alert_frequency || 'instant';
+            
+            if (pref.property_types) {
+                const types = pref.property_types.split(',');
+                types.forEach(type => {
+                    const checkbox = document.querySelector(`.property-type-check[value="${type.trim()}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error loading preferences:', error);
+    }
+}
+
+loadExistingPreferences();
+</script>
+
+</body>
+</html>
