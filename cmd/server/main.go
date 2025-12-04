@@ -335,9 +335,11 @@ log.Println("🔗 Webhook handlers initialized")
                 },
         })
 
-        // Load all templates including components
-        // Load all templates
-        r.LoadHTMLGlob("web/templates/**/*.html")
+        // Load all templates including components  
+        // Load templates at each nesting level (Go doesn't support ** recursion)
+        r.LoadHTMLGlob("web/templates/*/*.html")
+        r.LoadHTMLGlob("web/templates/*/*/*.html")
+        r.LoadHTMLGlob("web/templates/*/*/*/*.html")
         r.Static("/static", "./web/static")
 
         // Enterprise security middleware (exclude static files)
