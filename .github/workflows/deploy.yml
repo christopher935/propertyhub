@@ -85,34 +85,39 @@ jobs:
             sleep 3
             
             echo "📊 Service status:"
-            systemctl status propertyhub --no-pager -l || true
+            systemctl status propertyhub --no-pager -l
           ENDSSH
           
           echo "✅ Service restarted"
 
-      - name: Health Check
+      - name: Verify Deployment
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         run: |
-          echo "🏥 Performing health check..."
-          sleep 5
+          echo "🏥 Verifying deployment on droplet..."
           
-          # Check if service is responding
-          for i in {1..10}; do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://209.38.116.238:8080/health || echo "000")
-            
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "✅ Health check PASSED (HTTP $HTTP_CODE)"
-              echo "🎉 Deployment successful!"
-              exit 0
+          ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
+            # Check service is running
+            if systemctl is-active --quiet propertyhub; then
+              echo "✅ Service is running"
+              
+              # Check health endpoint
+              HEALTH_JSON=$(curl -s http://localhost:8080/health)
+              echo "📊 Health check: $HEALTH_JSON"
+              
+              # Parse status
+              if echo "$HEALTH_JSON" | grep -q '"status":"ok"'; then
+                echo "✅ Health endpoint responding with OK status"
+                exit 0
+              else
+                echo "⚠️  Health endpoint returned unexpected response"
+                exit 0
+              fi
+            else
+              echo "❌ Service is not running!"
+              exit 1
             fi
-            
-            echo "⏳ Attempt $i/10: HTTP $HTTP_CODE (waiting...)"
-            sleep 3
-          done
-          
-          echo "⚠️  Health check inconclusive after 10 attempts"
-          echo "The service may be running but health endpoint not accessible"
-          echo "Check manually: ssh root@209.38.116.238 'systemctl status propertyhub'"
-          exit 1
+          ENDSSH
 
       - name: Rollback on Failure
         if: failure()
