@@ -145,17 +145,17 @@ func (h *RecommendationsHandler) extractUserPreferences(events []models.Behavior
 	typeViews := make(map[string]int)
 	
 	for _, event := range events {
-		if event.EventName == "property_viewed" || event.EventName == "property_detail_view" {
-			if price, ok := event.Properties["price"].(float64); ok {
+		if event.EventType == "viewed" || event.EventType == "property_viewed" {
+			if price, ok := event.EventData["price"].(float64); ok {
 				totalPrice += price
 				priceCount++
 			}
 			
-			if city, ok := event.Properties["city"].(string); ok {
+			if city, ok := event.EventData["city"].(string); ok {
 				cityViews[city]++
 			}
 			
-			if propType, ok := event.Properties["property_type"].(string); ok {
+			if propType, ok := event.EventData["property_type"].(string); ok {
 				typeViews[propType]++
 			}
 		}
@@ -249,13 +249,15 @@ func (h *RecommendationsHandler) GetSimilarProperties(c *gin.Context) {
 	}
 	
 	var similarProperties []models.Property
+	minPrice := property.Price * 0.8
+	maxPrice := property.Price * 1.2
 	h.db.Where("city = ? AND id != ? AND price BETWEEN ? AND ? AND property_type = ?",
 		property.City,
 		property.ID,
-		property.Price*0.8,
-		property.Price*1.2,
+		minPrice,
+		maxPrice,
 		property.PropertyType,
-	).Order("ABS(price - ?) ASC", property.Price).
+	).Order("created_at DESC").
 		Limit(6).
 		Find(&similarProperties)
 	
