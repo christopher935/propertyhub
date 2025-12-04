@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Successful - PropertyHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/css/design-tokens.css">
+    <link rel="stylesheet" href="/static/css/scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components.css">
+</head>
+<body class="consumer-confirmation-page">
+
+<header class="consumer-header">
+    <div class="container">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <svg class="logo-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                <span class="logo-text">Landlords of Texas</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="consumer-main-content">
+    <div class="confirmation-container">
+        <div class="confirmation-icon">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
+        </div>
+
+        <div class="confirmation-content">
+            <h1 class="confirmation-title">Registration Successful!</h1>
+            <p class="confirmation-message">
+                Thank you for creating an account with PropertyHub. We've sent a verification email to your inbox.
+            </p>
+        </div>
+
+        <div class="next-steps-card">
+            <h2 class="next-steps-title">What's next?</h2>
+            <div class="next-steps-list">
+                <div class="next-step-item">
+                    <div class="next-step-number">1</div>
+                    <div class="next-step-content">
+                        <h3 class="next-step-heading">Check your email</h3>
+                        <p class="next-step-description">Click the verification link to activate your account</p>
+                    </div>
+                </div>
+
+                <div class="next-step-item">
+                    <div class="next-step-number">2</div>
+                    <div class="next-step-content">
+                        <h3 class="next-step-heading">Complete your profile</h3>
+                        <p class="next-step-description">Add your preferences to help us find the perfect property</p>
+                    </div>
+                </div>
+
+                <div class="next-step-item">
+                    <div class="next-step-number">3</div>
+                    <div class="next-step-content">
+                        <h3 class="next-step-heading">Start browsing</h3>
+                        <p class="next-step-description">Explore available properties and schedule showings</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="confirmation-actions">
+            <a href="/properties" class="btn btn-primary-consumer btn-lg">Browse Properties</a>
+            <a href="/login" class="btn btn-outline btn-lg">Sign In Now</a>
+        </div>
+
+        <div class="help-section">
+            <p class="help-text">Didn't receive the email?</p>
+            <button class="btn btn-link" onclick="resendVerification()">Resend verification email</button>
+        </div>
+    </div>
+</main>
+
+<footer class="consumer-footer">
+    <div class="consumer-footer-content">
+        <p>&copy; 2025 PropertyHub. All rights reserved.</p>
+        <div class="consumer-footer-links">
+            <a href="/privacy-policy">Privacy Policy</a>
+            <a href="/terms-of-service">Terms of Service</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+function resendVerification() {
+    console.log('Resending verification email');
+}
+</script>
+
+</body>
+</html>
