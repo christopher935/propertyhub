@@ -167,6 +167,11 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/alerts/preferences", h.PropertyAlerts.GetAlertPreferences)
 	api.PUT("/alerts/preferences", h.PropertyAlerts.UpdateAlertPreferences)
 	api.POST("/alerts/unsubscribe", h.PropertyAlerts.UnsubscribeFromAlerts)
+	
+	// Live Activity API (Admin Real-Time)
+	api.GET("/admin/live-activity", h.LiveActivity.GetLiveActivity)
+	api.GET("/admin/active-sessions", h.LiveActivity.GetActiveSessions)
+	api.GET("/admin/session/:id", h.LiveActivity.GetSessionDetails)
 
 	// Pre-listing API
 	api.GET("/pre-listing/valuation/:id", h.PreListing.GetPropertyValuation)
