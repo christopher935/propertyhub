@@ -24,11 +24,11 @@ jobs:
           echo "🔨 Building PropertyHub..."
           GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build \
             -ldflags="-w -s -X main.Version=${{ github.sha }} -X main.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            -o propertyhub \
+            -o propertyhub-server \
             ./cmd/server
           
-          chmod +x propertyhub
-          ls -lh propertyhub
+          chmod +x propertyhub-server
+          ls -lh propertyhub-server
           echo "✅ Build complete"
 
       - name: Deploy to Digital Ocean
@@ -50,7 +50,7 @@ jobs:
           ENDSSH
           
           echo "📤 Uploading fresh files to droplet..."
-          scp -i ~/.ssh/deploy_key propertyhub root@209.38.116.238:/opt/propertyhub/propertyhub.new
+          scp -i ~/.ssh/deploy_key propertyhub-server root@209.38.116.238:/opt/propertyhub/propertyhub-server.new
           scp -i ~/.ssh/deploy_key -r web/templates root@209.38.116.238:/opt/propertyhub/web/
           scp -i ~/.ssh/deploy_key -r web/static root@209.38.116.238:/opt/propertyhub/web/
           
@@ -84,8 +84,8 @@ jobs:
             rm -f propertyhub.backup.* 2>/dev/null || true
             
             echo "📦 Installing new binary..."
-            mv propertyhub.new propertyhub
-            chmod +x propertyhub
+            mv propertyhub-server.new propertyhub-server
+            chmod +x propertyhub-server
             
             echo "🔄 Restarting service..."
             systemctl restart propertyhub
