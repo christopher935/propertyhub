@@ -79,18 +79,23 @@ jobs:
           echo "🔄 Deploying application..."
           ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
             cd /opt/propertyhub
-            [ -f propertyhub ] && cp propertyhub propertyhub.backup.$(date +%Y%m%d_%H%M%S)
-            ls -t propertyhub.backup.* 2>/dev/null | tail -n +6 | xargs rm -f || true
+            
+            echo "🗑️ Removing ALL old backup binaries (they contain bugs)..."
+            rm -f propertyhub.backup.* 2>/dev/null || true
+            
+            echo "📦 Installing new binary..."
             mv propertyhub.new propertyhub
             chmod +x propertyhub
+            
+            echo "🔄 Restarting service..."
             systemctl restart propertyhub
-            sleep 5
+            sleep 8
             
             echo "📋 Server status:"
             systemctl status propertyhub --no-pager || true
             
-            echo "📋 Last 50 lines of server logs:"
-            journalctl -u propertyhub -n 50 --no-pager || true
+            echo "📋 Last 30 lines of server logs:"
+            journalctl -u propertyhub -n 30 --no-pager || true
           ENDSSH
           
           echo "✅ Deployed and restarted"
@@ -111,18 +116,19 @@ jobs:
           echo "❌ Health check failed after 10 attempts"
           exit 1
 
-      - name: Rollback on Failure
-        if: failure()
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
-        run: |
-          echo "🔄 Rolling back..."
-          ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
-            cd /opt/propertyhub
-            LATEST=$(ls -t propertyhub.backup.* 2>/dev/null | head -n 1)
-            if [ -n "$LATEST" ]; then
-              cp $LATEST propertyhub
-              systemctl restart propertyhub
-              echo "✅ Rolled back to previous version"
-            fi
-          ENDSSH
+      # DISABLED - rollback was restoring buggy old binaries
+      # - name: Rollback on Failure
+      #   if: failure()
+      #   env:
+      #     SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+      #   run: |
+      #     echo "🔄 Rolling back..."
+      #     ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
+      #       cd /opt/propertyhub
+      #       LATEST=$(ls -t propertyhub.backup.* 2>/dev/null | head -n 1)
+      #       if [ -n "$LATEST" ]; then
+      #         cp $LATEST propertyhub
+      #         systemctl restart propertyhub
+      #         echo "✅ Rolled back to previous version"
+      #       fi
+      #     ENDSSH
