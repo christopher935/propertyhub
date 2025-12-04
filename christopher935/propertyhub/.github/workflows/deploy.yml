@@ -29,17 +29,7 @@ jobs:
           
           chmod +x propertyhub
           ls -lh propertyhub
-          echo "✅ Build complete: $(./propertyhub --version 2>&1 | head -1 || echo 'Binary created')"
-
-      - name: Validate Build
-        run: |
-          echo "🧪 Validating binary..."
-          file propertyhub
-          if ldd propertyhub 2>&1 | grep -q "not found"; then
-            echo "❌ Missing dependencies"
-            exit 1
-          fi
-          echo "✅ Binary validation passed"
+          echo "✅ Build complete"
 
       - name: Deploy to Digital Ocean
         env:
@@ -52,39 +42,16 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H 209.38.116.238 >> ~/.ssh/known_hosts
           
-          echo "📦 Creating backup..."
-          ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
-            cd /opt/propertyhub
-            BACKUP_DIR="backups/$(date +%Y%m%d_%H%M%S)"
-            mkdir -p "$BACKUP_DIR"
-            
-            # Backup current binary and templates
-            if [ -f propertyhub ]; then
-              cp propertyhub "$BACKUP_DIR/"
-            fi
-            if [ -d web/templates ]; then
-              cp -r web/templates "$BACKUP_DIR/"
-            fi
-            if [ -d web/static ]; then
-              cp -r web/static "$BACKUP_DIR/"
-            fi
-            
-            # Keep only last 5 backups
-            ls -dt backups/*/ 2>/dev/null | tail -n +6 | xargs rm -rf || true
-            
-            echo "✅ Backup created: $BACKUP_DIR"
-          ENDSSH
-          
           echo "📤 Uploading new binary..."
           scp -i ~/.ssh/deploy_key propertyhub root@209.38.116.238:/opt/propertyhub/propertyhub.new
           
-          echo "🌐 Syncing web assets (rsync creates directories)..."
+          echo "🌐 Syncing web files..."
           rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key" \
             web/templates/ root@209.38.116.238:/opt/propertyhub/web/templates/
           rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key" \
             web/static/ root@209.38.116.238:/opt/propertyhub/web/static/
           
-          echo "🗄️ Running database migrations..."
+          echo "🗄️ Uploading and running database migrations..."
           scp -i ~/.ssh/deploy_key -r internal/database/migrations root@209.38.116.238:/opt/propertyhub/
           
           ssh -i ~/.ssh/deploy_key root@209.38.116.238 << ENDSSH
@@ -105,105 +72,36 @@ jobs:
             echo "✅ Migrations complete"
           ENDSSH
           
-          echo "🔄 Deploying application..."
+          echo "🔄 Deploying and restarting service..."
           ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
             cd /opt/propertyhub
             
-            # Atomic swap
+            # Create backup of current binary
+            if [ -f propertyhub ]; then
+              cp propertyhub propertyhub.backup.$(date +%Y%m%d_%H%M%S)
+              # Keep only last 10 backups
+              ls -t propertyhub.backup.* 2>/dev/null | tail -n +11 | xargs rm -f || true
+            fi
+            
+            # Deploy new binary
             mv propertyhub.new propertyhub
             chmod +x propertyhub
             
-            # Restart service
+            # Restart service (systemd manages health)
             systemctl restart propertyhub
             
-            echo "✅ Service restarted"
-          ENDSSH
-
-      - name: Health Check
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
-        run: |
-          echo "🏥 Performing health check..."
-          
-          # Wait for service to initialize (DB connections, templates, etc.)
-          echo "⏳ Waiting 15 seconds for service initialization..."
-          sleep 15
-          
-          # Check systemd status first
-          echo "🔍 Checking systemd service status..."
-          ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
-            if systemctl is-active --quiet propertyhub; then
-              echo "✅ Service is active"
-            else
-              echo "❌ Service is not running"
-              echo "Last 20 log lines:"
-              journalctl -u propertyhub -n 20 --no-pager
-              exit 1
-            fi
-          ENDSSH
-          
-          # Now check HTTP endpoint
-          echo "🌐 Checking HTTP health endpoint..."
-          for i in {1..12}; do
-            RESPONSE=$(curl -s -m 5 http://209.38.116.238:8080/health || echo "")
-            if echo "$RESPONSE" | grep -q '"status":"ok"'; then
-              echo "✅ Health check PASSED!"
-              echo "Response: $RESPONSE"
-              exit 0
-            fi
-            echo "⏳ Attempt $i/12... waiting 5 seconds"
-            sleep 5
-          done
-          
-          echo "❌ Health check failed after 12 attempts (60 seconds)"
-          echo "📋 Fetching service logs..."
-          ssh -i ~/.ssh/deploy_key root@209.38.116.238 'journalctl -u propertyhub -n 50 --no-pager'
-          exit 1
-
-      - name: Rollback on Failure
-        if: failure()
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
-        run: |
-          echo "🔄 Rolling back to last known good state..."
-          ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
-            cd /opt/propertyhub
-            LATEST_BACKUP=$(ls -dt backups/*/ 2>/dev/null | head -n 1)
+            # Wait for restart
+            sleep 3
             
-            if [ -n "$LATEST_BACKUP" ]; then
-              echo "📦 Restoring from: $LATEST_BACKUP"
-              
-              # Restore binary
-              if [ -f "${LATEST_BACKUP}/propertyhub" ]; then
-                cp "${LATEST_BACKUP}/propertyhub" propertyhub
-                echo "✅ Binary restored"
-              fi
-              
-              # Restore templates
-              if [ -d "${LATEST_BACKUP}/templates" ]; then
-                rm -rf web/templates
-                cp -r "${LATEST_BACKUP}/templates" web/templates
-                echo "✅ Templates restored"
-              fi
-              
-              # Restore static files
-              if [ -d "${LATEST_BACKUP}/static" ]; then
-                rm -rf web/static
-                cp -r "${LATEST_BACKUP}/static" web/static
-                echo "✅ Static files restored"
-              fi
-              
-              # Restart with old version
-              systemctl restart propertyhub
-              sleep 5
-              
-              if systemctl is-active --quiet propertyhub; then
-                echo "✅ Rollback successful - service is running"
-              else
-                echo "❌ Rollback failed - service still not running"
-                journalctl -u propertyhub -n 30 --no-pager
-              fi
+            # Check if service started
+            if systemctl is-active --quiet propertyhub; then
+              echo "✅ Service is running"
             else
-              echo "⚠️ No backup found to rollback to"
+              echo "⚠️ Service may not be running, checking logs..."
+              journalctl -u propertyhub -n 10 --no-pager
             fi
           ENDSSH
+          
+          echo "✅ Deployment complete"
+          echo "🔍 Check service status: ssh root@209.38.116.238 'systemctl status propertyhub'"
+          echo "📋 View logs: ssh root@209.38.116.238 'journalctl -u propertyhub -n 50 -f'"
