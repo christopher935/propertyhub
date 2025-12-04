@@ -1,0 +1,111 @@
+<!-- Quick View Modal - Pattern 3: Hybrid Quick View -->
+<!-- This modal shows essential property info with option to view full details -->
+<div id="quick-view-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-container quick-view-modal">
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <h2 class="modal-title text-heading-2 text-navy">Quick View</h2>
+            <button class="modal-close" onclick="closeQuickView()" aria-label="Close modal">
+                <svg class="svg-sprite" width="24" height="24"><use href="#icon-x"></use></svg>
+            </button>
+        </div>
+
+        <!-- Modal Content -->
+        <div class="modal-content">
+            <!-- Image Gallery -->
+            <div class="quick-view-gallery">
+                <div class="gallery-main">
+                    <img id="qv-main-image" src="" alt="Property" class="gallery-main-image">
+                    <button class="gallery-nav gallery-nav-prev" onclick="prevImage()" aria-label="Previous image">
+                        <svg width="24" height="24"><use href="#icon-chevron-left"></use></svg>
+                    </button>
+                    <button class="gallery-nav gallery-nav-next" onclick="nextImage()" aria-label="Next image">
+                        <svg width="24" height="24"><use href="#icon-chevron-right"></use></svg>
+                    </button>
+                    <div class="gallery-counter" id="qv-image-counter">1 / 4</div>
+                </div>
+                <div class="gallery-thumbnails" id="qv-thumbnails">
+                    <!-- Thumbnails will be inserted by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Property Header & Price -->
+            <div class="quick-view-header">
+                <div>
+                    <h3 class="text-heading-3 text-navy" id="qv-address">1426 Ashwood Dr</h3>
+                    <p class="text-body text-gray-600" id="qv-location">Houston, TX 77077</p>
+                </div>
+                <div class="quick-view-price">
+                    <div class="property-price" id="qv-price">$2,500</div>
+                    <div class="text-sm text-gray-600">per month</div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-view-stats">
+                <span id="qv-beds" class="stat-item"><strong>3</strong> Beds</span>
+                <span class="stat-separator">•</span>
+                <span id="qv-baths" class="stat-item"><strong>2</strong> Baths</span>
+                <span class="stat-separator">•</span>
+                <span id="qv-sqft" class="stat-item"><strong>1,650</strong> sq ft</span>
+            </div>
+
+            <!-- CTA Button -->
+            <a href="/book-showing" class="btn btn-primary-consumer w-full btn-lg">
+                <svg class="inline-icon" width="20" height="20"><use href="#icon-calendar"></use></svg>
+                Schedule a Tour
+            </a>
+
+            <!-- Key Features -->
+            <div class="quick-view-features">
+                <div class="feature-item">
+                    <svg class="icon-gold" width="24" height="24"><use href="#icon-home"></use></svg>
+                    <div>
+                        <div class="feature-label">Single Family</div>
+                        <div class="feature-sublabel">Property Type</div>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <svg class="icon-gold" width="24" height="24"><use href="#icon-calendar"></use></svg>
+                    <div>
+                        <div class="feature-label">Built 2015</div>
+                        <div class="feature-sublabel">Year Built</div>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <svg class="icon-gold" width="24" height="24"><use href="#icon-truck"></use></svg>
+                    <div>
+                        <div class="feature-label">2-Car Garage</div>
+                        <div class="feature-sublabel">Parking</div>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <svg class="icon-gold" width="24" height="24"><use href="#icon-sparkles"></use></svg>
+                    <div>
+                        <div class="feature-label">Large Yard</div>
+                        <div class="feature-sublabel">Outdoor Space</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description Preview -->
+            <div class="quick-view-description">
+                <h4 class="text-heading-4 text-navy mb-3">Description</h4>
+                <p class="text-body text-gray-700" id="qv-description">
+                    Beautiful 3-bedroom, 2-bathroom home in a quiet neighborhood. This well-maintained property features an open floor plan, modern kitchen with stainless steel appliances...
+                </p>
+            </div>
+
+            <!-- View Full Details Link -->
+            <a href="/property/1" id="qv-full-details-link" class="btn btn-outline w-full btn-lg">
+                View Full Details →
+            </a>
+
+            <!-- Quick Info Note -->
+            <div class="quick-view-note">
+                <svg class="inline-icon" width="16" height="16"><use href="#icon-info"></use></svg>
+                <span class="text-sm text-gray-600">This is a quick preview. Click "View Full Details" for complete information including amenities, neighborhood, and more photos.</span>
+            </div>
+        </div>
+    </div>
+</div>

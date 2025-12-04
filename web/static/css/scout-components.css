@@ -425,21 +425,7 @@ body.page-homepage {
   gap: var(--space-8);
 }
 
-.page-homepage .property-card {
-  background: var(--white);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease-in-out;
-  border: 1px solid var(--gray-200);
-  position: relative;
-}
 
-.page-homepage .property-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--navy-primary);
-}
 
 .page-homepage .property-badges {
   position: absolute;
@@ -452,75 +438,17 @@ body.page-homepage {
   gap: var(--space-2);
 }
 
-.page-homepage .property-image {
-  width: 100%;
-  height: 200px;
-  background: var(--gray-100);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-}
 
-.page-homepage .property-image-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease-in-out;
-}
-
-.page-homepage .property-image:hover img {
-  transform: scale(1.05);
-}
-
-/* Image hover indicator */
-.page-homepage .property-image::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0);
-  transition: background 0.2s ease-in-out;
-  pointer-events: none;
-}
-
-.page-homepage .property-image:hover::after {
-  background: rgba(0, 0, 0, 0.3);
-}
 
 /* Magnifying glass icon handled by property-image-clickable class in scout-components.css */
 
-.page-homepage .property-details {
-  padding: var(--card-padding-base);
-}
 
-.page-homepage .property-address {
-  font-family: var(--font-family-primary);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--navy-primary);
-  margin-bottom: var(--space-2);
-}
 
-.page-homepage .property-price {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--navy-primary);
-  margin-bottom: var(--space-3);
-  font-family: var(--font-family-primary);
-}
 
-.page-homepage .property-specs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  color: var(--gray-600);
-  font-size: var(--font-size-sm);
-  margin-bottom: var(--space-4);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--gray-200);
-}
+
+
+
+
 
 .page-homepage .property-specs-label {
   display: flex;
@@ -2014,63 +1942,11 @@ body.page-analytics {
     box-shadow: 0 6px 20px rgba(27, 54, 93, 0.3);
 }
 
-/* Property Card Enhancements */
-.page-homepage .property-card {
-    position: relative;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
-.page-homepage .property-card:hover {
-    border: 1px solid var(--navy-primary);
-}
 
-.page-homepage .property-card:active {
-    border: 1px solid var(--navy-primary);
-}
 
-/* Property Image Container */
-.page-homepage .property-image {
-    position: relative;
-    overflow: hidden;
-}
 
-.page-homepage .property-image-image {
-    transition: transform 0.5s ease;
-}
 
-.page-homepage .property-card:hover .property-image-image {
-    transform: scale(1.05);
-}
-
-/* Property Price Enhancement */
-.page-homepage .property-price {
-    font-size: var(--font-size-3xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--navy-primary);
-    margin-bottom: var(--space-3);
-    margin-top: var(--space-2);
-}
-
-/* Property Address Enhancement */
-.page-homepage .property-address {
-    font-family: var(--font-serif);
-    font-size: var(--font-size-xl);
-    font-weight: var(--font-weight-semibold);
-    color: var(--navy-primary);
-    margin-bottom: var(--space-2);
-}
-
-/* Property Specs Enhancement */
-.page-homepage .property-specs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    color: var(--gray-600);
-    font-size: var(--font-size-sm);
-    margin-bottom: var(--space-3);
-    padding-bottom: var(--space-3);
-    border-bottom: 1px solid var(--gray-200);
-}
 
 /* Hero Section Enhancement */
 .page-homepage .hero {
@@ -9079,7 +8955,7 @@ body.page-analytics {
   background: var(--white);
   border-radius: var(--radius-xl); /* 12px */
   overflow: hidden;
-  box-shadow: var(--shadow-base);
+  box-shadow: var(--shadow-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid var(--gray-200);
   position: relative;
@@ -9088,9 +8964,9 @@ body.page-analytics {
 }
 
 .property-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--navy-primary);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--gold-primary);
 }
 
 /* ---------------------------------------------------------------------
