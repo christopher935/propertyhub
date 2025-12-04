@@ -49,6 +49,9 @@ type AllHandlers struct {
 
 	// Properties
 	Properties            *handlers.PropertiesHandler
+	SavedProperties       *handlers.SavedPropertiesHandler
+	Recommendations       *handlers.RecommendationsHandler
+	PropertyAlerts        *handlers.PropertyAlertsHandler
 
 	// Security
 	SecurityMonitoring    *handlers.SecurityMonitoringHandlers

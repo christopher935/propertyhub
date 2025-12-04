@@ -147,8 +147,25 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.POST("/leads/emergency-stop", h.LeadReengagement.EmergencyStopAll)
 
 	api.GET("/leads", h.LeadsList.GetAllLeads)
+	
 	// Properties API
 	api.GET("/properties", h.Properties.GetPropertiesGin)
+	
+	// Saved Properties API (Consumer Feature)
+	api.POST("/properties/save", h.SavedProperties.SaveProperty)
+	api.DELETE("/properties/save/:id", h.SavedProperties.UnsaveProperty)
+	api.GET("/properties/saved", h.SavedProperties.GetSavedProperties)
+	api.GET("/properties/:id/is-saved", h.SavedProperties.CheckIfSaved)
+	
+	// AI Recommendations API (Consumer Feature)
+	api.GET("/recommendations", h.Recommendations.GetPersonalizedRecommendations)
+	api.GET("/properties/:id/similar", h.Recommendations.GetSimilarProperties)
+	
+	// Property Alerts API (Consumer Feature)
+	api.POST("/alerts/subscribe", h.PropertyAlerts.SubscribeToAlerts)
+	api.GET("/alerts/preferences", h.PropertyAlerts.GetAlertPreferences)
+	api.PUT("/alerts/preferences", h.PropertyAlerts.UpdateAlertPreferences)
+	api.POST("/alerts/unsubscribe", h.PropertyAlerts.UnsubscribeFromAlerts)
 
 	// Pre-listing API
 	api.GET("/pre-listing/valuation/:id", h.PreListing.GetPropertyValuation)

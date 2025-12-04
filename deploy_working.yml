@@ -1,0 +1,92 @@
+name: Deploy to Digital Ocean
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production Droplet
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Build PropertyHub for Linux
+        run: |
+          echo "🔨 Building PropertyHub..."
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build \
+            -ldflags="-w -s -X main.Version=${{ github.sha }} -X main.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -o propertyhub \
+            ./cmd/server
+          
+          chmod +x propertyhub
+          ls -lh propertyhub
+          echo "✅ Build complete"
+
+      - name: Deploy to Digital Ocean
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+        run: |
+          echo "🔐 Configuring SSH..."
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 209.38.116.238 >> ~/.ssh/known_hosts
+          
+          echo "📤 Uploading to droplet..."
+          scp -i ~/.ssh/deploy_key propertyhub root@209.38.116.238:/opt/propertyhub/propertyhub.new
+          scp -i ~/.ssh/deploy_key -r web/templates root@209.38.116.238:/opt/propertyhub/web/
+          scp -i ~/.ssh/deploy_key -r web/static root@209.38.116.238:/opt/propertyhub/web/
+          
+          echo "🔄 Deploying..."
+          ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
+            cd /opt/propertyhub
+            [ -f propertyhub ] && cp propertyhub propertyhub.backup.$(date +%Y%m%d_%H%M%S)
+            ls -t propertyhub.backup.* 2>/dev/null | tail -n +6 | xargs rm -f || true
+            mv propertyhub.new propertyhub
+            chmod +x propertyhub
+            systemctl restart propertyhub
+            sleep 5
+          ENDSSH
+          
+          echo "✅ Deployed and restarted"
+
+      - name: Health Check
+        run: |
+          echo "🏥 Running health check..."
+          for i in {1..10}; do
+            RESPONSE=$(curl -s http://209.38.116.238:8080/health || echo "")
+            if echo "$RESPONSE" | grep -q '"status":"ok"'; then
+              echo "✅ Health check PASSED!"
+              echo "Response: $RESPONSE"
+              exit 0
+            fi
+            echo "⏳ Attempt $i/10... waiting"
+            sleep 3
+          done
+          echo "❌ Health check failed after 10 attempts"
+          exit 1
+
+      - name: Rollback on Failure
+        if: failure()
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+        run: |
+          echo "🔄 Rolling back..."
+          ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
+            cd /opt/propertyhub
+            LATEST=$(ls -t propertyhub.backup.* 2>/dev/null | head -n 1)
+            if [ -n "$LATEST" ]; then
+              cp $LATEST propertyhub
+              systemctl restart propertyhub
+              echo "✅ Rolled back to previous version"
+            fi
+          ENDSSH

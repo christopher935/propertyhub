@@ -32,6 +32,12 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers) {
 	r.GET("/properties", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "properties-grid.html", gin.H{"Title": "Properties"})
 	})
+	r.GET("/saved-properties", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "saved-properties.html", gin.H{"Title": "Saved Properties"})
+	})
+	r.GET("/property-alerts", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "property-alerts.html", gin.H{"Title": "Property Alerts"})
+	})
 	r.GET("/property/:id", func(c *gin.Context) {
 		propertyID := c.Param("id")
 		var property models.Property

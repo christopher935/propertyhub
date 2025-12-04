@@ -210,6 +210,16 @@ log.Println("🔗 Webhook handlers initialized")
 	log.Println("🤖 Automated intelligence cycle started (5 minute interval)")
 	propertiesHandler := handlers.NewPropertiesHandler(gormDB, repos, encryptionManager)
 	log.Println("🏠 Properties handler initialized with decryption")
+	
+	savedPropertiesHandler := handlers.NewSavedPropertiesHandler(gormDB)
+	log.Println("💾 Saved properties handler initialized")
+	
+	recommendationsHandler := handlers.NewRecommendationsHandler(gormDB, scoringEngine)
+	log.Println("🤖 AI recommendations handler initialized")
+	
+	emailService := services.NewEmailService()
+	propertyAlertsHandler := handlers.NewPropertyAlertsHandler(gormDB, emailService)
+	log.Println("🔔 Property alerts handler initialized")
 
 	log.Println("✅ All enterprise handlers initialized successfully")
 
@@ -233,6 +243,9 @@ log.Println("🔗 Webhook handlers initialized")
 		LeadsList:             leadsListHandler,
 		PreListing:            preListingHandler,
 		Properties:            propertiesHandler,
+		SavedProperties:       savedPropertiesHandler,
+		Recommendations:       recommendationsHandler,
+		PropertyAlerts:        propertyAlertsHandler,
 		SecurityMonitoring:    securityMonitoringHandler,
 		AdvancedSecurityAPI:   advancedSecurityAPIHandler,
 		Webhook:               webhookHandler,
