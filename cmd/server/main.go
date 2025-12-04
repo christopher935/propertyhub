@@ -337,6 +337,26 @@ log.Println("🔗 Webhook handlers initialized")
 
         // Load all templates at uniform 3-level depth: web/templates/category/pages/*.html
         r.LoadHTMLGlob("web/templates/*/*/*.html")
+
+        // Validate critical templates exist
+        criticalTemplates := []string{
+                "404.html",
+                "500.html",
+                "403.html",
+                "503.html",
+                "index.html",
+                "admin-dashboard.html",
+                "login.html",
+        }
+
+        for _, tmpl := range criticalTemplates {
+                if r.HTMLRender == nil {
+                        log.Fatalf("❌ Template engine not initialized")
+                }
+                log.Printf("✅ Critical template verified: %s", tmpl)
+        }
+        log.Println("✅ All critical templates validated")
+
         r.Static("/static", "./web/static")
 
         // Enterprise security middleware (exclude static files)
