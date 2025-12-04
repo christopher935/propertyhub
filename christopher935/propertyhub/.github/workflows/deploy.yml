@@ -23,9 +23,9 @@ jobs:
           go-version: '1.22'
 
       - name: Build PropertyHub for Linux
-        working-directory: ./christopher935/propertyhub
         run: |
           echo "🔨 Building PropertyHub..."
+          cd christopher935/propertyhub
           GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build \
             -ldflags="-w -s -X main.Version=${{ github.sha }} -X main.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             -o propertyhub \
