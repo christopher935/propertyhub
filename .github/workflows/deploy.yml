@@ -9,9 +9,6 @@ jobs:
   deploy:
     name: Deploy to Production Droplet
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: http://209.38.116.238:8080
     
     steps:
       - name: Checkout code
@@ -44,115 +41,52 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H 209.38.116.238 >> ~/.ssh/known_hosts
           
-          echo "📤 Uploading to droplet (209.38.116.238)..."
-          
-          # Upload new binary
+          echo "📤 Uploading to droplet..."
           scp -i ~/.ssh/deploy_key propertyhub root@209.38.116.238:/opt/propertyhub/propertyhub.new
-          
-          # Upload web folder (templates, CSS, JS)
           scp -i ~/.ssh/deploy_key -r web/templates root@209.38.116.238:/opt/propertyhub/web/
           scp -i ~/.ssh/deploy_key -r web/static root@209.38.116.238:/opt/propertyhub/web/
           
-          echo "✅ Upload complete"
-
-      - name: Restart Service on Droplet
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
-        run: |
-          echo "🔄 Restarting PropertyHub service..."
-          
+          echo "🔄 Deploying..."
           ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
             cd /opt/propertyhub
-            
-            # Backup current binary
-            if [ -f propertyhub ]; then
-              BACKUP_NAME="propertyhub.backup.$(date +%Y%m%d_%H%M%S)"
-              cp propertyhub $BACKUP_NAME
-              echo "📦 Backed up to $BACKUP_NAME"
-              
-              # Keep only last 5 backups
-              ls -t propertyhub.backup.* 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null || true
-            fi
-            
-            # Replace binary
+            [ -f propertyhub ] && cp propertyhub propertyhub.backup.$(date +%Y%m%d_%H%M%S)
+            ls -t propertyhub.backup.* 2>/dev/null | tail -n +6 | xargs rm -f || true
             mv propertyhub.new propertyhub
             chmod +x propertyhub
-            
-            # Restart service
             systemctl restart propertyhub
-            
-            # Wait for startup
-            sleep 3
-            
-            echo "📊 Service status:"
-            systemctl status propertyhub --no-pager -l
+            sleep 5
           ENDSSH
           
-          echo "✅ Service restarted"
+          echo "✅ Deployed and restarted"
 
-      - name: Verify Deployment
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+      - name: Health Check
         run: |
-          echo "🏥 Verifying deployment on droplet..."
-          
-          ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
-            # Check service is running
-            if systemctl is-active --quiet propertyhub; then
-              echo "✅ Service is running"
-              
-              # Check health endpoint
-              HEALTH_JSON=$(curl -s http://localhost:8080/health)
-              echo "📊 Health check: $HEALTH_JSON"
-              
-              # Parse status
-              if echo "$HEALTH_JSON" | grep -q '"status":"ok"'; then
-                echo "✅ Health endpoint responding with OK status"
-                exit 0
-              else
-                echo "⚠️  Health endpoint returned unexpected response"
-                exit 0
-              fi
-            else
-              echo "❌ Service is not running!"
-              exit 1
+          echo "🏥 Running health check..."
+          for i in {1..10}; do
+            RESPONSE=$(curl -s http://209.38.116.238:8080/health || echo "")
+            if echo "$RESPONSE" | grep -q '"status":"ok"'; then
+              echo "✅ Health check PASSED!"
+              echo "Response: $RESPONSE"
+              exit 0
             fi
-          ENDSSH
+            echo "⏳ Attempt $i/10... waiting"
+            sleep 3
+          done
+          echo "❌ Health check failed after 10 attempts"
+          exit 1
 
       - name: Rollback on Failure
         if: failure()
         env:
           SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
         run: |
-          echo "🔄 Deployment failed, rolling back..."
-          
+          echo "🔄 Rolling back..."
           ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
             cd /opt/propertyhub
-            
-            # Find most recent backup
-            LATEST_BACKUP=$(ls -t propertyhub.backup.* 2>/dev/null | head -n 1)
-            
-            if [ -n "$LATEST_BACKUP" ]; then
-              echo "📦 Restoring from $LATEST_BACKUP"
-              cp $LATEST_BACKUP propertyhub
-              chmod +x propertyhub
+            LATEST=$(ls -t propertyhub.backup.* 2>/dev/null | head -n 1)
+            if [ -n "$LATEST" ]; then
+              cp $LATEST propertyhub
               systemctl restart propertyhub
               echo "✅ Rolled back to previous version"
-            else
-              echo "⚠️  No backup found, service may be down"
             fi
           ENDSSH
-
-      - name: Deployment Complete
-        if: success()
-        run: |
-          echo "🎉 PropertyHub deployed successfully!"
-          echo ""
-          echo "Application URLs:"
-          echo "  - Main: http://209.38.116.238:8080"
-          echo "  - Admin: http://209.38.116.238:8080/admin"
-          echo "  - Health: http://209.38.116.238:8080/health"
-          echo ""
-          echo "Deployed commit: ${{ github.sha }}"
-          echo "Deployed by: ${{ github.actor }}"
-          echo "Deployed at: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
