@@ -336,10 +336,24 @@ log.Println("🔗 Webhook handlers initialized")
         })
 
         // Load all templates including components  
-        // Load templates at each nesting level (Go doesn't support ** recursion)
-        r.LoadHTMLGlob("web/templates/*/*.html")
-        r.LoadHTMLGlob("web/templates/*/*/*.html")
-        r.LoadHTMLGlob("web/templates/*/*/*/*.html")
+        // Use filepath.Walk to load ALL templates recursively
+        templateFiles, err := filepath.Glob("web/templates/**/**/*.html")
+        if err == nil && len(templateFiles) > 0 {
+                r.LoadHTMLFiles(templateFiles...)
+        } else {
+                // Fallback: load templates manually
+                var templates []string
+                filepath.Walk("web/templates", func(path string, info os.FileInfo, err error) error {
+                        if err == nil && !info.IsDir() && filepath.Ext(path) == ".html" {
+                                templates = append(templates, path)
+                        }
+                        return nil
+                })
+                if len(templates) > 0 {
+                        r.LoadHTMLFiles(templates...)
+                        log.Printf("📄 Loaded %d templates", len(templates))
+                }
+        }
         r.Static("/static", "./web/static")
 
         // Enterprise security middleware (exclude static files)
