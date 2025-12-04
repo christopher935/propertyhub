@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PropertyHub</title>
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <div class="admin-layout" x-data="dashboardData()" x-init="init()">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="/admin/dashboard" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">PH</div>
+                <span>PropertyHub</span>
+                </a>
+            </div>
+            <nav class="admin-sidebar-nav">
+                <div class="nav-section expanded">
+                    <a href="/admin/dashboard" class="nav-section-header active">
+                        <div class="nav-section-icon">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 016 0zm6 3a2 2 0 11-4 0 2 2 014 0zM7 10a2 0 11-4 0 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Leads</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.total_leads || 0"></span>
+                        <span class="nav-section-toggle" x-text="open ? '▼' : '▶'"></span>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/leads" class="nav-item">All Leads <span class="nav-item-badge" x-text="sidebarCounts.total_leads || 0"></span></a></li>
+                        <li><a href="/admin/leads?segment=hot" class="nav-item">Hot Leads <span class="nav-item-badge" x-text="sidebarCounts.hot_leads || 0"></span></a></li>
+                        <li><a href="/admin/leads?segment=warm" class="nav-item">Warm Leads <span class="nav-item-badge" x-text="sidebarCounts.warm_leads || 0"></span></a></li>
+                        <li><a href="/admin/communication" class="nav-item">Communication Center</a></li>
+                </ul>
+                </div>
+                
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 0 011-1h2a1 1 011 1v4a1 1 001 1m-6 0h6"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Properties</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.active_properties || 0"></span>
+                        <span class="nav-section-toggle" x-text="open ? '▼' : '▶'"></span>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/properties" class="nav-item">All Properties</a></li>
+                <li><a href="/admin/properties?status=active" class="nav-item">Active Listings</a></li>
+                        <li><a href="/admin/properties?status=pending_images" class="nav-item">Pending Images <span class="nav-item-badge" x-text="sidebarCounts.pending_images || 0"></span></a></li>
+                        <li><a href="/admin/pre-listing" class="nav-item">Pre-Listing Pipeline</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section">
+                    <a href="/admin/applications" class="nav-section-header">
+                        <div class="nav-section-icon">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 01-2 2z"></path>
+                </svg>
+                </div>
+                <span class="nav-section-title">Applications</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.pending_applications || 0"></span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <a href="/admin/bookings" class="nav-section-header">
+                <div class="nav-section-icon">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Bookings</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.confirmed_bookings || 0"></span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                <a href="/admin/closing-pipeline" class="nav-section-header">
+                        <div class="nav-section-icon">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 001.946-.806 3.42 3.42 0 014.438 0 3.42 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.42 0 00-1.946.806 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 0 01-3.138-3.138 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Closing Pipeline</span>
+                <span class="nav-section-badge" x-text="sidebarCounts.closing_pipeline || 0"></span>
+                    </a>
+                </div>
+                <div class="nav-section" x-data="{ open: false }">
+                <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Intelligence</span>
+                        <span class="nav-section-toggle" x-text="open ? '▼' : '▶'"></span>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/business-intelligence" class="nav-item">Business Intelligence</a></li>
+                <li><a href="/admin/behavioral-intelligence" class="nav-item">Behavioral Analytics</a></li>
+                        <li><a href="/admin/market-intelligence" class="nav-item">Market Intelligence</a></li>
+                    </ul>
+                </div>
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 016 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">System</span>
+                        <span class="nav-section-toggle" x-text="open ? '▼' : '▶'"></span>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/settings" class="nav-item">Settings</a></li>
+                        <li><a href="/admin/rbac" class="nav-item">Roles & Permissions</a></li>
+                        <li><a href="/admin/integrations/webhooks" class="nav-item">Integrations</a></li>
+                        <li><a href="/admin/security" class="nav-item">Security Monitoring</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-content">
+                    <h1 class="admin-header-title">Dashboard</h1>
+                    <div class="admin-header-actions">
+                        <div class="admin-search">
+                            <input type="search" placeholder="Search leads, properties..." x-model="searchQuery" @input.debounce.300ms="performSearch">
+                            <svg class="admin-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                </div>
+                
+                        <div class="admin-user-menu">
+                            <div class="admin-user-avatar" x-text="getUserInitials()"></div>
+                            <div class="admin-user-info">
+                <div class="admin-user-name" x-text="userProfile.username || 'Loading...'"></div>
+                                <div class="admin-user-role" x-text="userProfile.role || 'User'"></div>
+                        <a href="/admin/logout" class="btn-logout">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 01-3-3V7a3 3 013-3h4a3 3 013 3v1"></path>
+                            </svg>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="admin-content">
+                <div class="dashboard-grid-4">
+                    <div class="stat-card" x-data="statCard('active_users')">
+                        <div class="stat-card-label">Active Users</div>
+                        <div class="stat-card-value" x-text="Math.round(displayValue)"></div>
+                        <div class="stat-card-change positive">
+                            <span>Live</span>
+                        </div>
+                        <div class="stat-card-subtitle">Last 15 minutes</div>
+                    <div class="stat-card" x-data="statCard('unread_messages')">
+                        <div class="stat-card-label">Unread Messages</div>
+                <div class="stat-card-value text-warning" x-text="Math.round(displayValue)"></div>
+                        <div class="stat-card-subtitle">Inbox</div>
+                <div class="stat-actions">
+                            <button class="btn btn-sm btn-primary" @click="window.location.href='/admin/communication'">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="d-inline">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2H5a2 2 0 00-2 2v10a2 2 002 2z"></path>
+                                </svg>
+                                View Inbox
+                            </button>
+                        </div>
+                    <div class="stat-card" x-data="statCard('current_showings')">
+                        <div class="stat-card-label">Current Showings</div>
+                        <div class="stat-card-value text-info" x-text="Math.round(displayValue)"></div>
+                        <div class="stat-card-subtitle">Happening now</div>
+                        <div class="stat-actions">
+                            <button class="btn btn-sm btn-secondary" @click="window.location.href='/admin/bookings'">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="d-inline">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 0 002 2z"></path>
+                                </svg>
+                                Calendar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card" x-data="statCard('hot_leads')">
+                <div class="stat-card-label">Hot Leads</div>
+                        <div class="stat-card-value text-danger" x-text="Math.round(displayValue)"></div>
+                        <div class="stat-card-change positive" x-show="displayValue > 0">
+                            <span>Urgent</span>
+                        </div>
+                        <div class="stat-card-subtitle">Score &gt; 70</div>
+                        <div class="stat-actions">
+                            <button class="btn btn-sm btn-danger" @click="window.location.href='/admin/leads?segment=hot'">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24" class="d-inline">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path>
+                                </svg>
+                                View Hot Leads
+                            </button>
+                       </div>
+                    </div>
+                </div>
+ <div class="dashboard-grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex justify-between align-center">
+                                <div>
+                                    <h3 class="section-title">AI Insights & Recommendations</h3>
+                                    <p class="section-subtitle">InsightGeneratorService</p>
+                                </div>
+                                <button class="btn btn-sm btn-outline" @click="refreshInsights" :class="{ 'loading': loadingInsights }">
+                                    <span x-show="!loadingInsights">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="d-inline">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                        Refresh
+                                    </span>
+                                    <span class="btn-spinner" x-show="loadingInsights"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div x-show="loadingInsights" class="d-flex justify-center p-6">
+                                <div class="loading"></div>
+                            </div>
+                            
+                            <div x-show="!loadingInsights">
+                                <template x-for="(insight, index) in dashboardInsights" :key="insight.id">
+                                    <div class="alert mb-3" :class="getInsightAlertClass(insight.type)">
+                                        <div class="d-flex justify-between align-center mb-2">
+                                            <div class="d-flex align-center gap-2">
+                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" x-show="insight.type === 'success'">
+                                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" x-show="insight.type === 'warning'">
+                                                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                                </svg>
+                                                <span class="badge" :class="getPriorityBadgeClass(insight.priority)" x-text="'Priority ' + insight.priority"></span>
+                                                <span class="text-xs text-muted" x-text="insight.source"></span>
+                                            </div>
+                                        </div>
+                                        <div class="mb-2" x-html="insight.message"></div>
+                                        <div class="d-flex gap-2 mt-3" x-show="insight.actions && insight.actions.length > 0">
+                                            <template x-for="action in insight.actions" :key="action.label">
+                                                <button class="btn btn-sm" :class="action.method === 'POST' ? 'btn-primary' : 'btn-secondary'" @click="executeInsightAction(insight.id, action)">
+                                                    <span x-text="action.label"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                                
+                                <div x-show="dashboardInsights.length === 0" class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="empty-state-title">All Systems Optimal</div>
+                                    <div class="empty-state-description">No critical insights. AI is continuously analyzing.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex justify-between align-center">
+                                <div>
+                                    <h3 class="section-title">Top Opportunities</h3>
+                                    <p class="section-subtitle">SpiderWeb AI (5 patterns)</p>
+                                </div>
+                                <button class="btn btn-sm btn-outline" @click="refreshOpportunities" :class="{ 'loading': loadingOpportunities }">
+                                    <span x-show="!loadingOpportunities">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="d-inline">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                        Refresh
+                                    </span>
+                                    <span class="btn-spinner" x-show="loadingOpportunities"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div x-show="loadingOpportunities" class="d-flex justify-center p-6">
+                                <div class="loading"></div>
+                            </div>
+                            
+                            <div x-show="!loadingOpportunities">
+                                <template x-for="(opp, index) in opportunities.slice(0, 8)" :key="opp.id">
+                                    <div class="insight-card mb-3" :class="getOpportunityClass(opp.type)">
+                                        <div class="insight-card-header">
+                                            <div class="d-flex align-center gap-2">
+                                                <div class="insight-icon">
+                                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                                    </svg>
+                                                </div>
+                                                <span class="text-xs text-muted">#<span x-text="index + 1"></span></span>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <div class="badge badge-danger text-xs">
+                                                    Priority: <span x-text="opp.priority"></span>
+                                                </div>
+                                                <div class="badge badge-success text-xs">
+                                                    <span x-text="Math.round(opp.conversion_probability * 100)"></span>% prob
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="insight-card-body">
+                                            <h4 class="insight-title" x-text="opp.lead_name"></h4>
+                                            <p class="insight-message text-sm mb-2">
+                                                <strong x-text="opp.type.replace(/_/g, ' ')"></strong>
+                                                <span x-show="opp.behavioral_score"> | Score: <span class="font-semibold" x-text="Math.round(opp.behavioral_score)"></span></span>
+                                            </p>
+                                            <div class="text-xs text-muted mb-3" x-show="opp.property_address">
+                                                Property: <span x-text="opp.property_address"></span>
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <template x-for="action in opp.action_sequence" :key="action.action">
+                                                    <button class="btn btn-sm" :class="getActionButtonClass(action.action)" @click="executeAction(opp.id, action.action, opp.lead_email)" :disabled="executingAction === opp.id + '-' + action.action">
+                                                        <span x-show="executingAction !== opp.id + '-' + action.action">
+                                                            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="d-inline" x-show="action.action === 'send_email'">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                                            </svg>
+                                                            <span x-text="action.description"></span>
+                                                        </span>
+                                                        <span class="btn-spinner" x-show="executingAction === opp.id + '-' + action.action"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                
+                                <div x-show="opportunities.length === 0" class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="empty-state-title">All Caught Up!</div>
+                                    <div class="empty-state-description">No urgent opportunities. SpiderWeb AI monitoring.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Behavioral Intelligence</h2>
+                        <p class="section-subtitle">3D Scoring: Urgency × Financial × Engagement</p>
+                    </div>
+                    
+                    <div class="dashboard-grid-2">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <div class="d-flex justify-between align-center mb-2">
+                                        <div class="text-sm text-muted">Average Behavioral Score</div>
+                                        <div class="text-3xl font-bold text-primary" x-text="Math.round(behavioralMetrics.average_score || 0)"></div>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full" style="height: 12px;">
+                                        <div class="rounded-full transition" :class="(behavioralMetrics.average_score || 0) >= 70 ? 'bg-success' : (behavioralMetrics.average_score || 0) >= 40 ? 'bg-warning' : 'bg-danger'" :style="`width: ${behavioralMetrics.average_score || 0}%; height: 12px;`"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid grid-cols-2 gap-3 mb-4">
+                                    <div class="text-center p-3 bg-gray-50 rounded">
+                                        <div class="text-sm text-muted">High Score</div>
+                                        <div class="text-2xl font-bold text-danger" x-text="behavioralMetrics.high_score_count || 0"></div>
+                                        <div class="text-xs text-muted">Score ≥ 70</div>
+                                    </div>
+                                    
+                                    <div class="text-center p-3 bg-gray-50 rounded">
+                                        <div class="text-sm text-muted">Medium Score</div>
+                                        <div class="text-2xl font-bold text-warning" x-text="behavioralMetrics.medium_score_leads || 0"></div>
+                                        <div class="text-xs text-muted">40-69</div>
+                                    </div>
+                                    
+                                    <div class="text-center p-3 bg-gray-50 rounded">
+                                        <div class="text-sm text-muted">Conversions MTD</div>
+                                        <div class="text-2xl font-bold text-success" x-text="behavioralMetrics.conversions_this_month || 0"></div>
+                                        <div class="text-xs text-muted">This month</div>
+                                    </div>
+                                    
+                                    <div class="text-center p-3 bg-gray-50 rounded">
+                                        <div class="text-sm text-muted">Prediction Accuracy</div>
+                                        <div class="text-2xl font-bold text-info" x-text="Math.round(behavioralMetrics.prediction_accuracy || 0) + '%'"></div>
+                                        <div class="text-xs text-muted">Model accuracy</div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="text-sm font-medium mb-2">Active Behavioral Triggers</div>
+                                    <template x-for="trigger in activeTriggers.slice(0, 3)" :key="trigger.trigger_name">
+                                        <div class="d-flex justify-between align-center p-2 bg-gray-50 rounded mb-2">
+                                            <div class="flex-1">
+                                                <div class="text-sm font-medium" x-text="trigger.trigger_name"></div>
+                                                <div class="text-xs text-muted" x-text="trigger.condition"></div>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <span class="badge badge-primary" x-text="trigger.active_count + ' leads'"></span>
+                                                <span class="badge badge-success" x-text="trigger.conversion_rate + '%'"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="section-title">Conversion Funnel</h3>
+                                <p class="section-subtitle">Overall: <span class="font-semibold text-success" x-text="(funnelData.conversion_rate || 0).toFixed(1) + '%'"></span></p>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex flex-column gap-3">
+                                    <template x-for="(stage, index) in funnelData.funnel || []" :key="stage.stage">
+                                        <div>
+                                            <div class="d-flex justify-between align-center mb-1">
+                                                <div class="d-flex align-center gap-2">
+                                                    <span class="badge badge-primary" x-text="index + 1"></span>
+                                                    <span class="text-sm font-semibold" x-text="formatStageName(stage.stage)"></span>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <span class="badge badge-info" x-text="stage.count + ' leads'"></span>
+                                                    <span class="badge" :class="stage.percentage >= 70 ? 'badge-success' : stage.percentage >= 40 ? 'badge-warning' : 'badge-danger'" x-text="stage.percentage.toFixed(0) + '%'"></span>
+                                                </div>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded" style="height: 28px;">
+                                                <div class="rounded transition" style="height: 28px; background: linear-gradient(90deg, var(--navy-primary), var(--gold-primary));" :style="`width: ${stage.percentage}%`"></div>
+                                            </div>
+                                            <div class="d-flex justify-between text-xs text-muted mt-1">
+                                                <span>Next: <span x-text="stage.conversion_rate.toFixed(1) + '%'"></span></span>
+                                                <span>Time: <span x-text="formatTime(stage.avg_time_in_stage)"></span></span>
+                                            </div>
+                                            <div x-show="stage.conversion_rate < 30" class="alert alert-warning mt-2 p-2 text-xs">
+                                                <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24" class="d-inline">
+                                                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                                </svg>
+                                                Bottleneck detected - Low conversion
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-header">
+                        <h2 class="section-title">Behavioral Trends & Analytics</h2>
+                        <select class="form-control" x-model="trendsTimeRange" @change="fetchTrends" style="width: 120px;">
+                            <option value="7">7 Days</option>
+                            <option value="30">30 Days</option>
+                            <option value="90">90 Days</option>
+                        </select>
+                    </div>
+                    
+                    <div class="dashboard-grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="font-semibold">Behavioral Trends</h3>
+                                <p class="text-sm text-muted">Active Users, Engagement, Conversions</p>
+                            </div>
+                            <div class="card-body">
+                                <canvas x-ref="trendsChart" class="chart-md"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="font-semibold">Behavioral Segments</h3>
+                                <p class="text-sm text-muted">Lead distribution</p>
+                            </div>
+                            <div class="card-body">
+                                <canvas x-ref="segmentsChart" class="chart-md"></canvas>
+                                
+                                <div class="mt-4">
+                                    <template x-for="segment in behavioralSegments" :key="segment.segment">
+                                        <div class="d-flex justify-between align-center p-2 border-b">
+                                            <div class="flex-1">
+                                                <div class="font-medium text-sm" x-text="segment.segment.replace('_', ' ')"></div>
+                                                <div class="text-xs text-muted">
+                                                    Avg session: <span x-text="Math.round(segment.avg_session_length / 60) + ' min'"></span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <span class="badge badge-info" x-text="segment.lead_count + ' leads'"></span>
+                                                <span class="badge badge-success" x-text="segment.conversion_rate.toFixed(1) + '%'"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>

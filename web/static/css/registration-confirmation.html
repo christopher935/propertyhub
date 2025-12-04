@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>{{.Title}} - Landlords of Texas</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="/static/css/design-tokens.css" rel="stylesheet"/>
+<link href="/static/css/scout-utilities.css" rel="stylesheet"/>
+<link href="/static/css/scout-layouts.css" rel="stylesheet"/>
+<link href="/static/css/scout-components.css" rel="stylesheet"/>
+</head>
+<body class="scout-consumer-layout page-registration-confirmation">
+<svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
+<!-- Heroicons SVG Sprite - Master Icon Library for PropertyHub -->
+<!-- All icons are from Heroicons (heroicons.com) - MIT License -->
+<!-- Navigation & UI Icons -->
+<symbol fill="none" id="icon-home" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+<!-- Status & Badges -->
+<symbol fill="none" id="icon-check" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><path d="m4.5 12.75 6 6 9-13.5" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+<symbol fill="none" id="icon-check-circle" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+<!-- Communication -->
+<symbol fill="none" id="icon-envelope" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><path d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+<symbol fill="none" id="icon-envelope-open" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><path d="M21.75 9v.906a2.25 2.25 0 0 1-1.183 1.981l-6.478 3.488M2.25 9v.906a2.25 2.25 0 0 0 1.183 1.981l6.478 3.488m8.839 2.51-4.66-2.51m0 0-1.023-.55a2.25 2.25 0 0 0-2.134 0l-1.022.55m0 0-4.661 2.51m16.5 1.615a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V8.844a2.25 2.25 0 0 1 1.183-1.981l7.5-4.039a2.25 2.25 0 0 1 2.134 0l7.5 4.039a2.25 2.25 0 0 1 1.183 1.98V19.5Z" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+<!-- User & People -->
+<symbol fill="none" id="icon-user" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+<symbol fill="none" id="icon-user-circle" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><path d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+<!-- Actions & Controls -->
+<symbol fill="none" id="icon-arrow-right" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><path d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" stroke-linecap="round" stroke-linejoin="round"></path></symbol>
+</svg>
+<!-- Header -->
+<header class="header">
+<nav class="nav">
+<a class="logo" href="/">
+<div class="logo-icon">
+<svg height="24" width="24"><use href="#icon-home"></use></svg>
+</div>
+                Landlords of Texas
+            </a>
+<div class="nav-menu">
+<a class="nav-link" href="/">Home</a>
+<a class="nav-link" href="/properties">Properties</a>
+<a class="nav-link" href="/about">About</a>
+<a class="nav-link" href="/contact">Contact</a>
+<a class="btn btn-secondary btn-sm" href="/login">Login</a>
+</div>
+</nav>
+</header>
+<!-- Main Content -->
+<main class="confirmation-page">
+<div class="container-narrow">
+<!-- Success Icon -->
+<div class="success-icon">
+<svg class="icon-success" height="80" width="80">
+<circle cx="40" cy="40" fill="var(--success)" opacity="0.1" r="38"></circle>
+<circle cx="40" cy="40" fill="var(--success)" r="30"></circle>
+<use height="36" href="#icon-check" stroke="white" stroke-width="3" width="36" x="22" y="22"></use>
+</svg>
+</div>
+<!-- Success Message -->
+<h1 class="text-heading-1 text-navy">Check your email!</h1>
+<p class="confirmation-subtitle">
+                We've sent a verification link to <strong>{{.Email}}</strong>
+</p>
+<!-- Info Card -->
+<div class="confirmation-card">
+<div class="confirmation-icon">
+<svg height="48" width="48"><use href="#icon-envelope-open"></use></svg>
+</div>
+<div class="confirmation-content">
+<h2 class="text-heading-2 text-navy">What's next?</h2>
+<div class="confirmation-steps">
+<div class="confirmation-step">
+<div class="step-number">1</div>
+<div class="step-content">
+<h3 class="text-heading-3 text-navy">Check your inbox</h3>
+<p>Look for an email from Landlords of Texas with the subject "Verify your email address"</p>
+</div>
+</div>
+<div class="confirmation-step">
+<div class="step-number">2</div>
+<div class="step-content">
+<h3 class="text-heading-3 text-navy">Click the verification link</h3>
+<p>The link will expire in 24 hours for security purposes</p>
+</div>
+</div>
+<div class="confirmation-step">
+<div class="step-number">3</div>
+<div class="step-content">
+<h3 class="text-heading-3 text-navy">Start exploring properties</h3>
+<p>Once verified, you'll have full access to your account</p>
+</div>
+</div>
+</div>
+<div class="confirmation-note">
+<svg height="20" width="20"><use href="#icon-envelope"></use></svg>
+<p><strong>Didn't receive the email?</strong> Check your spam folder or <a href="/resend-verification">request a new verification email</a>.</p>
+</div>
+</div>
+</div>
+<!-- Account Info -->
+<div class="account-info">
+<div class="info-row">
+<span class="info-label">Account Type:</span>
+<span class="info-value">{{.AccountType}}</span>
+</div>
+<div class="info-row">
+<span class="info-label">Email:</span>
+<span class="info-value">{{.Email}}</span>
+</div>
+<div class="info-row">
+<span class="info-label">Registration Date:</span>
+<span class="info-value">{{.RegistrationDate}}</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="confirmation-actions">
+<a class="btn btn-primary-consumer" href="/">Back to Home</a>
+<a class="btn btn-secondary" href="/contact">Need Help?</a>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="trec-footer">
+<div class="trec-content">
+<p class="trec-content-text">Landlords of Texas, LLC • License # 9008008 • (281) 925-7222</p>
+<p class="trec-content-text">Terry Evans - Principal Broker #615707</p>
+<p class="trec-content-text">
+<a class="trec-link trec-content-link" href="https://content.harstatic.com/pdf/TREC_CPN.pdf" rel="noopener" target="_blank">TREC Consumer Protection Notice</a> • 
+                <a class="trec-content-link" href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&amp;cid=625244" rel="noopener" target="_blank">Information About Brokerage Services</a>
+</p>
+<p class="text-center text-gray-600 trec-content-text">
+<a class="trec-content-link" href="/terms">Terms of Service</a> • 
+                <a class="trec-content-link" href="/privacy">Privacy Policy</a> • 
+                <a class="trec-content-link" href="javascript:revokeCookieConsent()">Cookie Preferences</a> • 
+                <a class="trec-content-link" href="/contact">Contact</a> • 
+                <a class="trec-content-link" href="/admin">Admin Login</a>
+</p>
+<p class="text-center text-gray-600 trec-content-text">
+<img alt="Equal Housing Opportunity" class="equal-housing-logo trec-content-image" src="/static/images/equal-housing-logo.png"/>Equal Housing Opportunity • All information deemed reliable but not guaranteed.
+            </p>
+</div>
+</footer>
+</body>
+</html>
