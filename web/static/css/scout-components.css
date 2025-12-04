@@ -229,11 +229,11 @@ a:hover {
 .page-about .btn-primary,
 .page-contact .btn-primary,
 .page-booking .btn-primary {
-    background: linear-gradient(135deg, #c4a962, #a08d5f);
+    background: linear-gradient(135deg, var(--navy-primary), var(--navy-light));
     color: white;
     border: none;
-    padding: 10px 20px;  /* Correct spec: 10px 20px, not 12px 20px */
-    font-size: 14px;     /* Correct spec: 14px, not 15px */
+    padding: 10px 20px;
+    font-size: 14px;
     font-weight: 600;
     border-radius: 8px;
     transition: all 200ms ease;
@@ -245,10 +245,10 @@ a:hover {
 .page-about .btn-primary:hover,
 .page-contact .btn-primary:hover,
 .page-booking .btn-primary:hover {
-    background: linear-gradient(135deg, #a08d5f, #8a7850);  /* Darker gold */
+    background: linear-gradient(135deg, var(--navy-light), var(--navy-primary));
     color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(27, 53, 89, 0.3);
 }
 
 /* Consumer Secondary Button - Keep as outline */
