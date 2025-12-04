@@ -1,0 +1,18 @@
+{{define "consumer-header"}}
+<header class="header">
+    <nav class="nav">
+        <a href="/" class="logo">
+            <div class="logo-icon">🏠</div>
+            Landlords of Texas
+        </a>
+        
+        <div class="nav-links">
+            <a href="/" {{if eq .ActivePage "home"}}class="active"{{end}}>Home</a>
+            <a href="/properties" {{if eq .ActivePage "properties"}}class="active"{{end}}>Properties</a>
+            <a href="/about" {{if eq .ActivePage "about"}}class="active"{{end}}>About</a>
+            <a href="/contact" {{if eq .ActivePage "contact"}}class="active"{{end}}>Contact</a>
+            <a href="/login" class="btn btn-secondary">Login</a>
+        </div>
+    </nav>
+</header>
+{{end}}

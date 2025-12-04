@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Sources - Landlords of Texas Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/css/design-tokens.css">
+    <link rel="stylesheet" href="/static/css/scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    
+    <style>
+         
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1b3559;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 0.5rem;
+        }
+        
+         
+        .batch-actions-toolbar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1b3559;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            z-index: 100;
+        }
+        
+        .batch-actions-toolbar.active {
+            display: flex;
+        }
+        
+        .property-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .property-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .property-card.selected {
+            border-color: #1b3559;
+            box-shadow: 0 0 0 2px rgba(27, 53, 89, 0.2);
+        }
+        
+        .property-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+        
+        .card-checkbox {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 10;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .property-card-header {
+            padding: 1.25rem;
+            padding-left: 3rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .property-address {
+            font-weight: 600;
+            color: #1b3559;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .property-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+            flex-wrap: wrap;
+        }
+        
+        .property-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .photo-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            padding: 1rem;
+            background: #f9fafb;
+            min-height: 180px;
+            position: relative;
+        }
+        
+        .photo-preview-item {
+            aspect-ratio: 1;
+            background: #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .photo-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .photo-preview-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 2rem;
+        }
+        
+         
+        .photo-metadata-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(27, 53, 89, 0.95);
+            color: white;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+        
+        .photo-preview-item:hover .photo-metadata-overlay {
+            opacity: 1;
+        }
+        
+        .photo-count-badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(27, 53, 89, 0.9);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+         
+        .category-badge {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .category-badge.marketing {
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+        }
+        
+        .category-badge.inspection {
+            background: rgba(245, 158, 11, 0.9);
+            color: white;
+        }
+        
+        .category-badge.move-in {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+        }
+        
+        .category-badge.move-out {
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+        }
+        
+         
+        .quality-badge {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+        }
+        
+        .property-card-actions {
+            padding: 1rem 1.25rem;
+            display: flex;
+            gap: 0.75rem;
+            border-top: 1px solid #f3f4f6;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            gap: 0.375rem;
+        }
+        
+        .status-badge.needs-photos {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-badge.pending-review {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-badge.approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-badge.flagged {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-badge.needs-retake {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+         
+        .upload-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .upload-modal.active {
+            display: flex;
+        }
+        
+        .upload-modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .upload-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .upload-modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1b3559;
+        }
+        
+        .upload-modal-body {
+            padding: 1.5rem;
+        }
+        
+        .upload-dropzone {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .upload-dropzone:hover {
+            border-color: #1b3559;
+            background: #f9fafb;
+        }
+        
+        .upload-dropzone.dragover {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .category-selector {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        
+        .category-selector label {
+            display: block;
+            font-weight: 600;
+            color: #1b3559;
+            margin-bottom: 0.5rem;
+        }
+        
+        .category-selector select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        
+        .upload-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .upload-preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .upload-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .upload-preview-remove {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+        
+        .upload-preview-primary {
+            position: absolute;
+            bottom: 0.5rem;
+            left: 0.5rem;
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .set-primary-btn {
+            position: absolute;
+            bottom: 0.5rem;
+            left: 0.5rem;
+            background: rgba(27, 53, 89, 0.9);
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="lead-sources-page">
+    <div class="admin-layout">
+
+
+<aside class="admin-sidebar">
+    <div class="sidebar-header">
+        <a href="/" class="sidebar-logo">
+            <div class="sidebar-logo-icon">PH</div>
+            <span>PropertyHub</span>
+        </a>
+    </div>
+
+    <nav class="admin-sidebar-nav">
+        
+        
+        <div class="nav-section">
+            <a href="/admin/dashboard" class="nav-section-header active" data-section="overview">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg></span>
+                <span class="nav-section-title">Overview</span>
+            </a>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="properties">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg></span>
+                <span class="nav-section-title">Properties & Showings</span>
+                <span class="nav-section-badge">0</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/property-list" class="nav-item">All Properties <span class="nav-item-badge">0</span></a></li>
+                <li><a href="/admin/property-performance" class="nav-item">Property Performance</a></li>
+                <li><a href="/admin/photo-management" class="nav-item">Photos</a></li>
+                <li><a href="/admin/calendar-management" class="nav-item">Showing Calendar</a></li>
+                <li><a href="/admin/bookings" class="nav-item">Pre-Listing Manager <span class="nav-item-badge">0</span></a></li>
+                <li><a href="/admin/har-sync" class="nav-item">HAR Sync</a></li>
+                <li><a href="/admin/pre-listing-manager" class="nav-item">Pre-Listing Manager</a></li>
+                <li><a href="/admin/property-valuation" class="nav-item">Valuations</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="leads">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg></span>
+                <span class="nav-section-title">Leads & Conversion</span>
+                <span class="nav-section-badge">0</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/lead-management" class="nav-item">Lead Management <span class="nav-item-badge">0</span></a></li>
+                <li><a href="/admin/lead-sources" class="nav-item">Lead Sources</a></li>
+                <li><a href="/admin/conversion-funnel" class="nav-item">Conversion Funnel</a></li>
+                <li><a href="/admin/client-portal" class="nav-item">Client Portal</a></li>
+                <li><a href="/admin/behavioral-intelligence" class="nav-item">Behavioral Intelligence</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="communications">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" /></svg></span>
+                <span class="nav-section-title">Communications</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/communication-center" class="nav-item">Communication Center</a></li>
+                <li><a href="/admin/email-senders" class="nav-item">Email Management</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="workflow">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg></span>
+                <span class="nav-section-title">Workflow</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/application-workflow" class="nav-item">Applications</a></li>
+                <li><a href="/admin/approvals" class="nav-item">Approvals</a></li>
+                <li><a href="/admin/closing-pipeline" class="nav-item">Closing Pipeline</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="analytics">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" /></svg></span>
+                <span class="nav-section-title">Analytics & Reports</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/business-intelligence" class="nav-item">Business Intelligence</a></li>
+                <li><a href="/admin/market-intelligence" class="nav-item">Market Analytics</a></li>
+                <li><a href="/admin/performance-reports" class="nav-item">Performance Reports</a></li>
+                <li><a href="/admin/custom-reports" class="nav-item">Custom Reports</a></li>
+                <li><a href="/admin/friday-reports" class="nav-item">Friday Reports</a></li>
+            </ul>
+        </div>
+
+        
+        <div class="nav-section">
+            <button class="nav-section-header" data-section="system">
+                <span class="nav-section-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg></span>
+                <span class="nav-section-title">System</span>
+                <span class="nav-section-toggle">▶</span>
+            </button>
+            <ul class="nav-section-items">
+                <li><a href="/admin/settings" class="nav-item">Settings</a></li>
+                <li><a href="/admin/security-dashboard" class="nav-item">Security</a></li>
+                <li><a href="/admin/user-management" class="nav-item">User Management</a></li>
+                <li><a href="/admin/rbac" class="nav-item">Access Control (RBAC)</a></li>
+                <li><a href="/admin/audit-logs" class="nav-item">Audit Logs</a></li>
+                <li><a href="/admin/integrations" class="nav-item">Integrations</a></li>
+                <li><a href="/admin/data-migration" class="nav-item">Data Migration</a></li>
+            </ul>
+        </div>
+    </nav>
+</aside>
+
+
+<main class="admin-main">
+
+
+<div class="admin-top-bar">
+    <div class="admin-page-header">
+        <h1 class="admin-page-title">Lead Management</h1>
+    </div>
+    
+    <div class="admin-top-bar-right">
+        
+        <div class="admin-search">
+            <input type="text" class="admin-search-input" placeholder="Search bookings..." id="globalSearch">
+            <span class="admin-search-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1.125rem;height:1.125rem"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg></span>
+        </div>
+
+        
+        <div class="admin-user-section">
+            <div class="admin-user-display">
+                <div class="admin-user-avatar">CG</div>
+                <div class="admin-user-info">
+                    <div class="admin-user-name">Christopher Gross</div>
+                    <div class="admin-user-role">Administrator</div>
+                </div>
+            </div>
+            <a href="/logout" class="admin-logout-link">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle;margin-right:0.375rem"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" /></svg>
+                Logout
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<div style="width: 100%; clear: both; padding: 12px 24px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+    <nav class="breadcrumb" style="margin: 0;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:1rem;height:1rem;display:inline-block;vertical-align:middle;margin-right:0.375rem"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg><a href="/">Home</a>
+        <span>›</span>
+        <a href="/admin/dashboard">Admin</a>
+        <span>›</span>
+        <span>Lead Sources</span>
+    </nav>
+</div>
+
+
+<div class="admin-content" style="margin-left:0;">
+
+    
+    <div style="padding: 0 0 1.5rem 0;">
+        <p style="color: #6b7280; font-size: 0.875rem; margin: 0;">Profit tracking and commission analytics</p>
+
+        
+
+        <!-- Overview Stats -->
+        <div class="stat-cards-grid" style="grid-template-columns: repeat(5, 1fr);">
+            
+            <!-- Total Leads -->
+            <div class="stat-card">
+                <svg viewBox="0 20 120 110" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <filter id="numberShadow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                            <feOffset dx="0" dy="1" result="offsetblur"/>
+                            <feComponentTransfer>
+                                <feFuncA type="linear" slope="0.15"/>
+                            </feComponentTransfer>
+                            <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <circle cx="60" cy="65" r="26" fill="white" opacity="0.92"/>
+                    <text x="60" y="73" text-anchor="middle" font-family="Playfair Display, serif" font-size="36" font-weight="700" fill="#1b3559" letter-spacing="-1" filter="url(#numberShadow)">247</text>
+                    
+                    <!-- Bar chart -->
+                    <rect x="15" y="95" width="10" height="20" fill="#1b3559" rx="2"/>
+                    <rect x="28" y="90" width="10" height="25" fill="#1b3559" rx="2"/>
+                    <rect x="41" y="85" width="10" height="30" fill="#1b3559" rx="2"/>
+                    <rect x="54" y="80" width="10" height="35" fill="#1b3559" rx="2"/>
+                    <rect x="67" y="75" width="10" height="40" fill="#1b3559" rx="2"/>
+                    <rect x="80" y="80" width="10" height="35" fill="#1b3559" rx="2"/>
+                    <rect x="93" y="90" width="10" height="25" fill="#1b3559" rx="2"/>
+                    
+                    <text x="60" y="128" text-anchor="middle" font-size="8" fill="#6b7280" letter-spacing="0.5" text-transform="uppercase" font-family="system-ui, sans-serif">TOTAL LEADS</text>
+                </svg>
+            </div>
+
+            <!-- Total Revenue -->
+            <div class="stat-card">
+                <svg viewBox="0 20 120 110" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+                            <stop offset="100%" stop-color="#10b981" stop-opacity="0.05"/>
+                        </linearGradient>
+                    </defs>
+                    <circle cx="60" cy="65" r="26" fill="white" opacity="0.92"/>
+                    <text x="60" y="73" text-anchor="middle" font-family="Playfair Display, serif" font-size="32" font-weight="700" fill="#1b3559" letter-spacing="-1" filter="url(#numberShadow)">$127K</text>
+                    
+                    <!-- Area chart -->
+                    <path d="M 10,100 L 25,95 L 40,90 L 55,85 L 70,82 L 85,78 L 100,75 L 110,72 L 110,115 L 10,115 Z" fill="url(#revenueGradient)" stroke="none"/>
+                    <path d="M 10,100 L 25,95 L 40,90 L 55,85 L 70,82 L 85,78 L 100,75 L 110,72" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    
+                    <text x="60" y="128" text-anchor="middle" font-size="8" fill="#6b7280" letter-spacing="0.5" text-transform="uppercase" font-family="system-ui, sans-serif">TOTAL REVENUE</text>
+                </svg>
+            </div>
+
+            <!-- Avg Conversion Rate -->
+            <div class="stat-card">
+                <svg viewBox="0 20 120 110" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="65" r="26" fill="white" opacity="0.92"/>
+                    <text x="60" y="73" text-anchor="middle" font-family="Playfair Display, serif" font-size="36" font-weight="700" fill="#1b3559" letter-spacing="-1" filter="url(#numberShadow)">23%</text>
+                    
+                    <!-- Ring chart -->
+                    <circle cx="60" cy="65" r="35" fill="none" stroke="#e5e7eb" stroke-width="8"/>
+                    <circle cx="60" cy="65" r="35" fill="none" stroke="#f59e0b" stroke-width="8" stroke-dasharray="51 169" stroke-dashoffset="42.5" transform="rotate(-90 60 65)"/>
+                    
+                    <text x="60" y="128" text-anchor="middle" font-size="8" fill="#6b7280" letter-spacing="0.5" text-transform="uppercase" font-family="system-ui, sans-serif">CONVERSION</text>
+                </svg>
+            </div>
+
+            <!-- Total Marketing Spend -->
+            <div class="stat-card">
+                <svg viewBox="0 20 120 110" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="50" r="28" fill="white" opacity="0.92"/>
+                    <text x="60" y="58" text-anchor="middle" font-family="Playfair Display, serif" font-size="26" font-weight="700" fill="#1b3559" letter-spacing="-1" filter="url(#numberShadow)">$8.4K</text>
+                    
+                    <!-- Gauge bars -->
+                    <rect x="15" y="85" width="45" height="15" fill="#1b3559" rx="2"/>
+                    <rect x="60" y="85" width="25" height="15" fill="#0891b2" rx="2"/>
+                    <rect x="85" y="85" width="20" height="15" fill="#10b981" rx="2"/>
+                    
+                    <text x="60" y="128" text-anchor="middle" font-size="8" fill="#6b7280" letter-spacing="0.5" text-transform="uppercase" font-family="system-ui, sans-serif">MARKETING SPEND</text>
+                </svg>
+            </div>
+
+            <!-- Avg Response Time -->
+            <div class="stat-card">
+                <svg viewBox="0 20 120 110" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="50" r="28" fill="white" opacity="0.92"/>
+                    <text x="60" y="58" text-anchor="middle" font-family="Playfair Display, serif" font-size="26" font-weight="700" fill="#1b3559" letter-spacing="-1" filter="url(#numberShadow)">4.2</text>
+                    <text x="60" y="72" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">hours</text>
+                    
+                    <!-- Clock icon -->
+                    <circle cx="60" cy="95" r="12" fill="none" stroke="#0891b2" stroke-width="2"/>
+                    <line x1="60" y1="95" x2="60" y2="88" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="60" y1="95" x2="65" y2="95" stroke="#0891b2" stroke-width="2" stroke-linecap="round"/>
+                    
+                    <text x="60" y="128" text-anchor="middle" font-size="8" fill="#6b7280" letter-spacing="0.5" text-transform="uppercase" font-family="system-ui, sans-serif">AVG RESPONSE TIME</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Filters and Actions -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0 1.5rem 0;">
+            <div style="display: flex; gap: 1rem;">
+                <select class="form-select" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" onchange="filterByTimePeriod(this.value)">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="all">All Time</option>
+                </select>
+                <select class="form-select" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" onchange="sortSources(this.value)">
+                    <option value="leads">Sort by: Lead Count</option>
+                    <option value="conversion">Sort by: Conversion Rate</option>
+                    <option value="revenue">Sort by: Revenue</option>
+                    <option value="roi">Sort by: ROI</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+                <button class="btn btn-primary-consumer" onclick="openAddSourceModal()" style="padding: 0.5rem 1rem; background: #1b3559; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Add Source</button>
+                <button class="btn btn-outline" style="padding: 0.5rem 1rem; background: white; color: #1b3559; border: 1px solid #1b3559; border-radius: 6px; font-weight: 600; cursor: pointer;">Export Report</button>
+            </div>
+        </div>
+
+        <!-- Lead Sources Header -->
+        <h2 style="font-size: 1.5rem; font-weight: 600; color: #1b3559; margin-bottom: 1.5rem;">Lead Sources</h2>
+
+        <!-- Source Cards Grid -->
+        <div style="display: grid; gap: 1.5rem;">
+
+                <!-- Referrals -->
+                <div style="background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden;">
+                    <div style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <h3 style="font-weight: 700; color: #1b3559; font-size: 1.125rem; margin: 0 0 0.25rem 0;">Referrals</h3>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <span style="display: inline-flex; align-items: center; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; background: #d1fae5; color: #065f46;">Active</span>
+                                    <span style="display: inline-flex; align-items: center; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; background: #fef3c7; color: #92400e;">HIGH QUALITY</span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #1b3559;">52</div>
+                                <div style="font-size: 0.75rem; color: #10b981;">+5 this month</div>
+                                <!-- Sparkline -->
+                                <svg width="80" height="24" style="margin-top: 0.5rem;">
+                                    <polyline points="0,18 13,12 27,15 40,8 53,10 67,6 80,9" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 1rem 1.25rem; background: #f9fafb; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Conversion</div>
+                            <div style="font-weight: 600; color: #1b3559;">42.3%</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Avg Response</div>
+                            <div style="font-weight: 600; color: #1b3559;">3.8 hrs</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Revenue</div>
+                            <div style="font-weight: 600; color: #1b3559;">$28,700</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Cost/Lead</div>
+                            <div style="font-weight: 600; color: #1b3559;">$0</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">ROI</div>
+                            <div style="font-weight: 600; color: #1b3559;">∞</div>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 1rem 1.25rem; display: flex; gap: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <button class="btn btn-outline btn-sm" onclick="openSourceDetail('Referrals')">View Details</button>
+                        <button class="btn btn-outline btn-sm" onclick="openEditSourceModal('Referrals')">Edit</button>
+                        <button class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #ef4444;" onclick="confirmArchiveSource('Referrals')">Archive</button>
+                    </div>
+                </div>
+
+                <!-- Facebook Ads -->
+                <div style="background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden;">
+                    <div style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <h3 style="font-weight: 700; color: #1b3559; font-size: 1.125rem; margin: 0 0 0.25rem 0;">Facebook Ads</h3>
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <span style="display: inline-flex; align-items: center; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; background: #d1fae5; color: #065f46;">Active</span>
+                                    <span style="display: inline-flex; align-items: center; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; background: #fee2e2; color: #991b1b;">UNDERPERFORMING</span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #1b3559;">28</div>
+                                <div style="font-size: 0.75rem; color: #ef4444;">-3 this month</div>
+                                <!-- Sparkline -->
+                                <svg width="80" height="24" style="margin-top: 0.5rem;">
+                                    <polyline points="0,8 13,10 27,12 40,15 53,18 67,20 80,22" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 1rem 1.25rem; background: #f9fafb; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Conversion</div>
+                            <div style="font-weight: 600; color: #1b3559;">14.3%</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Avg Response</div>
+                            <div style="font-weight: 600; color: #1b3559;">6.2 hrs</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Revenue</div>
+                            <div style="font-weight: 600; color: #1b3559;">$12,400</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Cost/Lead</div>
+                            <div style="font-weight: 600; color: #1b3559;">$68</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">ROI</div>
+                            <div style="font-weight: 600; color: #f59e0b;">+551%</div>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 1rem 1.25rem; display: flex; gap: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <button class="btn btn-outline btn-sm" onclick="openSourceDetail('Facebook Ads')">View Details</button>
+                        <button class="btn btn-outline btn-sm" onclick="openEditSourceModal('Facebook Ads')">Edit</button>
+                        <button class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #ef4444;" onclick="confirmArchiveSource('Facebook Ads')">Archive</button>
+                    </div>
+                </div>
+
+                <!-- HAR -->
+                <div style="background: white; border-radius: 12px; border: 1px solid #e5e7eb; overflow: hidden;">
+                    <div style="padding: 1.25rem; border-bottom: 1px solid #f3f4f6;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <h3 style="font-weight: 700; color: #1b3559; font-size: 1.125rem; margin: 0 0 0.25rem 0;">HAR</h3>
+                                <span style="display: inline-flex; align-items: center; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; background: #d1fae5; color: #065f46;">Active</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #1b3559;">16</div>
+                                <div style="font-size: 0.75rem; color: #10b981;">+2 this month</div>
+                                <!-- Sparkline -->
+                                <svg width="80" height="24" style="margin-top: 0.5rem;">
+                                    <polyline points="0,15 13,14 27,16 40,13 53,12 67,14 80,11" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 1rem 1.25rem; background: #f9fafb; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Conversion</div>
+                            <div style="font-weight: 600; color: #1b3559;">18.8%</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Avg Response</div>
+                            <div style="font-weight: 600; color: #1b3559;">5.1 hrs</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Revenue</div>
+                            <div style="font-weight: 600; color: #1b3559;">$5,200</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">Cost/Lead</div>
+                            <div style="font-weight: 600; color: #1b3559;">$25</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">ROI</div>
+                            <div style="font-weight: 600; color: #10b981;">+1,200%</div>
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 1rem 1.25rem; display: flex; gap: 0.75rem; border-top: 1px solid #f3f4f6;">
+                        <button class="btn btn-outline btn-sm" onclick="openSourceDetail('HAR')">View Details</button>
+                        <button class="btn btn-outline btn-sm" onclick="openEditSourceModal('HAR')">Edit</button>
+                        <button class="btn btn-outline btn-sm" style="color: #ef4444; border-color: #ef4444;" onclick="confirmArchiveSource('HAR')">Archive</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Add Source Modal -->
+<div id="addSourceModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+        <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: #1b3559; margin: 0;">Add New Lead Source</h3>
+            <button onclick="closeAddSourceModal()" style="background: none; border: none; font-size: 1.5rem; color: #6b7280; cursor: pointer;">&times;</button>
+        </div>
+        <div style="padding: 1.5rem;">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Source Name</label>
+                <input type="text" class="form-control" placeholder="e.g., Apartments.com" style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Cost per Lead ($)</label>
+                <input type="number" class="form-control" placeholder="0.00" style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Attribution Model</label>
+                <select class="form-select" style="width: 100%;">
+                    <option>First Touch</option>
+                    <option>Last Touch</option>
+                    <option>Linear</option>
+                    <option>Time Decay</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Campaign Name (Optional)</label>
+                <input type="text" class="form-control" placeholder="e.g., Q1 2025 Campaign" style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                    <input type="checkbox" checked style="width: 1rem; height: 1rem;">
+                    <span style="font-size: 0.875rem; color: #374151;">Active</span>
+                </label>
+            </div>
+        </div>
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 0.75rem;">
+            <button class="btn btn-outline btn-sm" onclick="closeAddSourceModal()">Cancel</button>
+            <button class="btn btn-primary-consumer btn-sm" onclick="saveSource()">Add Source</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Source Modal -->
+<div id="editSourceModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+        <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: #1b3559; margin: 0;">Edit Source: <span id="editSourceName"></span></h3>
+            <button onclick="closeEditSourceModal()" style="background: none; border: none; font-size: 1.5rem; color: #6b7280; cursor: pointer;">&times;</button>
+        </div>
+        <div style="padding: 1.5rem;">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Cost per Lead ($)</label>
+                <input type="number" class="form-control" value="45" style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Attribution Model</label>
+                <select class="form-select" style="width: 100%;">
+                    <option selected>First Touch</option>
+                    <option>Last Touch</option>
+                    <option>Linear</option>
+                    <option>Time Decay</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Campaign Name</label>
+                <input type="text" class="form-control" value="Zillow Flex Program" style="width: 100%;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                    <input type="checkbox" checked style="width: 1rem; height: 1rem;">
+                    <span style="font-size: 0.875rem; color: #374151;">Active</span>
+                </label>
+            </div>
+        </div>
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 0.75rem;">
+            <button class="btn btn-outline btn-sm" onclick="closeEditSourceModal()">Cancel</button>
+            <button class="btn btn-primary-consumer btn-sm" onclick="saveSource()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Source Detail Modal -->
+<div id="sourceDetailModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto;">
+        <div style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: #1b3559; margin: 0;"><span id="detailSourceName"></span> - Detailed Analytics</h3>
+            <button onclick="closeSourceDetailModal()" style="background: none; border: none; font-size: 1.5rem; color: #6b7280; cursor: pointer;">&times;</button>
+        </div>
+        <div style="padding: 1.5rem;">
+            <!-- Monthly Breakdown Chart -->
+            <div style="margin-bottom: 2rem;">
+                <h4 style="font-size: 1rem; font-weight: 600; color: #1b3559; margin-bottom: 1rem;">Monthly Lead Volume</h4>
+                <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem; height: 200px; display: flex; align-items: flex-end; gap: 1rem;">
+                    <div style="flex: 1; background: #3b82f6; height: 60%; border-radius: 4px 4px 0 0;"></div>
+                    <div style="flex: 1; background: #3b82f6; height: 75%; border-radius: 4px 4px 0 0;"></div>
+                    <div style="flex: 1; background: #3b82f6; height: 85%; border-radius: 4px 4px 0 0;"></div>
+                    <div style="flex: 1; background: #3b82f6; height: 70%; border-radius: 4px 4px 0 0;"></div>
+                    <div style="flex: 1; background: #3b82f6; height: 90%; border-radius: 4px 4px 0 0;"></div>
+                    <div style="flex: 1; background: #3b82f6; height: 100%; border-radius: 4px 4px 0 0;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.75rem; color: #6b7280;">
+                    <span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span>
+                </div>
+            </div>
+
+            <!-- Key Metrics Grid -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+                <div style="background: #f9fafb; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">Avg Response Time</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #1b3559;">4.2 hrs</div>
+                </div>
+                <div style="background: #f9fafb; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">Lead Score Avg</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #1b3559;">72</div>
+                </div>
+                <div style="background: #f9fafb; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">Close Rate</div>
+                    <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">28.7%</div>
+                </div>
+            </div>
+
+            <!-- Historical Conversion Rates -->
+            <div style="margin-bottom: 2rem;">
+                <h4 style="font-size: 1rem; font-weight: 600; color: #1b3559; margin-bottom: 1rem;">Conversion Rate Trend</h4>
+                <div style="background: #f9fafb; border-radius: 8px; padding: 1.5rem;">
+                    <svg width="100%" height="100" style="display: block;">
+                        <polyline points="0,80 100,75 200,70 300,65 400,60 500,55 600,50" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="0" cy="80" r="4" fill="#10b981"/>
+                        <circle cx="100" cy="75" r="4" fill="#10b981"/>
+                        <circle cx="200" cy="70" r="4" fill="#10b981"/>
+                        <circle cx="300" cy="65" r="4" fill="#10b981"/>
+                        <circle cx="400" cy="60" r="4" fill="#10b981"/>
+                        <circle cx="500" cy="55" r="4" fill="#10b981"/>
+                        <circle cx="600" cy="50" r="4" fill="#10b981"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Associated Campaigns/Notes -->
+            <div>
+                <h4 style="font-size: 1rem; font-weight: 600; color: #1b3559; margin-bottom: 1rem;">Campaign Details</h4>
+                <div style="background: #f9fafb; border-radius: 8px; padding: 1rem;">
+                    <div style="margin-bottom: 0.75rem;">
+                        <span style="font-size: 0.875rem; font-weight: 600; color: #374151;">Campaign Name:</span>
+                        <span style="font-size: 0.875rem; color: #6b7280; margin-left: 0.5rem;">Zillow Flex Program</span>
+                    </div>
+                    <div style="margin-bottom: 0.75rem;">
+                        <span style="font-size: 0.875rem; font-weight: 600; color: #374151;">Attribution Model:</span>
+                        <span style="font-size: 0.875rem; color: #6b7280; margin-left: 0.5rem;">First Touch</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.875rem; font-weight: 600; color: #374151;">Notes:</span>
+                        <p style="font-size: 0.875rem; color: #6b7280; margin: 0.5rem 0 0 0;">High-quality leads from Zillow Flex program. Typically interested in 1-2 bedroom apartments in downtown area. Fast response time critical for conversion.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: flex-end; gap: 0.75rem;">
+            <button class="btn btn-outline btn-sm" onclick="alert('Export functionality would generate a CSV/PDF report')">Export Data</button>
+            <button class="btn btn-primary-consumer btn-sm" onclick="closeSourceDetailModal()">Close</button>
+        </div>
+    </div>
+</div>
+<script>
+    
+    document.querySelectorAll('.nav-section-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const section = this.nextElementSibling;
+            if (section && section.classList.contains('nav-section-items')) {
+                section.classList.toggle('expanded');
+                this.classList.toggle('active');
+            }
+        });
+    });
+
+    
+    function filterProperties(filter) {
+        alert('Filter: ' + filter);
+    }
+
+    function processEmailQueue() {
+        alert('Process Email Queue - Opens modal to process pending service provider emails');
+    }
+
+    function removeEmailSource(button) {
+        if (confirm('Are you sure you want to remove this email source?')) {
+            const sourceCard = button.closest('.flex.justify-between.items-center');
+            sourceCard.style.opacity = '0';
+            sourceCard.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => {
+                sourceCard.remove();
+            }, 300);
+        }
+    }
+
+    // Lead Sources functions
+    function filterByPeriod(period) {
+        console.log('Filter by period:', period);
+        // In production, this would filter the sources based on the selected time period
+        alert(`Filtering sources by: ${period === 'all' ? 'All Time' : 'Last ' + period + ' days'}`);
+    }
+
+    function sortSources(sortBy) {
+        console.log('Sort by:', sortBy);
+        // In production, this would re-sort the source cards
+        alert(`Sorting sources by: ${sortBy}`);
+    }
+
+    function openAddSourceModal() {
+        const modal = document.getElementById('addSourceModal');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function closeAddSourceModal() {
+        const modal = document.getElementById('addSourceModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function openEditSourceModal(sourceName) {
+        const modal = document.getElementById('editSourceModal');
+        if (modal) {
+            document.getElementById('editSourceName').textContent = sourceName;
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeEditSourceModal() {
+        const modal = document.getElementById('editSourceModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function confirmArchiveSource(sourceName) {
+        if (confirm(`Are you sure you want to archive "${sourceName}"? This source will no longer receive new leads.`)) {
+            alert(`${sourceName} has been archived.`);
+            // In production, this would make an API call to archive the source
+        }
+    }
+
+    function openSourceDetail(sourceName) {
+        const modal = document.getElementById('sourceDetailModal');
+        if (modal) {
+            document.getElementById('detailSourceName').textContent = sourceName;
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeSourceDetailModal() {
+        const modal = document.getElementById('sourceDetailModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function saveSource() {
+        alert('Source saved! (In production, this would submit the form data)');
+        closeAddSourceModal();
+        closeEditSourceModal();
+    }
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>

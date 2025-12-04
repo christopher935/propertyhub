@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | PropertyHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/design-tokens.css">
+    <link rel="stylesheet" href="/static/css/scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components.css">
+</head>
+<body>
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1 class="auth-title">Welcome Back</h1>
+            <p class="auth-subtitle">Sign in to continue your property search</p>
+        </div>
+        <form onsubmit="window.location.href='/properties'; return false;">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" class="form-control" placeholder="you@example.com" required autofocus>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+            </div>
+            <div class="form-row">
+                <label class="checkbox-label">
+                    <input type="checkbox">
+                    <span>Remember me</span>
+                </label>
+                <a href="/auth/password-reset" class="link-secondary">Forgot password?</a>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+        <p style="text-align: center; margin-top: var(--space-6); color: var(--color-gray-600); font-size: var(--font-size-sm);">
+            Don't have an account? <a href="/auth/register" class="link-secondary">Create one free</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>
