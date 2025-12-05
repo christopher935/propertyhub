@@ -2,33 +2,31 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	
 	"chrisgross-ctrl-project/internal/services"
 	"chrisgross-ctrl-project/internal/utils"
 )
 
 type InsightsAPIHandlers struct {
-	db                *gorm.DB
-	insightsGenerator *services.IntelligentInsightsGenerator
+	insightsGenerator *services.InsightGeneratorService
 }
 
-func NewInsightsAPIHandlers(db *gorm.DB) *InsightsAPIHandlers {
+func NewInsightsAPIHandlers(insightsGenerator *services.InsightGeneratorService) *InsightsAPIHandlers {
 	return &InsightsAPIHandlers{
-		db:                db,
-		insightsGenerator: services.NewIntelligentInsightsGenerator(db),
+		insightsGenerator: insightsGenerator,
 	}
 }
 
 func (h *InsightsAPIHandlers) GetPredictiveInsights(c *gin.Context) {
-	insights, err := h.insightsGenerator.GenerateAllInsights()
+	dashboardInsights, err := h.insightsGenerator.GenerateDashboardInsights()
 	if err != nil {
 		utils.ErrorResponse(c, 500, "Failed to generate insights", err)
 		return
 	}
 	
 	utils.SuccessResponse(c, gin.H{
-		"insights": insights,
-		"count":    len(insights),
+		"insights": dashboardInsights.Insights,
+		"metrics":  dashboardInsights.Metrics,
+		"count":    len(dashboardInsights.Insights),
 	})
 }
