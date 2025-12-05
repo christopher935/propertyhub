@@ -227,6 +227,9 @@ log.Println("🔗 Webhook handlers initialized")
 	
 	liveActivityHandler := handlers.NewLiveActivityHandler(gormDB)
 	log.Println("📡 Live activity handler initialized")
+	
+	behavioralSessionsHandler := handlers.NewBehavioralSessionsHandler(gormDB)
+	log.Println("👥 Behavioral sessions handler initialized")
 
 	bookingHandler := handlers.NewBookingHandler(gormDB, repos, encryptionManager)
 	log.Println("📅 Booking handler initialized")
@@ -259,6 +262,7 @@ log.Println("🔗 Webhook handlers initialized")
 		Recommendations:       recommendationsHandler,
 		PropertyAlerts:        propertyAlertsHandler,
 		LiveActivity:          liveActivityHandler,
+		BehavioralSessions:    behavioralSessionsHandler,
 		SecurityMonitoring:    securityMonitoringHandler,
 		AdvancedSecurityAPI:   advancedSecurityAPIHandler,
 		Webhook:               webhookHandler,

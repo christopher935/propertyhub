@@ -319,6 +319,104 @@
                     </div>
                 </section>
 
+                <!-- Live Sessions Panel - Who's Browsing Now -->
+                <section class="dashboard-section">
+                    <div class="live-sessions-panel" x-data="liveSessionsPanel()" x-init="init()">
+                        <div class="live-sessions-header">
+                            <h3 class="live-sessions-title">
+                                <span class="pulse-dot"></span>
+                                Active Visitors
+                                <span class="live-sessions-count" x-text="sessions.length"></span>
+                            </h3>
+                            <a href="/admin/sessions" class="view-all-link">
+                                View All 
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </div>
+                        
+                        <div x-show="loading" class="sessions-loading">
+                            <div class="sessions-loading-spinner"></div>
+                        </div>
+                        
+                        <div x-show="!loading && sessions.length === 0" class="sessions-empty-state">
+                            <div class="sessions-empty-icon">👥</div>
+                            <div class="sessions-empty-text">No active visitors right now</div>
+                        </div>
+                        
+                        <div x-show="!loading && sessions.length > 0" class="sessions-list">
+                            <template x-for="session in sessions.slice(0, 5)" :key="session.session_id">
+                                <div class="session-card" :class="'score-' + session.score_category" @click="viewJourney(session.session_id)">
+                                    <div class="session-header">
+                                        <div class="session-identity">
+                                            <span class="session-status-indicator" x-text="getStatusIcon(session.score_category)"></span>
+                                            <div class="session-identity-details">
+                                                <div class="session-email" :class="{ 'anonymous': session.is_anonymous }" x-text="session.is_anonymous ? 'Anonymous Visitor' : (session.lead_email || session.lead_name)"></div>
+                                                <div class="session-location" x-show="session.location.city || session.location.state">
+                                                    <svg class="session-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    </svg>
+                                                    <span x-text="getLocationString(session.location)"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="session-score" :class="session.score_category">
+                                            <span>Score: <span x-text="session.behavioral_score"></span></span>
+                                            <span x-text="'(' + getCategoryLabel(session.score_category) + ')'"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="session-activity">
+                                        <div class="session-current-activity">
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                            <span x-text="session.current_page"></span>
+                                        </div>
+                                        <div x-show="session.current_property" class="session-property-address" x-text="session.current_property ? session.current_property.address : ''"></div>
+                                    </div>
+                                    
+                                    <div class="session-metrics">
+                                        <div class="session-metric">
+                                            <svg class="session-metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                            <span x-text="session.page_views + ' pages'"></span>
+                                        </div>
+                                        <div class="session-metric">
+                                            <svg class="session-metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span x-text="formatDuration(session.session_duration)"></span>
+                                        </div>
+                                        <div class="session-metric" x-show="session.device_type">
+                                            <svg class="session-metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                            </svg>
+                                            <span x-text="session.device_type"></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="session-actions">
+                                        <button class="session-action-btn primary" @click.stop="viewJourney(session.session_id)">
+                                            View Journey
+                                        </button>
+                                        <button class="session-action-btn" @click.stop="identifyLead(session)" x-show="session.is_anonymous">
+                                            Identify Lead
+                                        </button>
+                                        <button class="session-action-btn" @click.stop="sendProperty(session)" x-show="!session.is_anonymous">
+                                            Send Property
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="dashboard-section dashboard-system-status">
                     <div class="system-status-indicator" :class="systemHealthClass">
                         <span class="status-icon">
@@ -755,6 +853,181 @@
                 }
             };
         }
+        
+        function liveSessionsPanel() {
+            return {
+                sessions: [],
+                loading: true,
+                selectedSession: null,
+                showJourneyModal: false,
+                journeyData: null,
+                updateInterval: null,
+                
+                async init() {
+                    await this.fetchSessions();
+                    // Poll for updates every 10 seconds
+                    this.updateInterval = setInterval(() => {
+                        this.fetchSessions();
+                    }, 10000);
+                },
+                
+                async fetchSessions() {
+                    try {
+                        const response = await fetch('/api/admin/sessions/active');
+                        const data = await response.json();
+                        
+                        // Mark new sessions for animation
+                        const newSessionIds = data.sessions.map(s => s.session_id);
+                        const oldSessionIds = this.sessions.map(s => s.session_id);
+                        
+                        this.sessions = data.sessions.map(session => {
+                            const isNew = !oldSessionIds.includes(session.session_id);
+                            return { ...session, isNew };
+                        });
+                        
+                        this.loading = false;
+                    } catch (error) {
+                        console.error('Failed to fetch sessions:', error);
+                        this.loading = false;
+                    }
+                },
+                
+                async viewJourney(sessionId) {
+                    try {
+                        const response = await fetch(`/api/admin/sessions/${sessionId}/journey`);
+                        const data = await response.json();
+                        this.journeyData = data;
+                        this.showJourneyModal = true;
+                    } catch (error) {
+                        console.error('Failed to fetch session journey:', error);
+                    }
+                },
+                
+                closeJourneyModal() {
+                    this.showJourneyModal = false;
+                    this.journeyData = null;
+                },
+                
+                identifyLead(session) {
+                    console.log('Identify lead for session:', session.session_id);
+                    // TODO: Open modal to identify anonymous lead
+                },
+                
+                sendProperty(session) {
+                    console.log('Send property to:', session.lead_email);
+                    // TODO: Open modal to send property recommendation
+                },
+                
+                getStatusIcon(category) {
+                    const icons = {
+                        'hot': '🔴',
+                        'warm': '🟡',
+                        'cold': '🔵'
+                    };
+                    return icons[category] || '🔵';
+                },
+                
+                getCategoryLabel(category) {
+                    const labels = {
+                        'hot': 'Hot',
+                        'warm': 'Warm',
+                        'cold': 'Cold'
+                    };
+                    return labels[category] || 'Cold';
+                },
+                
+                getLocationString(location) {
+                    if (!location) return '';
+                    const parts = [];
+                    if (location.city) parts.push(location.city);
+                    if (location.state) parts.push(location.state);
+                    return parts.join(', ');
+                },
+                
+                formatDuration(seconds) {
+                    if (seconds < 60) return `${seconds}s`;
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    return `${minutes}m ${remainingSeconds}s`;
+                },
+                
+                formatTime(timestamp) {
+                    const date = new Date(timestamp);
+                    return date.toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                    });
+                },
+                
+                formatEventType(eventType) {
+                    const types = {
+                        'viewed': 'Viewed Property',
+                        'saved': 'Saved Property',
+                        'inquired': 'Sent Inquiry',
+                        'applied': 'Submitted Application',
+                        'searched': 'Searched Properties',
+                        'session_start': 'Started Session'
+                    };
+                    return types[eventType] || eventType;
+                },
+                
+                destroy() {
+                    if (this.updateInterval) {
+                        clearInterval(this.updateInterval);
+                    }
+                }
+            };
+        }
     </script>
+    
+    <!-- Session Journey Modal -->
+    <template x-if="showJourneyModal" x-data="{ show: showJourneyModal }">
+        <div class="session-journey-modal" @click.self="closeJourneyModal()" x-show="show" x-transition>
+            <div class="session-journey-content">
+                <div class="session-journey-header">
+                    <h3 class="session-journey-title">Session Journey</h3>
+                    <button class="session-journey-close" @click="closeJourneyModal()">&times;</button>
+                </div>
+                <div class="session-journey-body">
+                    <div x-show="journeyData">
+                        <div style="margin-bottom: 2rem;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                                <div style="padding: 1rem; background: var(--gray-50); border-radius: 8px;">
+                                    <div style="font-size: 0.75rem; color: var(--gray-600); margin-bottom: 0.5rem;">Duration</div>
+                                    <div style="font-size: 1.25rem; font-weight: 600;" x-text="journeyData ? Math.floor(journeyData.duration / 60) + 'm ' + (journeyData.duration % 60) + 's' : ''"></div>
+                                </div>
+                                <div style="padding: 1rem; background: var(--gray-50); border-radius: 8px;">
+                                    <div style="font-size: 0.75rem; color: var(--gray-600); margin-bottom: 0.5rem;">Page Views</div>
+                                    <div style="font-size: 1.25rem; font-weight: 600;" x-text="journeyData ? journeyData.page_views : ''"></div>
+                                </div>
+                                <div style="padding: 1rem; background: var(--gray-50); border-radius: 8px;">
+                                    <div style="font-size: 0.75rem; color: var(--gray-600); margin-bottom: 0.5rem;">Total Events</div>
+                                    <div style="font-size: 1.25rem; font-weight: 600;" x-text="journeyData ? journeyData.total_events : ''"></div>
+                                </div>
+                            </div>
+                            
+                            <h4 style="font-family: var(--font-family-primary); font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--navy-primary);">Activity Timeline</h4>
+                            <div class="session-timeline">
+                                <template x-for="event in journeyData?.timeline || []" :key="event.timestamp">
+                                    <div class="timeline-item">
+                                        <div class="timeline-time" x-text="formatTime(event.timestamp)"></div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-event-type" x-text="formatEventType(event.event_type)"></div>
+                                            <div x-show="event.property" class="timeline-property">
+                                                <div class="timeline-property-info">
+                                                    <div class="timeline-property-address" x-text="event.property?.address"></div>
+                                                    <div class="timeline-property-price" x-text="event.property ? '$' + event.property.price.toLocaleString() : ''"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
 </body>
 </html>

@@ -190,6 +190,10 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/admin/active-sessions", h.LiveActivity.GetActiveSessions)
 	api.GET("/admin/session/:id", h.LiveActivity.GetSessionDetails)
 
+	// Behavioral Sessions API (Admin Real-Time - Who's Browsing Now)
+	api.GET("/admin/sessions/active", h.BehavioralSessions.GetActiveSessions)
+	api.GET("/admin/sessions/:id/journey", h.BehavioralSessions.GetSessionJourney)
+
 	// Pre-listing API
 	api.GET("/pre-listing/valuation/:id", h.PreListing.GetPropertyValuation)
 
