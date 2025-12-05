@@ -32,10 +32,6 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/dashboard/leads", h.Dashboard.GetLeadSummary)
 	api.GET("/dashboard/upcoming-tasks", h.Dashboard.GetUpcomingTasks)
 
-	// Analytics API
-	api.GET("/analytics/bookings", h.AnalyticsAPI.GetBookingAnalytics)
-	api.GET("/analytics/properties", h.AnalyticsAPI.GetPropertyAnalytics)
-
 	// Business Intelligence API
 	api.GET("/business-intelligence/metrics", h.BusinessIntelligence.GetDashboardMetrics)
 	api.GET("/business-intelligence/friday-report", h.BusinessIntelligence.GetFridayReport)

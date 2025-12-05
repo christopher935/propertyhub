@@ -98,10 +98,9 @@ if cfg.RedisURL != "" {
 log.Println("🔧 Initializing enterprise handlers...")
 
 // Analytics & Business Intelligence
-analyticsAPIHandler := handlers.NewAnalyticsAPIHandlers(gormDB)
 biService := services.NewBusinessIntelligenceService(gormDB)
-	businessIntelligenceHandler := handlers.NewBusinessIntelligenceHandlers(gormDB)
-	log.Println("📊 Analytics handlers initialized")
+businessIntelligenceHandler := handlers.NewBusinessIntelligenceHandlers(gormDB)
+log.Println("📊 Analytics handlers initialized")
 
 // Approvals & Workflow Management
 approvalsHandler := handlers.NewApprovalsManagementHandlers(gormDB)
@@ -254,7 +253,6 @@ log.Println("🔗 Webhook handlers initialized")
 
 	// Create handlers struct for route registration
 	allHandlers := &AllHandlers{
-		AnalyticsAPI:          analyticsAPIHandler,
 		BusinessIntelligence:  businessIntelligenceHandler,
 		TieredStats:           tieredStatsHandler,
 		Approvals:             approvalsHandler,
@@ -263,6 +261,7 @@ log.Println("🔗 Webhook handlers initialized")
 		Behavioral:            behavioralHandler,
 		InsightsAPI:           handlers.NewInsightsAPIHandlers(gormDB),
 		ContextFUB:            contextFUBHandler,
+		CommandCenter:         commandCenterHandler,
 		Booking:               bookingHandler,
 		Calendar:              calendarHandler,
 		Dashboard:             dashboardHandler,
