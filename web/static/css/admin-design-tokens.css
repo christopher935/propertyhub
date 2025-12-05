@@ -46,9 +46,11 @@
   --warm: #F59E0B;
   --cold: #3B82F6;
   
-  /* Typography Scale */
+  /* Typography Scale - Serif Design System for Admin */
   --font-family-primary: 'Playfair Display', serif;
-  --font-family-secondary: 'Inter', sans-serif;
+  --font-family-body: 'Source Sans 3', system-ui, sans-serif;
+  --font-family-secondary: 'Inter', sans-serif;  /* Backward compatibility */
+  --font-family-mono: 'IBM Plex Mono', monospace;
   
   /* Font Sizes - Major Third Scale (1.25) */
   --font-size-xs: 0.75rem;    /* 12px */
@@ -69,12 +71,19 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
   
-  /* Line Heights */
+  /* Line Heights - Serif refined typography */
   --line-height-tight: 1.25;
   --line-height-snug: 1.375;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.625;
+  --line-height-normal: 1.75;  /* Relaxed for editorial */
+  --line-height-relaxed: 1.875;  /* More relaxed */
   --line-height-loose: 2;
+  
+  /* Letter Spacing - Serif typography */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0.01em;
+  --tracking-wide: 0.05em;
+  --tracking-wider: 0.1em;
+  --tracking-widest: 0.15em;  /* Small caps */
   
   /* Spacing Scale - Based on 0.25rem (4px) increments */
   --space-0: 0;
@@ -96,6 +105,11 @@
   --space-16: 4rem;     /* 64px */
   --space-20: 5rem;     /* 80px */
   --space-24: 6rem;     /* 96px */
+  --space-28: 7rem;     /* 112px - Serif generous spacing */
+  --space-32: 8rem;     /* 128px - Section padding */
+  --space-36: 9rem;     /* 144px */
+  --space-40: 10rem;    /* 160px */
+  --space-44: 11rem;    /* 176px - Hero sections */
   
   /* Border Radius Scale */
   --radius-none: 0;

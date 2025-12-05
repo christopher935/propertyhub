@@ -5,7 +5,7 @@
 
 /* Core Color Palette - Single source of truth */
 :root {
-  /* Primary Colors - Navy & Gold */
+  /* Primary Colors - Navy & Gold (Admin) */
   --navy-primary: #1b3559;
   --navy-light: #2d4a73;
   --navy-dark: #0f1f35;
@@ -17,6 +17,18 @@
   --gold-tint: color-mix(in srgb, var(--gold-primary) 10%, transparent);
   --navy-tint-light: color-mix(in srgb, var(--navy-primary) 5%, transparent);
   --navy-tint: color-mix(in srgb, var(--navy-primary) 10%, transparent);
+  
+  /* Serif Design System - Consumer Pages */
+  --background: #FAFAF8;  /* Warm ivory background */
+  --foreground: #1A1A1A;  /* Rich black text */
+  --muted: #F5F3F0;  /* Warmer muted background */
+  --muted-foreground: #6B6B6B;  /* Warm gray text */
+  --accent: #B8860B;  /* Burnished gold accent */
+  --accent-secondary: #D4A84B;  /* Lighter burnished gold */
+  --accent-muted: rgba(184, 134, 11, 0.06);  /* 6% accent for featured cards */
+  --card: #FFFFFF;  /* Pure white cards for lift from ivory */
+  --border: #E8E4DF;  /* Warmer border gray */
+  --ring: #B8860B;  /* Focus ring matches accent */
   
   /* Neutral Colors */
   --white: #FFFFFF;
@@ -45,9 +57,11 @@
   --info-light: #DBEAFE;
   --info-dark: #1E40AF;
   
-  /* Typography Scale */
+  /* Typography Scale - Serif Design System */
   --font-family-primary: 'Playfair Display', serif;
-  --font-family-secondary: 'Inter', sans-serif;
+  --font-family-body: 'Source Sans 3', system-ui, sans-serif;
+  --font-family-secondary: 'Inter', sans-serif;  /* Backward compatibility */
+  --font-family-mono: 'IBM Plex Mono', monospace;
   
   /* Font Sizes - Major Third Scale (1.25) */
   --font-size-xs: 0.75rem;    /* 12px */
@@ -62,17 +76,25 @@
   --font-size-6xl: 3.75rem;   /* 60px */
   
   /* Font Weights */
+  --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
   
-  /* Line Heights */
+  /* Line Heights - Serif relaxed reading */
   --line-height-tight: 1.25;
   --line-height-snug: 1.375;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.625;
+  --line-height-normal: 1.75;  /* Relaxed for editorial */
+  --line-height-relaxed: 1.875;  /* More relaxed */
   --line-height-loose: 2;
+  
+  /* Letter Spacing - Serif typography */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0.01em;
+  --tracking-wide: 0.05em;
+  --tracking-wider: 0.1em;
+  --tracking-widest: 0.15em;  /* Small caps */
   
   /* Spacing Scale - Based on 0.25rem (4px) increments */
   --space-0: 0;
@@ -89,6 +111,11 @@
   --space-16: 4rem;     /* 64px */
   --space-20: 5rem;     /* 80px */
   --space-24: 6rem;     /* 96px */
+  --space-28: 7rem;     /* 112px - Serif generous spacing */
+  --space-32: 8rem;     /* 128px - Section padding */
+  --space-36: 9rem;     /* 144px */
+  --space-40: 10rem;    /* 160px */
+  --space-44: 11rem;    /* 176px - Hero sections */
   
   /* Border Radius Scale */
   --radius-none: 0;
@@ -101,13 +128,13 @@
   --radius-3xl: 1.5rem;    /* 24px */
   --radius-full: 9999px;
   
-  /* Shadow System */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  /* Shadow System - Serif warmer shadows */
+  --shadow-sm: 0 1px 2px rgba(26, 26, 26, 0.04);
+  --shadow-base: 0 1px 3px rgba(26, 26, 26, 0.05), 0 1px 2px rgba(26, 26, 26, 0.03);
+  --shadow-md: 0 4px 12px rgba(26, 26, 26, 0.06);
+  --shadow-lg: 0 8px 24px rgba(26, 26, 26, 0.08);
+  --shadow-xl: 0 20px 32px rgba(26, 26, 26, 0.1);
+  --shadow-2xl: 0 32px 64px rgba(26, 26, 26, 0.12);
   
   /* Responsive Breakpoints */
   --breakpoint-sm: 768px;   /* Tablet */
