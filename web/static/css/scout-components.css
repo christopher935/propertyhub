@@ -222,21 +222,21 @@ a:hover {
    Overrides admin navy buttons on consumer-facing pages
    ======================================================================== */
 
-/* Consumer Primary Button - Gold Gradient */
+/* Consumer Primary Button - Gold */
 .page-homepage .btn-primary,
 .page-properties .btn-primary,
 .page-property-detail .btn-primary,
 .page-about .btn-primary,
 .page-contact .btn-primary,
 .page-booking .btn-primary {
-    background: linear-gradient(135deg, var(--navy-primary), var(--navy-light));
-    color: white;
-    border: none;
+    background: var(--gold-primary);
+    color: var(--navy-dark);
+    border: 2px solid var(--gold-primary);
     padding: 10px 20px;
     font-size: 14px;
     font-weight: 600;
     border-radius: 8px;
-    transition: all 200ms ease;
+    transition: all 0.2s ease;
 }
 
 .page-homepage .btn-primary:hover,
@@ -245,13 +245,14 @@ a:hover {
 .page-about .btn-primary:hover,
 .page-contact .btn-primary:hover,
 .page-booking .btn-primary:hover {
-    background: linear-gradient(135deg, var(--navy-light), var(--navy-primary));
-    color: white;
+    background: var(--gold-dark);
+    border-color: var(--gold-dark);
+    color: var(--navy-dark);
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(27, 53, 89, 0.3);
+    box-shadow: var(--shadow-md);
 }
 
-/* Consumer Secondary Button - Keep as outline */
+/* Consumer Secondary Button - Navy Outline */
 .page-homepage .btn-secondary,
 .page-properties .btn-secondary,
 .page-property-detail .btn-secondary,
@@ -259,13 +260,13 @@ a:hover {
 .page-contact .btn-secondary,
 .page-booking .btn-secondary {
     background: transparent;
-    color: var(--navy-primary);  /* Navy text */
-    border: 1px solid var(--navy-primary);
+    color: var(--navy-primary);
+    border: 2px solid var(--navy-primary);
     padding: 10px 20px;
     font-size: 14px;
     font-weight: 600;
     border-radius: 8px;
-    transition: all 200ms ease;
+    transition: all 0.2s ease;
 }
 
 .page-homepage .btn-secondary:hover,
@@ -275,9 +276,8 @@ a:hover {
 .page-contact .btn-secondary:hover,
 .page-booking .btn-secondary:hover {
     background: var(--navy-primary);
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    color: var(--white);
+    transform: translateY(-2px);
 }
 
 /* Responsive Layout */
@@ -363,30 +363,12 @@ body.page-homepage {
    ======================================================================== */
 
 .page-homepage .hero {
-  background: linear-gradient(135deg, rgba(27,53,89,0.95), rgba(27,53,89,0.85)), 
-               linear-gradient(to bottom, rgba(196,169,98,0.1), transparent),
-               var(--white);
-  padding: var(--space-24) 0;
+  background: var(--white);
+  padding: var(--space-20) 0;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
-}
-
-.page-homepage .hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(circle at 20% 50%, rgba(196,169,98,0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 50%, rgba(196,169,98,0.1) 0%, transparent 50%);
-  animation: heroGlow 8s ease-in-out infinite;
-}
-
-@keyframes heroGlow {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.8; }
 }
 
 .page-homepage .hero-container {
@@ -404,14 +386,11 @@ body.page-homepage {
 
 .page-homepage .hero-text-heading {
   font-family: var(--font-family-primary);
-  font-size: clamp(3rem, 8vw, 6rem);
+  font-size: clamp(2.5rem, 6vw, 3.75rem);
   font-weight: var(--font-weight-bold);
-  color: var(--white);
+  color: var(--navy-primary);
   line-height: var(--line-height-tight);
   margin-bottom: var(--space-6);
-  animation: fadeInUp 0.8s ease-out;
-  position: relative;
-  z-index: 1;
 }
 
 @keyframes fadeInUp {
@@ -427,21 +406,15 @@ body.page-homepage {
 
 .page-homepage .hero-text-text {
   font-size: var(--font-size-xl);
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--gray-600);
   margin-bottom: var(--space-8);
   line-height: var(--line-height-relaxed);
-  animation: fadeInUp 0.8s ease-out 0.2s both;
-  position: relative;
-  z-index: 1;
 }
 
 .page-homepage .hero-actions {
   display: flex;
   gap: var(--space-4);
   align-items: center;
-  animation: fadeInUp 0.8s ease-out 0.4s both;
-  position: relative;
-  z-index: 1;
 }
 
 .page-homepage .hero-cards {
@@ -543,25 +516,23 @@ body.page-homepage {
 
 .page-homepage .feature-card {
   text-align: center;
-  padding: var(--space-10) var(--space-6);
-  border-radius: var(--radius-2xl);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
   background: var(--white);
   border: 1px solid var(--gray-200);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow-base);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .page-homepage .feature-card:hover {
-  transform: translateY(-6px);
-  background: var(--white);
-  box-shadow: 0 12px 24px -5px rgba(27, 53, 89, 0.15);
-  border-color: var(--gold-primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
 .page-homepage .feature-icon {
   width: var(--space-16);
   height: var(--space-16);
-  background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-light) 100%);
+  background: var(--navy-primary);
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
@@ -569,12 +540,11 @@ body.page-homepage {
   font-size: var(--font-size-2xl);
   margin: 0 auto var(--space-6);
   color: var(--gold-primary);
-  box-shadow: 0 4px 12px rgba(27, 53, 89, 0.2);
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .page-homepage .feature-card:hover .feature-icon {
-  transform: scale(1.1) rotate(5deg);
+  transform: translateY(-2px);
 }
 
 .page-homepage .feature-card-heading {
@@ -8999,10 +8969,10 @@ body.page-analytics {
 
 .property-card {
   background: var(--white);
-  border-radius: var(--radius-xl); /* 12px */
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-md);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-base);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   border: 1px solid var(--gray-200);
   position: relative;
   display: flex;
@@ -9010,10 +8980,8 @@ body.page-analytics {
 }
 
 .property-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px -5px rgba(27, 53, 89, 0.2), 
-              0 10px 20px -5px rgba(196, 169, 98, 0.1);
-  border-color: var(--gold-primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
 }
 
 /* ---------------------------------------------------------------------
@@ -9037,12 +9005,12 @@ body.page-analytics {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s ease;
 }
 
 .property-card:hover .property-image img,
 .property-card:hover .property-image-image {
-  transform: scale(1.08);
+  transform: scale(1.05);
 }
 
 /* Image overlay on hover */
@@ -9135,8 +9103,8 @@ body.page-analytics {
 
 .save-heart:hover {
   border-color: var(--error);
-  transform: scale(1.2);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .save-heart.saved {
@@ -9168,9 +9136,7 @@ body.page-analytics {
 
 @keyframes heartBeat {
   0%, 100% { transform: scale(1); }
-  25% { transform: scale(1.3); }
   50% { transform: scale(1.1); }
-  75% { transform: scale(1.3); }
 }
 
 /* ---------------------------------------------------------------------
@@ -9477,7 +9443,7 @@ body.page-analytics {
   font-weight: var(--font-weight-medium);
   color: var(--navy-primary);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   white-space: nowrap;
   user-select: none;
 }
@@ -9485,7 +9451,7 @@ body.page-analytics {
 .filter-pill:hover {
   background: var(--gray-200);
   border-color: var(--navy-primary);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
 }
 
@@ -9493,7 +9459,6 @@ body.page-analytics {
   background: var(--navy-primary);
   color: var(--white);
   border-color: var(--navy-primary);
-  box-shadow: 0 4px 8px rgba(27, 53, 89, 0.2);
 }
 
 .filter-pill.active:hover {
@@ -9552,7 +9517,7 @@ body.page-analytics {
 
 .filter-remove:hover {
   background: rgba(255, 255, 255, 0.2);
-  transform: rotate(90deg);
+  opacity: 0.7;
 }
 
 /* ========================================================================
@@ -9615,7 +9580,7 @@ body.page-analytics {
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   opacity: 0;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.2s ease;
   position: fixed;
   inset: 0;
   z-index: var(--z-index-modal-backdrop);
@@ -9629,9 +9594,9 @@ body.page-analytics {
 }
 
 .modal-wrapper {
-  transform: translateY(20px) scale(0.95);
+  transform: translateY(20px);
   opacity: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   max-width: 90vw;
   max-height: 90vh;
   overflow: auto;
@@ -9640,7 +9605,7 @@ body.page-analytics {
 }
 
 .modal-wrapper.show {
-  transform: translateY(0) scale(1);
+  transform: translateY(0);
   opacity: 1;
 }
 
@@ -9684,7 +9649,6 @@ body.page-analytics {
 .modal-close:hover {
   background: var(--gray-200);
   color: var(--navy-primary);
-  transform: rotate(90deg);
 }
 
 .modal-close-icon {
@@ -9734,7 +9698,7 @@ body.page-analytics {
 
 .gallery-nav:hover {
   background: var(--white);
-  transform: translateY(-50%) scale(1.1);
+  transform: translateY(-50%);
   box-shadow: var(--shadow-xl);
 }
 
@@ -9801,7 +9765,6 @@ body.page-analytics {
 
 .qv-thumbnail:hover {
   border-color: var(--gold-primary);
-  transform: scale(1.05);
 }
 
 .qv-thumbnail.active {
