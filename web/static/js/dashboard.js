@@ -1,901 +1,618 @@
-/**
- * PropertyHub Dashboard - Real-Time Enterprise Dashboard
- * Live updates, real-time analytics, and interactive widgets
- * Integrates with PropertyHub backend for comprehensive property management
- */
-
-class PropertyHubDashboard {
-    constructor() {
-        this.websocket = null;
-        this.updateIntervals = new Map();
-        this.widgets = new Map();
-        this.alerts = [];
-        this.connectionRetryCount = 0;
-        this.maxRetries = 5;
-        this.retryDelay = 5000;
+function dashboardData() {
+    return {
+        chartColors: {
+            primary: '#1b3559',
+            secondary: '#c4a962',
+            success: '#10B981',
+            warning: '#F59E0B',
+            error: '#EF4444',
+            info: '#3B82F6'
+        },
         
-        // Dashboard configuration
-        this.config = {
-            updateFrequency: 30000, // 30 seconds
-            criticalUpdateFrequency: 5000, // 5 seconds
-            websocketReconnectDelay: 3000,
-            maxConcurrentRequests: 10
-        };
-
-        this.init();
-    }
-
-    async init() {
-        console.log('🏢 PropertyHub Dashboard initializing...');
+        criticalStats: {
+            pendingBookings: 0,
+            pendingApplications: 0,
+            alerts: 0
+        },
         
-        try {
-            await this.setupWebSocket();
-            await this.loadDashboardData();
-            this.setupWidgets();
-            this.setupEventListeners();
-            this.startRealTimeUpdates();
-            this.setupKeyboardShortcuts();
-            
-            console.log('✅ PropertyHub Dashboard initialized successfully');
-        } catch (error) {
-            console.error('❌ Dashboard initialization failed:', error);
-            this.showErrorAlert('Dashboard initialization failed. Some features may not work properly.');
-        }
-    }
-
-    // WebSocket Connection Management
-    async setupWebSocket() {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws/dashboard`;
+        keyMetrics: {
+            activeLeads: 0,
+            activeLeadsTrend: 0,
+            conversionRate: 0,
+            revenueMTD: 0,
+            revenueTrend: 0,
+            bookingsWeek: 0,
+            confirmedBookings: 0
+        },
         
-        try {
-            this.websocket = new WebSocket(wsUrl);
-            
-            this.websocket.onopen = () => {
-                console.log('🔗 WebSocket connected for real-time updates');
-                this.connectionRetryCount = 0;
-                this.updateConnectionStatus(true);
+        opportunities: [],
+        recentActivity: [],
+        
+        systemHealth: {
+            status: 'healthy',
+            uptime_percent: 99.9,
+            avg_response_time_ms: 120,
+            error_rate_percent: 0.1
+        },
+        
+        sidebarCounts: {
+            total_leads: 0,
+            hot_leads: 0,
+            warm_leads: 0,
+            active_properties: 0,
+            pending_applications: 0,
+            confirmed_bookings: 0,
+            closing_pipeline: 0,
+            pending_images: 0
+        },
+        
+        userProfile: {
+            username: 'Loading...',
+            role: 'Loading...',
+            initials: 'U'
+        },
+        
+        loadingOpportunities: true,
+        searchQuery: '',
+        bookingTrendsChart: null,
+        leadSourceChart: null,
+        
+        async init() {
+            await this.fetchUserProfile();
+            await Promise.all([
+                this.fetchCriticalStats(),
+                this.fetchKeyMetrics(),
+                this.fetchOpportunities(),
+                this.fetchRecentActivity(),
+                this.fetchChartData(),
+                this.fetchSystemHealth()
+            ]);
+            this.renderCharts();
+        },
+        
+        async fetchUserProfile() {
+            try {
+                const response = await fetch('/api/admin/settings/profile');
+                const data = await response.json();
+                this.userProfile = {
+                    username: data.username || 'User',
+                    role: data.role || 'Unknown',
+                    initials: this.getUserInitials(data.username)
+                };
+            } catch (error) {
+                console.error('Failed to fetch user profile:', error);
+                this.userProfile = { username: 'User', role: 'Unknown', initials: 'U' };
+            }
+        },
+        
+        getUserInitials(name) {
+            if (!name) return 'U';
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        },
+        
+        async fetchCriticalStats() {
+            try {
+                const response = await fetch('/api/stats/critical');
+                const data = await response.json();
+                this.criticalStats = {
+                    pendingBookings: data.pending_bookings || 0,
+                    pendingApplications: data.pending_applications || 0,
+                    alerts: data.system_alerts || 0
+                };
+                this.sidebarCounts.pending_applications = data.pending_applications || 0;
+            } catch (error) {
+                console.error('Failed to fetch critical stats:', error);
+            }
+        },
+        
+        async fetchKeyMetrics() {
+            try {
+                const response = await fetch('/api/stats/key-metrics');
+                const data = await response.json();
+                this.keyMetrics = {
+                    activeLeads: data.active_leads || 0,
+                    activeLeadsTrend: data.active_leads_trend || 0,
+                    conversionRate: data.conversion_rate || 0,
+                    revenueMTD: data.revenue_mtd || 0,
+                    revenueTrend: data.revenue_trend || 0,
+                    bookingsWeek: data.bookings_week || 0,
+                    confirmedBookings: data.confirmed_bookings || 0
+                };
+                this.sidebarCounts.total_leads = data.active_leads || 0;
+                this.sidebarCounts.hot_leads = data.hot_leads || 0;
+                this.sidebarCounts.warm_leads = data.warm_leads || 0;
+                this.sidebarCounts.confirmed_bookings = data.bookings_week || 0;
+            } catch (error) {
+                console.error('Failed to fetch key metrics:', error);
+            }
+        },
+        
+        async fetchOpportunities() {
+            this.loadingOpportunities = true;
+            try {
+                const response = await fetch('/api/stats/opportunities?limit=4');
+                const data = await response.json();
+                this.opportunities = data.opportunities || [];
+            } catch (error) {
+                console.error('Failed to fetch opportunities:', error);
+            } finally {
+                this.loadingOpportunities = false;
+            }
+        },
+        
+        async fetchRecentActivity() {
+            try {
+                const response = await fetch('/api/stats/activity?limit=5');
+                const data = await response.json();
+                this.recentActivity = data.activities || [];
+            } catch (error) {
+                console.error('Failed to fetch recent activity:', error);
+            }
+        },
+        
+        async fetchChartData() {
+            try {
+                const [bookingResponse, leadSourceResponse] = await Promise.all([
+                    fetch('/api/charts/bookings'),
+                    fetch('/api/charts/lead-sources')
+                ]);
                 
-                // Send authentication
-                this.websocket.send(JSON.stringify({
-                    type: 'auth',
-                    token: localStorage.getItem('token')
-                }));
-            };
-
-            this.websocket.onmessage = (event) => {
-                this.handleWebSocketMessage(JSON.parse(event.data));
-            };
-
-            this.websocket.onclose = () => {
-                console.log('🔌 WebSocket connection closed');
-                this.updateConnectionStatus(false);
-                this.scheduleReconnect();
-            };
-
-            this.websocket.onerror = (error) => {
-                console.error('📡 WebSocket error:', error);
-                this.updateConnectionStatus(false);
-            };
-
-        } catch (error) {
-            console.error('Failed to establish WebSocket connection:', error);
-            this.updateConnectionStatus(false);
-        }
-    }
-
-    handleWebSocketMessage(message) {
-        switch (message.type) {
-            case 'property_update':
-                this.updatePropertyWidget(message.data);
-                break;
-            case 'booking_update':
-                this.updateBookingWidget(message.data);
-                break;
-            case 'revenue_update':
-                this.updateRevenueWidget(message.data);
-                break;
-            case 'alert':
-                this.showAlert(message.data);
-                break;
-            case 'market_data_update':
-                this.updateMarketDataWidget(message.data);
-                break;
-            case 'maintenance_update':
-                this.updateMaintenanceWidget(message.data);
-                break;
-            case 'lead_update':
-                this.updateLeadWidget(message.data);
-                break;
-            default:
-                console.log('Unknown WebSocket message type:', message.type);
-        }
-    }
-
-    scheduleReconnect() {
-        if (this.connectionRetryCount < this.maxRetries) {
-            setTimeout(() => {
-                this.connectionRetryCount++;
-                console.log(`🔄 Reconnecting WebSocket (attempt ${this.connectionRetryCount}/${this.maxRetries})`);
-                this.setupWebSocket();
-            }, this.config.websocketReconnectDelay);
-        } else {
-            console.error('❌ WebSocket max reconnection attempts reached');
-            this.showErrorAlert('Real-time updates disabled. Please refresh the page.');
-        }
-    }
-
-    updateConnectionStatus(isConnected) {
-        const statusEl = document.getElementById('connection-status');
-        if (statusEl) {
-            statusEl.className = isConnected ? 
-                'connection-status connected' : 
-                'connection-status disconnected';
-            statusEl.textContent = isConnected ? 'Connected' : 'Disconnected';
-        }
-    }
-
-    // Dashboard Data Loading
-    async loadDashboardData() {
-        console.log('📊 Loading dashboard data...');
+                this.bookingTrendsData = await bookingResponse.json();
+                this.leadSourceData = await leadSourceResponse.json();
+            } catch (error) {
+                console.error('Failed to fetch chart data:', error);
+            }
+        },
         
-        const dataPromises = [
-            this.loadPropertySummary(),
-            this.loadBookingSummary(),
-            this.loadRevenueSummary(),
-            this.loadMarketData(),
-            this.loadRecentActivity(),
-            this.loadAlerts(),
-            this.loadMaintenanceRequests(),
-            this.loadLeadSummary(),
-            this.loadUpcomingTasks()
-        ];
-
-        try {
-            await Promise.allSettled(dataPromises);
-            console.log('✅ Dashboard data loaded successfully');
-        } catch (error) {
-            console.error('❌ Error loading dashboard data:', error);
-            this.showErrorAlert('Failed to load some dashboard data');
-        }
-    }
-
-    async loadPropertySummary() {
-        try {
-            const response = await this.apiCall('/api/dashboard/properties');
-            const data = await response.json();
-            this.updatePropertySummaryWidget(data);
-        } catch (error) {
-            console.error('Error loading property summary:', error);
-        }
-    }
-
-    async loadBookingSummary() {
-        try {
-            const response = await this.apiCall('/api/dashboard/bookings');
-            const data = await response.json();
-            this.updateBookingSummaryWidget(data);
-        } catch (error) {
-            console.error('Error loading booking summary:', error);
-        }
-    }
-
-    async loadRevenueSummary() {
-        try {
-            const response = await this.apiCall('/api/dashboard/revenue');
-            const data = await response.json();
-            this.updateRevenueSummaryWidget(data);
-        } catch (error) {
-            console.error('Error loading revenue summary:', error);
-        }
-    }
-
-    async loadMarketData() {
-        try {
-            const response = await this.apiCall('/api/dashboard/market-data');
-            const data = await response.json();
-            this.updateMarketDataSummary(data);
-        } catch (error) {
-            console.error('Error loading market data:', error);
-        }
-    }
-
-    async loadRecentActivity() {
-        try {
-            const response = await this.apiCall('/api/dashboard/recent-activity');
-            const data = await response.json();
-            this.updateRecentActivityWidget(data);
-        } catch (error) {
-            console.error('Error loading recent activity:', error);
-        }
-    }
-
-    async loadAlerts() {
-        try {
-            const response = await this.apiCall('/api/dashboard/alerts');
-            const data = await response.json();
-            this.updateAlertsWidget(data);
-        } catch (error) {
-            console.error('Error loading alerts:', error);
-        }
-    }
-
-    async loadMaintenanceRequests() {
-        try {
-            const response = await this.apiCall('/api/dashboard/maintenance');
-            const data = await response.json();
-            this.updateMaintenanceWidget(data);
-        } catch (error) {
-            console.error('Error loading maintenance requests:', error);
-        }
-    }
-
-    async loadLeadSummary() {
-        try {
-            const response = await this.apiCall('/api/dashboard/leads');
-            const data = await response.json();
-            this.updateLeadSummaryWidget(data);
-        } catch (error) {
-            console.error('Error loading lead summary:', error);
-        }
-    }
-
-    async loadUpcomingTasks() {
-        try {
-            const response = await this.apiCall('/api/dashboard/upcoming-tasks');
-            const data = await response.json();
-            this.updateUpcomingTasksWidget(data);
-        } catch (error) {
-            console.error('Error loading upcoming tasks:', error);
-        }
-    }
-
-    // Widget Update Methods
-    updatePropertySummaryWidget(data) {
-        const widget = document.getElementById('property-summary-widget');
-        if (!widget) return;
-
-        widget.innerHTML = `
-            <div class="widget-header">
-                <h3>Property Portfolio</h3>
-                <div class="widget-actions">
-                    <button onclick="window.location.href='/properties'" class="btn btn-sm btn-primary">
-                        View All
-                    </button>
-                </div>
-            </div>
-            <div class="widget-content">
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">${data.totalProperties}</div>
-                        <div class="stat-label">Total Properties</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.occupiedUnits}</div>
-                        <div class="stat-label">Occupied Units</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.vacantUnits}</div>
-                        <div class="stat-label">Vacant Units</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.occupancyRate}%</div>
-                        <div class="stat-label">Occupancy Rate</div>
-                    </div>
-                </div>
-                <div class="property-list">
-                    ${data.recentProperties.map(property => `
-                        <div class="property-item">
-                            <div class="property-info">
-                                <h4>${property.address}</h4>
-                                <p>${property.city}, ${property.state} ${property.zipCode}</p>
-                            </div>
-                            <div class="property-status ${property.status.toLowerCase()}">
-                                ${property.status}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    updateBookingSummaryWidget(data) {
-        const widget = document.getElementById('booking-summary-widget');
-        if (!widget) return;
-
-        widget.innerHTML = `
-            <div class="widget-header">
-                <h3>Bookings Overview</h3>
-                <div class="widget-actions">
-                    <button onclick="window.location.href='/bookings'" class="btn btn-sm btn-primary">
-                        Manage Bookings
-                    </button>
-                </div>
-            </div>
-            <div class="widget-content">
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">${data.activeBookings}</div>
-                        <div class="stat-label">Active Bookings</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.pendingBookings}</div>
-                        <div class="stat-label">Pending Approval</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.todayCheckIns}</div>
-                        <div class="stat-label">Today's Check-ins</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.todayCheckOuts}</div>
-                        <div class="stat-label">Today's Check-outs</div>
-                    </div>
-                </div>
-                <div class="recent-bookings">
-                    <h4>Recent Bookings</h4>
-                    ${data.recentBookings.map(booking => `
-                        <div class="booking-item">
-                            <div class="booking-info">
-                                <h5>${booking.guestName}</h5>
-                                <p>${booking.propertyAddress}</p>
-                                <p>${booking.checkInDate} - ${booking.checkOutDate}</p>
-                            </div>
-                            <div class="booking-status ${booking.status.toLowerCase()}">
-                                ${booking.status}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    updateRevenueSummaryWidget(data) {
-        const widget = document.getElementById('revenue-summary-widget');
-        if (!widget) return;
-
-        widget.innerHTML = `
-            <div class="widget-header">
-                <h3>Revenue Analytics</h3>
-                <div class="widget-actions">
-                    <button onclick="window.location.href='/analytics'" class="btn btn-sm btn-primary">
-                        View Reports
-                    </button>
-                </div>
-            </div>
-            <div class="widget-content">
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">$${data.monthlyRevenue.toLocaleString()}</div>
-                        <div class="stat-label">Monthly Revenue</div>
-                        <div class="stat-change ${data.monthlyChange >= 0 ? 'positive' : 'negative'}">
-                            ${data.monthlyChange >= 0 ? '+' : ''}${data.monthlyChange}%
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">$${data.yearlyRevenue.toLocaleString()}</div>
-                        <div class="stat-label">Yearly Revenue</div>
-                        <div class="stat-change ${data.yearlyChange >= 0 ? 'positive' : 'negative'}">
-                            ${data.yearlyChange >= 0 ? '+' : ''}${data.yearlyChange}%
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">$${data.avgDailyRate}</div>
-                        <div class="stat-label">Avg Daily Rate</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.revPAR}</div>
-                        <div class="stat-label">RevPAR</div>
-                    </div>
-                </div>
-                <canvas id="revenue-trend-chart" width="400" height="200"></canvas>
-            </div>
-        `;
-
-        // Update revenue trend chart if charts library is available
-        if (window.PropertyHubCharts) {
-            this.updateRevenueTrendChart(data.trendData);
-        }
-    }
-
-    updateMarketDataSummary(data) {
-        const widget = document.getElementById('market-data-widget');
-        if (!widget) return;
-
-        widget.innerHTML = `
-            <div class="widget-header">
-                <h3>Market Intelligence</h3>
-                <div class="widget-actions">
-                    <button onclick="this.refreshMarketData()" class="btn btn-sm btn-secondary">
-                        Refresh Data
-                    </button>
-                </div>
-            </div>
-            <div class="widget-content">
-                <div class="market-stats">
-                    <div class="stat-item">
-                        <div class="stat-value">$${data.averageRent}</div>
-                        <div class="stat-label">Market Avg Rent</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.marketOccupancy}%</div>
-                        <div class="stat-label">Market Occupancy</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.daysOnMarket}</div>
-                        <div class="stat-label">Avg Days on Market</div>
-                    </div>
-                </div>
-                <div class="market-insights">
-                    <h4>Market Insights</h4>
-                    <ul>
-                        ${data.insights.map(insight => `<li>${insight}</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="last-updated">
-                    Last updated: ${new Date(data.lastUpdated).toLocaleString()}
-                </div>
-            </div>
-        `;
-    }
-
-    updateRecentActivityWidget(data) {
-        const widget = document.getElementById('recent-activity-widget');
-        if (!widget) return;
-
-        widget.innerHTML = `
-            <div class="widget-header">
-                <h3>Recent Activity</h3>
-            </div>
-            <div class="widget-content">
-                <div class="activity-feed">
-                    ${data.activities.map(activity => `
-                        <div class="activity-item">
-                            <div class="activity-icon ${activity.type}">
-                                <i class="${this.getActivityIcon(activity.type)}"></i>
-                            </div>
-                            <div class="activity-content">
-                                <p>${activity.description}</p>
-                                <span class="activity-time">${this.formatTimeAgo(activity.timestamp)}</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    updateAlertsWidget(data) {
-        const widget = document.getElementById('alerts-widget');
-        if (!widget) return;
-
-        widget.innerHTML = `
-            <div class="widget-header">
-                <h3>Alerts & Notifications</h3>
-                <div class="alert-count ${data.criticalCount > 0 ? 'has-critical' : ''}">
-                    ${data.totalCount}
-                </div>
-            </div>
-            <div class="widget-content">
-                <div class="alert-list">
-                    ${data.alerts.map(alert => `
-                        <div class="alert-item ${alert.priority}">
-                            <div class="alert-content">
-                                <h5>${alert.title}</h5>
-                                <p>${alert.message}</p>
-                                <span class="alert-time">${this.formatTimeAgo(alert.timestamp)}</span>
-                            </div>
-                            <div class="alert-actions">
-                                <button onclick="this.dismissAlert('${alert.id}')" class="btn btn-sm">
-                                    Dismiss
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    updateMaintenanceWidget(data) {
-        const widget = document.getElementById('maintenance-widget');
-        if (!widget) return;
-
-        widget.innerHTML = `
-            <div class="widget-header">
-                <h3>Maintenance Requests</h3>
-                <div class="widget-actions">
-                    <button onclick="window.location.href='/maintenance'" class="btn btn-sm btn-primary">
-                        View All
-                    </button>
-                </div>
-            </div>
-            <div class="widget-content">
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">${data.openRequests}</div>
-                        <div class="stat-label">Open Requests</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.urgentRequests}</div>
-                        <div class="stat-label">Urgent</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.avgResponseTime}h</div>
-                        <div class="stat-label">Avg Response Time</div>
-                    </div>
-                </div>
-                <div class="maintenance-list">
-                    ${data.recentRequests.map(request => `
-                        <div class="maintenance-item">
-                            <div class="maintenance-info">
-                                <h5>${request.title}</h5>
-                                <p>${request.property}</p>
-                                <span class="request-time">${this.formatTimeAgo(request.createdAt)}</span>
-                            </div>
-                            <div class="priority ${request.priority}">
-                                ${request.priority}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    updateLeadSummaryWidget(data) {
-        const widget = document.getElementById('lead-summary-widget');
-        if (!widget) return;
-
-        widget.innerHTML = `
-            <div class="widget-header">
-                <h3>Lead Management</h3>
-                <div class="widget-actions">
-                    <button onclick="window.location.href='/leads'" class="btn btn-sm btn-primary">
-                        View CRM
-                    </button>
-                </div>
-            </div>
-            <div class="widget-content">
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">${data.newLeads}</div>
-                        <div class="stat-label">New Leads Today</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.hotLeads}</div>
-                        <div class="stat-label">Hot Leads</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">${data.conversionRate}%</div>
-                        <div class="stat-label">Conversion Rate</div>
-                    </div>
-                </div>
-                <div class="lead-sources">
-                    <h4>Top Lead Sources</h4>
-                    ${data.leadSources.map(source => `
-                        <div class="source-item">
-                            <span class="source-name">${source.name}</span>
-                            <span class="source-count">${source.count}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    updateUpcomingTasksWidget(data) {
-        const widget = document.getElementById('upcoming-tasks-widget');
-        if (!widget) return;
-
-        widget.innerHTML = `
-            <div class="widget-header">
-                <h3>Upcoming Tasks</h3>
-            </div>
-            <div class="widget-content">
-                <div class="task-list">
-                    ${data.tasks.map(task => `
-                        <div class="task-item">
-                            <div class="task-content">
-                                <h5>${task.title}</h5>
-                                <p>${task.description}</p>
-                                <span class="task-due">Due: ${new Date(task.dueDate).toLocaleDateString()}</span>
-                            </div>
-                            <div class="task-priority ${task.priority}">
-                                ${task.priority}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    // Real-time Updates
-    startRealTimeUpdates() {
-        // Critical widgets update every 5 seconds
-        this.updateIntervals.set('critical', setInterval(() => {
-            this.updateCriticalWidgets();
-        }, this.config.criticalUpdateFrequency));
-
-        // Regular widgets update every 30 seconds
-        this.updateIntervals.set('regular', setInterval(() => {
-            this.updateRegularWidgets();
-        }, this.config.updateFrequency));
-
-        // Market data updates every 5 minutes
-        this.updateIntervals.set('market', setInterval(() => {
-            this.loadMarketData();
-        }, 300000));
-    }
-
-    async updateCriticalWidgets() {
-        const criticalUpdates = [
-            this.loadBookingSummary(),
-            this.loadAlerts(),
-            this.loadRecentActivity()
-        ];
-
-        try {
-            await Promise.allSettled(criticalUpdates);
-        } catch (error) {
-            console.error('Error updating critical widgets:', error);
-        }
-    }
-
-    async updateRegularWidgets() {
-        const regularUpdates = [
-            this.loadPropertySummary(),
-            this.loadRevenueSummary(),
-            this.loadMaintenanceRequests(),
-            this.loadLeadSummary(),
-            this.loadUpcomingTasks()
-        ];
-
-        try {
-            await Promise.allSettled(regularUpdates);
-        } catch (error) {
-            console.error('Error updating regular widgets:', error);
-        }
-    }
-
-    // Utility Methods
-    async apiCall(endpoint, options = {}) {
-        const defaultOptions = {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Content-Type': 'application/json'
+        async fetchSystemHealth() {
+            try {
+                const response = await fetch('/api/admin/system/health');
+                const data = await response.json();
+                this.systemHealth = {
+                    status: data.status || 'healthy',
+                    uptime_percent: data.uptime_percent || 99.9,
+                    avg_response_time_ms: data.avg_response_time_ms || 120,
+                    error_rate_percent: data.error_rate_percent || 0.1
+                };
+                this.sidebarCounts.active_properties = data.active_properties || 0;
+                this.sidebarCounts.pending_images = data.pending_images || 0;
+                this.sidebarCounts.closing_pipeline = data.closing_pipeline || 0;
+            } catch (error) {
+                console.error('Failed to fetch system health:', error);
             }
-        };
-
-        const response = await fetch(endpoint, { ...defaultOptions, ...options });
+        },
         
-        if (!response.ok) {
-            throw new Error(`API call failed: ${response.status} ${response.statusText}`);
-        }
-        
-        return response;
-    }
-
-    getActivityIcon(type) {
-        const iconMap = {
-            booking: 'fas fa-calendar-check',
-            property: 'fas fa-home',
-            revenue: 'fas fa-dollar-sign',
-            maintenance: 'fas fa-wrench',
-            lead: 'fas fa-user-plus',
-            alert: 'fas fa-exclamation-triangle'
-        };
-        return iconMap[type] || 'fas fa-info-circle';
-    }
-
-    formatTimeAgo(timestamp) {
-        const now = new Date();
-        const time = new Date(timestamp);
-        const diffInSeconds = Math.floor((now - time) / 1000);
-
-        if (diffInSeconds < 60) return 'Just now';
-        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-        return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    }
-
-    showAlert(alert) {
-        this.alerts.push(alert);
-        this.displayNotification(alert);
-        this.loadAlerts(); // Refresh alerts widget
-    }
-
-    showErrorAlert(message) {
-        this.displayNotification({
-            type: 'error',
-            title: 'Error',
-            message: message
-        });
-    }
-
-    displayNotification(alert) {
-        // Create notification toast
-        const toast = document.createElement('div');
-        toast.className = `notification-toast ${alert.type || 'info'}`;
-        toast.innerHTML = `
-            <div class="toast-content">
-                <h4>${alert.title}</h4>
-                <p>${alert.message}</p>
-            </div>
-            <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-        `;
-
-        const container = document.getElementById('notification-container') || this.createNotificationContainer();
-        container.appendChild(toast);
-
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.remove();
-            }
-        }, 5000);
-    }
-
-    createNotificationContainer() {
-        const container = document.createElement('div');
-        container.id = 'notification-container';
-        container.className = 'notification-container';
-        document.body.appendChild(container);
-        return container;
-    }
-
-    dismissAlert(alertId) {
-        fetch(`/api/alerts/${alertId}/dismiss`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        }).then(() => {
-            this.loadAlerts(); // Refresh alerts widget
-        });
-    }
-
-    async refreshMarketData() {
-        const button = event.target;
-        button.disabled = true;
-        button.textContent = 'Refreshing...';
-        
-        try {
-            await this.loadMarketData();
-            button.textContent = 'Refresh Data';
-        } catch (error) {
-            button.textContent = 'Refresh Failed';
-            console.error('Market data refresh failed:', error);
-        } finally {
-            button.disabled = false;
-            setTimeout(() => {
-                if (button.textContent !== 'Refresh Data') {
-                    button.textContent = 'Refresh Data';
-                }
-            }, 3000);
-        }
-    }
-
-    setupEventListeners() {
-        // Dashboard refresh
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
-                e.preventDefault();
-                this.refreshDashboard();
-            }
-        });
-
-        // Window focus/blur for pausing updates
-        window.addEventListener('focus', () => {
-            this.startRealTimeUpdates();
-        });
-
-        window.addEventListener('blur', () => {
-            // Optionally pause updates when window is not focused
-            // this.pauseUpdates();
-        });
-    }
-
-    setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                switch (e.key) {
-                    case 'd':
-                        e.preventDefault();
-                        this.refreshDashboard();
-                        break;
-                    case 'p':
-                        e.preventDefault();
-                        window.location.href = '/properties';
-                        break;
-                    case 'b':
-                        e.preventDefault();
-                        window.location.href = '/bookings';
-                        break;
-                    case 'a':
-                        e.preventDefault();
-                        window.location.href = '/analytics';
-                        break;
-                }
-            }
-        });
-    }
-
-    async refreshDashboard() {
-        console.log('🔄 Refreshing dashboard...');
-        const refreshButton = document.getElementById('dashboard-refresh');
-        if (refreshButton) {
-            refreshButton.disabled = true;
-            refreshButton.textContent = 'Refreshing...';
-        }
-
-        try {
-            await this.loadDashboardData();
-            this.displayNotification({
-                type: 'success',
-                title: 'Dashboard Refreshed',
-                message: 'All data has been updated successfully'
+        renderCharts() {
+            this.$nextTick(() => {
+                this.renderBookingTrendsChart();
+                this.renderLeadSourceChart();
             });
-        } catch (error) {
-            this.showErrorAlert('Failed to refresh dashboard data');
-        } finally {
-            if (refreshButton) {
-                refreshButton.disabled = false;
-                refreshButton.textContent = 'Refresh Dashboard';
+        },
+        
+        renderBookingTrendsChart() {
+            const ctx = this.$refs.bookingTrendsChart;
+            if (!ctx) return;
+            
+            if (this.bookingTrendsChart) {
+                this.bookingTrendsChart.destroy();
             }
+            
+            this.bookingTrendsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: this.bookingTrendsData?.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Bookings',
+                        data: this.bookingTrendsData?.data || [12, 19, 15, 25, 22, 18, 20],
+                        borderColor: this.chartColors.primary,
+                        backgroundColor: this.chartColors.primary + '20',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        },
+        
+        renderLeadSourceChart() {
+            const ctx = this.$refs.leadSourceChart;
+            if (!ctx) return;
+            
+            if (this.leadSourceChart) {
+                this.leadSourceChart.destroy();
+            }
+            
+            this.leadSourceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: this.leadSourceData?.labels || ['Website', 'Referral', 'Social Media', 'Direct'],
+                    datasets: [{
+                        data: this.leadSourceData?.data || [45, 25, 20, 10],
+                        backgroundColor: [
+                            this.chartColors.primary,
+                            this.chartColors.secondary,
+                            this.chartColors.info,
+                            this.chartColors.success
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        },
+        
+        get systemHealthClass() {
+            if (this.systemHealth.status === 'healthy') return 'healthy';
+            if (this.systemHealth.status === 'warning') return 'warning';
+            return 'critical';
+        },
+        
+        get systemHealthText() {
+            if (this.systemHealth.status === 'healthy') return 'All Systems Operational';
+            if (this.systemHealth.status === 'warning') return 'Minor Issues Detected';
+            return 'Critical Issues Detected';
+        },
+        
+        async executeAction(oppId, action, email) {
+            console.log('Executing action:', action, 'for opportunity:', oppId);
+        },
+        
+        getActivityColor(type) {
+            const colors = {
+                'lead': this.chartColors.info,
+                'booking': this.chartColors.success,
+                'application': this.chartColors.secondary,
+                'message': this.chartColors.primary
+            };
+            return colors[type] || this.chartColors.info;
+        },
+        
+        getActivityIconPath(type) {
+            const paths = {
+                'lead': 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+                'booking': 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+                'application': 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+                'message': 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
+            };
+            return paths[type] || paths.lead;
+        },
+        
+        formatTimeAgo(timestamp) {
+            const now = new Date();
+            const past = new Date(timestamp);
+            const diffInSeconds = Math.floor((now - past) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + 'm ago';
+            if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + 'h ago';
+            return Math.floor(diffInSeconds / 86400) + 'd ago';
+        },
+        
+        formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        },
+        
+        performSearch() {
+            console.log('Searching for:', this.searchQuery);
         }
-    }
-
-    setupWidgets() {
-        // Initialize any interactive widgets
-        this.setupDraggableWidgets();
-        this.setupResizableWidgets();
-    }
-
-    setupDraggableWidgets() {
-        // Make widgets draggable for customization
-        const widgets = document.querySelectorAll('.dashboard-widget');
-        // Implement drag and drop functionality if needed
-    }
-
-    setupResizableWidgets() {
-        // Make widgets resizable
-        const widgets = document.querySelectorAll('.dashboard-widget');
-        // Implement resize functionality if needed
-    }
-
-    destroy() {
-        // Cleanup intervals
-        for (const [name, interval] of this.updateIntervals) {
-            clearInterval(interval);
-        }
-        this.updateIntervals.clear();
-
-        // Close WebSocket
-        if (this.websocket) {
-            this.websocket.close();
-        }
-
-        // Clear alerts
-        this.alerts = [];
-    }
+    };
 }
 
-// Initialize PropertyHub Dashboard when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.PropertyHubDashboard = new PropertyHubDashboard();
-});
+function statCard(metricName) {
+    return {
+        displayValue: 0,
+        targetValue: 0,
+        
+        init() {
+            this.$watch(() => {
+                const parent = this.$el.closest('[x-data*="dashboardData"]');
+                if (!parent) return 0;
+                const data = Alpine.$data(parent);
+                
+                switch(metricName) {
+                    case 'active_leads': return data.keyMetrics.activeLeads;
+                    case 'conversion_rate': return data.keyMetrics.conversionRate;
+                    case 'revenue_mtd': return data.keyMetrics.revenueMTD;
+                    case 'bookings_week': return data.keyMetrics.bookingsWeek;
+                    default: return 0;
+                }
+            }, (newValue) => {
+                this.targetValue = newValue;
+                this.animateValue();
+            });
+        },
+        
+        animateValue() {
+            const duration = 1000;
+            const start = this.displayValue;
+            const end = this.targetValue;
+            const startTime = performance.now();
+            
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                this.displayValue = start + (end - start) * this.easeOutQuart(progress);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+            
+            requestAnimationFrame(animate);
+        },
+        
+        easeOutQuart(x) {
+            return 1 - Math.pow(1 - x, 4);
+        }
+    };
+}
 
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-    if (window.PropertyHubDashboard) {
-        window.PropertyHubDashboard.destroy();
-    }
-});
+function visitorCounter() {
+    return {
+        count: 0,
+        trend: 0,
+        byPage: {},
+        hotCount: 0,
+        returningCount: 0,
+        justChanged: false,
+        showBreakdown: false,
+        ws: null,
+        reconnectAttempts: 0,
+        maxReconnectAttempts: 5,
+        
+        init() {
+            this.fetchCount();
+            this.connectWebSocket();
+        },
+        
+        connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/api/ws`;
+            
+            try {
+                this.ws = new WebSocket(wsUrl);
+                
+                this.ws.onopen = () => {
+                    console.log('WebSocket connected');
+                    this.reconnectAttempts = 0;
+                };
+                
+                this.ws.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        if (message.type === 'visitor_count') {
+                            this.updateCount(message.data);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing WebSocket message:', e);
+                    }
+                };
+                
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+                
+                this.ws.onclose = () => {
+                    console.log('WebSocket disconnected');
+                    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                        this.reconnectAttempts++;
+                        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+                        setTimeout(() => this.connectWebSocket(), delay);
+                    }
+                };
+            } catch (e) {
+                console.error('Error creating WebSocket:', e);
+            }
+        },
+        
+        updateCount(data) {
+            const oldCount = this.count;
+            this.count = data.count || 0;
+            this.trend = data.trend || 0;
+            this.byPage = data.by_page || {};
+            this.hotCount = data.hot_count || 0;
+            this.returningCount = data.returning_count || 0;
+            
+            if (oldCount !== this.count) {
+                this.justChanged = true;
+                setTimeout(() => this.justChanged = false, 1000);
+            }
+        },
+        
+        async fetchCount() {
+            try {
+                const res = await fetch('/api/stats/live');
+                const data = await res.json();
+                this.updateCount({
+                    count: data.active_visitors || 0,
+                    trend: data.visitors_trend || 0,
+                    by_page: data.visitors_by_page || {},
+                    hot_count: data.hot_visitors || 0,
+                    returning_count: data.returning_visitors || 0
+                });
+            } catch (error) {
+                console.error('Failed to fetch visitor count:', error);
+            }
+        }
+    };
+}
 
-// Export for module usage
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = PropertyHubDashboard;
+function toastManager() {
+    return {
+        toasts: [],
+        nextId: 1,
+        
+        add(message, type = 'info', duration = 5000) {
+            const id = this.nextId++;
+            const toast = { id, message, type, visible: true };
+            this.toasts.push(toast);
+            
+            setTimeout(() => {
+                this.remove(id);
+            }, duration);
+        },
+        
+        remove(id) {
+            const index = this.toasts.findIndex(t => t.id === id);
+            if (index !== -1) {
+                this.toasts[index].visible = false;
+                setTimeout(() => {
+                    this.toasts.splice(index, 1);
+                }, 300);
+            }
+        },
+        
+        getToastIcon(type) {
+            const icons = {
+                success: '✓',
+                error: '✕',
+                warning: '⚠',
+                info: 'ℹ'
+            };
+            return icons[type] || icons.info;
+        }
+    };
+}
+
+function liveSessionsPanel() {
+    return {
+        sessions: [],
+        loading: true,
+        selectedSession: null,
+        showJourneyModal: false,
+        journeyData: null,
+        updateInterval: null,
+        
+        async init() {
+            await this.fetchSessions();
+            this.updateInterval = setInterval(() => {
+                this.fetchSessions();
+            }, 10000);
+        },
+        
+        async fetchSessions() {
+            try {
+                const response = await fetch('/api/admin/sessions/active');
+                const data = await response.json();
+                
+                const newSessionIds = data.sessions.map(s => s.session_id);
+                const oldSessionIds = this.sessions.map(s => s.session_id);
+                
+                this.sessions = data.sessions.map(session => {
+                    const isNew = !oldSessionIds.includes(session.session_id);
+                    return { ...session, isNew };
+                });
+                
+                this.loading = false;
+            } catch (error) {
+                console.error('Failed to fetch sessions:', error);
+                this.loading = false;
+            }
+        },
+        
+        async viewJourney(sessionId) {
+            try {
+                const response = await fetch(`/api/admin/sessions/${sessionId}/journey`);
+                const data = await response.json();
+                this.journeyData = data;
+                this.showJourneyModal = true;
+            } catch (error) {
+                console.error('Failed to fetch session journey:', error);
+            }
+        },
+        
+        closeJourneyModal() {
+            this.showJourneyModal = false;
+            this.journeyData = null;
+        },
+        
+        identifyLead(session) {
+            console.log('Identify lead for session:', session.session_id);
+        },
+        
+        sendProperty(session) {
+            console.log('Send property to:', session.lead_email);
+        },
+        
+        getStatusIcon(category) {
+            const icons = {
+                'hot': '🔴',
+                'warm': '🟡',
+                'cold': '🔵'
+            };
+            return icons[category] || '🔵';
+        },
+        
+        getCategoryLabel(category) {
+            const labels = {
+                'hot': 'Hot',
+                'warm': 'Warm',
+                'cold': 'Cold'
+            };
+            return labels[category] || 'Cold';
+        },
+        
+        getLocationString(location) {
+            if (!location) return '';
+            const parts = [];
+            if (location.city) parts.push(location.city);
+            if (location.state) parts.push(location.state);
+            return parts.join(', ');
+        },
+        
+        formatDuration(seconds) {
+            if (seconds < 60) return `${seconds}s`;
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}m ${remainingSeconds}s`;
+        },
+        
+        formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        },
+        
+        formatEventType(eventType) {
+            const types = {
+                'viewed': 'Viewed Property',
+                'saved': 'Saved Property',
+                'inquired': 'Sent Inquiry',
+                'applied': 'Submitted Application',
+                'searched': 'Searched Properties',
+                'session_start': 'Started Session'
+            };
+            return types[eventType] || eventType;
+        },
+        
+        destroy() {
+            if (this.updateInterval) {
+                clearInterval(this.updateInterval);
+            }
+        }
+    };
 }

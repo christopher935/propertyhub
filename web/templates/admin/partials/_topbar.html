@@ -1,0 +1,60 @@
+<header class="admin-header">
+    <div class="admin-header-content">
+        <h1 class="admin-header-title">{{.PageTitle}}</h1>
+        
+        <div class="admin-header-actions">
+            {{if .ShowVisitorCounter}}
+            <div class="visitor-counter" 
+                 x-data="visitorCounter()"
+                 x-init="init()"
+                 :class="{ 'high-traffic': count >= 6, 'no-visitors': count === 0 }">
+                <div class="counter-main" @mouseenter="showBreakdown = true" @mouseleave="showBreakdown = false">
+                    <span class="counter-icon">👁️</span>
+                    <span class="counter-value" 
+                          x-text="count"
+                          :class="{ 'pulse': justChanged }"></span>
+                    <span class="counter-label">
+                        <span x-text="count === 1 ? 'visitor' : 'visitors'"></span> browsing now
+                    </span>
+                    <div class="counter-trend" x-show="trend !== 0">
+                        <span x-text="trend > 0 ? '▲' : '▼'" :class="trend > 0 ? 'trend-up' : 'trend-down'"></span>
+                        <span x-text="Math.abs(trend)"></span>
+                    </div>
+                </div>
+                <div class="counter-breakdown" x-show="showBreakdown && Object.keys(byPage).length > 0" x-transition>
+                    <template x-for="(pageCount, page) in byPage" :key="page">
+                        <div class="breakdown-item">
+                            <span class="breakdown-count" x-text="pageCount"></span> on <span class="breakdown-page" x-text="page"></span>
+                        </div>
+                    </template>
+                    <div class="breakdown-meta" x-show="hotCount > 0">
+                        <span class="hot-badge">🔥 <span x-text="hotCount"></span> hot leads</span>
+                    </div>
+                </div>
+            </div>
+            {{end}}
+            
+            <div class="admin-search">
+                <input type="search" placeholder="Search..." x-model="searchQuery" @input.debounce.300ms="performSearch">
+                <svg class="admin-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            
+            <div class="admin-user-menu">
+                <div class="admin-user-avatar" x-text="userProfile.initials"></div>
+                <div class="admin-user-info">
+                    <div class="admin-user-name" x-text="userProfile.username"></div>
+                    <div class="admin-user-role" x-text="userProfile.role"></div>
+                </div>
+            </div>
+            
+            <a href="/admin/logout" class="btn-logout">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                Logout
+            </a>
+        </div>
+    </div>
+</header>
