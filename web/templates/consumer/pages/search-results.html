@@ -1,20 +1,31 @@
 <!DOCTYPE html>
+
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Results | Landlords of Texas</title>
-    <link rel="stylesheet" href="/static/css/design-tokens.css">
-    <link rel="stylesheet" href="/static/css/scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Search Results</h1>
-        <div id="search-results">
-            <p>Enter your search criteria to find properties.</p>
-        </div>
-    </div>
+{{template "_head.html" .}}
+<body class="scout-consumer-layout page-search-results">
+{{template "_svg_sprite.html"}}
+{{template "_nav.html" .}}
+
+<section class="hero">
+<div class="hero-container">
+<div class="hero-content" style="text-align: center;">
+<h1 class="hero-text-heading">Search Results</h1>
+<p class="hero-text-text">Find your perfect rental property in Houston</p>
+</div>
+</div>
+</section>
+
+<main class="main-content">
+<div class="container">
+<section class="section">
+<div id="search-results">
+<p style="text-align: center; color: var(--gray-600);">Enter your search criteria to find properties.</p>
+</div>
+</section>
+</div>
+</main>
+
+{{template "_footer.html"}}
+{{template "_scripts.html" .}}
 </body>
 </html>

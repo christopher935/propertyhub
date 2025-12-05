@@ -1,0 +1,15 @@
+<nav class="header">
+<div class="nav">
+<a class="logo" href="/">
+<svg class="logo-icon" height="32" width="32"><use href="#icon-home"></use></svg>
+<span class="logo-text">Landlords of Texas</span>
+</a>
+<div class="nav-menu">
+<a class="nav-link{{if eq .ActivePage "home"}} active{{end}}" href="/">Home</a>
+<a class="nav-link{{if eq .ActivePage "properties"}} active{{end}}" href="/properties">Properties</a>
+<a class="nav-link{{if eq .ActivePage "about"}} active{{end}}" href="/about">About</a>
+<a class="nav-link{{if eq .ActivePage "contact"}} active{{end}}" href="/contact">Contact</a>
+<a class="btn btn-outline" href="/login">Login</a>
+</div>
+</div>
+</nav>

@@ -1,33 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saved Properties | Landlords of Texas</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/design-tokens.css">
-    <link rel="stylesheet" href="/static/css/scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components.css">
-</head>
+{{template "_head.html" .}}
 <body class="scout-consumer-layout page-saved-properties">
-
-<header class="header">
-    <nav class="nav container">
-        <a href="/" class="logo">
-            <div class="logo-icon">🏠</div>
-            Landlords of Texas
-        </a>
-        <div class="nav-menu">
-            <a href="/properties" class="nav-link">All Properties</a>
-            <a href="/saved-properties" class="nav-link active">
-                Saved <span class="saved-count-badge" style="display:none;">0</span>
-            </a>
-        </div>
-    </nav>
-</header>
+{{template "_svg_sprite.html"}}
+{{template "_nav.html" .}}
 
 <main class="main-content">
     <div class="container">
@@ -159,7 +135,7 @@ async function unsaveAndRemove(propertyId) {
 loadSavedPropertiesPage();
 </script>
 
-
-
+{{template "_footer.html"}}
+{{template "_scripts.html" .}}
 </body>
 </html>

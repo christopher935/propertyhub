@@ -1,73 +1,12 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Manage Your Booking | Landlords of Texas</title>
-<meta content="View and manage your property tour bookings with Landlords of Texas." name="description"/>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;family=Source+Sans+3:wght@300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
-<link href="/static/css/design-tokens.css" rel="stylesheet"/>
-<link href="/static/css/scout-utilities.css" rel="stylesheet"/>
-<link href="/static/css/scout-layouts.css" rel="stylesheet"/>
-<link href="/static/css/scout-components.css" rel="stylesheet"/>
-</head>
-<body>
+{{template "_head.html" .}}
+<body class="scout-consumer-layout page-manage-booking">
 <!-- SVG Icon Sprite -->
-<svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
-<symbol fill="none" id="icon-home" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-calendar" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-clock" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-map-pin" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
-<path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-user" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-envelope" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-phone" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-check-circle" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-x-circle" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-info" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-x" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-</svg>
+{{template "_svg_sprite.html"}}
 <!-- Navigation -->
-<nav class="header">
-<div class="nav">
-<a class="logo" href="/">
-<svg class="logo-icon" height="32" width="32"><use href="#icon-home"></use></svg>
-<span class="logo-text">Landlords of Texas</span>
-</a>
-<div class="nav-menu">
-<a class="nav-link" href="/">Home</a>
-<a class="nav-link" href="/properties">Properties</a>
-<a class="nav-link" href="/about">About</a>
-<a class="nav-link" href="/contact">Contact</a>
-<a class="btn btn-outline" href="/login">Login</a>
-</div>
-</div>
-</nav>
+{{template "_nav.html" .}}
 <!-- Main Content -->
 <main>
 <!-- Hero Section -->
@@ -210,7 +149,7 @@
                             </p>
 <p style="font-weight: 600; color: var(--navy-primary);">
 <svg height="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16"><use href="#icon-envelope"></use></svg>
-                                tours@propertyhub.com
+                                tours@landlordsoftexas.com
                             </p>
 </div>
 </div>
@@ -307,26 +246,7 @@
 </div>
 </div>
 <!-- Footer -->
-<footer class="trec-footer">
-<div class="trec-content">
-<p class="trec-content-text">Landlords of Texas, LLC • License # 9008008 • (281) 925-7222</p>
-<p class="trec-content-text">Terry Evans - Principal Broker #615707</p>
-<p class="trec-content-text">
-<a class="trec-link trec-content-link" href="https://content.harstatic.com/pdf/TREC_CPN.pdf" rel="noopener" target="_blank">TREC Consumer Protection Notice</a> • 
-            <a class="trec-content-link" href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&amp;cid=625244" rel="noopener" target="_blank">Information About Brokerage Services</a>
-</p>
-<p class="text-center text-gray-600 trec-content-text">
-<a class="trec-content-link" href="/terms">Terms of Service</a> • 
-            <a class="trec-content-link" href="/privacy">Privacy Policy</a> • 
-            <a class="trec-content-link" href="javascript:revokeCookieConsent()">Cookie Preferences</a> • 
-            <a class="trec-content-link" href="/contact">Contact</a> • 
-            <a class="trec-content-link" href="/admin">Admin Login</a>
-</p>
-<p class="text-center text-gray-600 trec-content-text">
-<img alt="Equal Housing Opportunity" class="trec-content-image" src="/static/images/equal-housing-logo.png" style="height: 20px; vertical-align: middle; margin-right: 8px;"/>Equal Housing Opportunity • All information deemed reliable but not guaranteed.
-        </p>
-</div>
-</footer>
+{{template "_footer.html"}}
 <script>
 function showRescheduleModal() {
     const modal = document.getElementById('reschedule-modal');

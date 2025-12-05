@@ -1,42 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms of Service | Landlords of Texas</title>
-    <meta name="description" content="Terms of Service for Landlords of Texas property management services.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/design-tokens.css">
-    <link rel="stylesheet" href="/static/css/scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components.css">
-</head>
-<body class="page-legal">
+{{template "_head.html" .}}
+<body class="scout-consumer-layout page-terms-of-service">
 
-<svg xmlns="http://www.w3.org/2000/svg" class="svg-sprite">
-    <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
-    </symbol>
-</svg>
+{{template "_svg_sprite.html"}}
 
 <!-- Navigation -->
-<nav class="header">
-    <div class="nav">
-        <a href="/" class="logo">
-            <svg class="logo-icon" width="32" height="32"><use href="#icon-home"></use></svg>
-            <span class="logo-text">Landlords of Texas</span>
-        </a>
-        <div class="nav-menu">
-            <a href="/" class="nav-link">Home</a>
-            <a href="/properties" class="nav-link">Properties</a>
-            <a href="/about" class="nav-link">About</a>
-            <a href="/contact" class="nav-link">Contact</a>
-            <a href="/login" class="btn btn-outline">Login</a>
-        </div>
-    </div>
-</nav>
+{{template "_nav.html" .}}
 
 <!-- Main Content -->
 <div class="legal-container">
@@ -208,7 +178,7 @@
                     <p>If you have questions about these Terms of Service or need to contact us regarding our services, please reach out:</p>
                     <div class="contact-card">
                         <ul class="legal-list">
-                            <li><strong>Email:</strong> legal@propertyhub.com</li>
+                            <li><strong>Email:</strong> legal@landlordsoftexas.com</li>
                             <li><strong>Phone:</strong> (281) 925-7222</li>
                             <li><strong>Address:</strong> Landlords of Texas, LLC, Houston, TX</li>
                             <li><strong>Business Hours:</strong> Monday - Friday, 9:00 AM - 5:00 PM CST</li>
@@ -222,25 +192,6 @@
 </div>
 
 <!-- Footer -->
-<footer class="trec-footer">
-    <div class="trec-content">
-        <p class="trec-content-text">Landlords of Texas, LLC • License # 9008008 • (281) 925-7222</p>
-        <p class="trec-content-text">Terry Evans - Principal Broker #615707</p>
-        <p class="trec-content-text">
-            <a class="trec-content-link" href="https://content.harstatic.com/pdf/TREC_CPN.pdf" target="_blank" rel="noopener">TREC Consumer Protection Notice</a> • 
-            <a class="trec-content-link" href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&cid=625244" target="_blank" rel="noopener">Information About Brokerage Services</a>
-        </p>
-        <p class="text-center text-gray-600 trec-content-text">
-            <a class="trec-content-link" href="/terms">Terms of Service</a> • 
-            <a class="trec-content-link" href="/privacy">Privacy Policy</a> • 
-            <a class="trec-content-link" href="javascript:revokeCookieConsent()">Cookie Preferences</a> • 
-            <a class="trec-content-link" href="/contact">Contact</a> • 
-            <a class="trec-content-link" href="/admin">Admin Login</a>
-        </p>
-        <p class="text-center text-gray-600 trec-content-text">
-            <img src="/static/images/equal-housing-logo.png" alt="Equal Housing Opportunity" class="equal-housing-logo">Equal Housing Opportunity • All information deemed reliable but not guaranteed.
-        </p>
-    </div>
-</footer>
+{{template "_footer.html"}}
 </body>
 </html>

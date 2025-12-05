@@ -1,53 +1,11 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Properties | Landlords of Texas</title>
-<meta content="Browse our collection of premium Houston rental properties." name="description"/>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;family=Source+Sans+3:wght@300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
-<link href="/static/css/design-tokens.css" rel="stylesheet"/>
-<link href="/static/css/scout-utilities.css" rel="stylesheet"/>
-<link href="/static/css/scout-layouts.css" rel="stylesheet"/>
-<link href="/static/css/scout-components.css" rel="stylesheet"/>
-<script src="/static/js/ux-enhancements.js"></script>
-</head>
-<body class="scout-consumer-layout page-homepage">
-<svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
-<!-- Heroicons SVG Sprite -->
-<symbol fill="none" id="icon-home" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-magnifying-glass" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-map-pin" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
-<path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-<symbol fill="none" id="icon-sparkles" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
-<path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" stroke-linecap="round" stroke-linejoin="round"></path>
-</symbol>
-</svg>
+{{template "_head.html" .}}
+<body class="scout-consumer-layout page-properties-grid">
+{{template "_svg_sprite.html"}}
 <!-- Navigation -->
-<nav class="header">
-<div class="nav">
-<a class="logo" href="/">
-<svg class="logo-icon" height="32" width="32"><use href="#icon-home"></use></svg>
-<span class="logo-text">Landlords of Texas</span>
-</a>
-<div class="nav-menu">
-<a class="nav-link" href="/">Home</a>
-<a class="nav-link active" href="/properties">Properties</a>
-<a class="nav-link" href="/about">About</a>
-<a class="nav-link" href="/contact">Contact</a>
-<a class="btn btn-outline" href="/login">Login</a>
-</div>
-</div>
-</nav>
+{{template "_nav.html" .}}
 <!-- Hero Section with Search -->
 <section class="hero properties-hero-compact">
 <div class="hero-container">
@@ -71,22 +29,22 @@
 <div class="search-journey" x-data="searchJourney()" x-show="hasActivity">
     <div class="journey-progress">
         <div class="journey-step" :class="{ 'completed': viewedProperties > 0 }">
-            <span class="step-icon">👀</span>
+            <svg class="inline-icon" height="20" width="20"><use href="#icon-eye"></use></svg>
             <span class="step-label">Browsing</span>
         </div>
         <div class="journey-connector"></div>
         <div class="journey-step" :class="{ 'completed': savedProperties > 0 }">
-            <span class="step-icon">❤️</span>
+            <svg class="inline-icon" height="20" width="20" style="color: var(--red-600);"><use href="#icon-star"></use></svg>
             <span class="step-label">Saved <span x-text="savedProperties"></span></span>
         </div>
         <div class="journey-connector"></div>
         <div class="journey-step" :class="{ 'active': savedProperties > 0 && !hasBooked }">
-            <span class="step-icon">📅</span>
+            <svg class="inline-icon" height="20" width="20"><use href="#icon-calendar"></use></svg>
             <span class="step-label">Schedule Tour</span>
         </div>
         <div class="journey-connector"></div>
         <div class="journey-step">
-            <span class="step-icon">🏠</span>
+            <svg class="inline-icon" height="20" width="20"><use href="#icon-home"></use></svg>
             <span class="step-label">Find Home</span>
         </div>
     </div>
@@ -293,26 +251,7 @@
 </div>
 </section>
 <!-- Footer -->
-<footer class="trec-footer">
-<div class="trec-container">
-<div class="trec-info">
-<p class="trec-company">Landlords of Texas, LLC • License # 9008008 • (281) 925-7222</p>
-<p class="trec-broker">Terry Evans - Principal Broker #615707</p>
-</div>
-<div class="trec-links">
-<a href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-4-1_1.pdf" rel="noopener noreferrer" target="_blank">TREC Consumer Protection Notice</a>
-<a href="https://www.trec.texas.gov/sites/default/files/pdf-forms/IABS%201-0.pdf" rel="noopener noreferrer" target="_blank">Information About Brokerage Services</a>
-<a href="/terms-of-service">Terms of Service</a>
-<a href="/privacy-policy">Privacy Policy</a>
-<a href="#" id="cookiePreferences">Cookie Preferences</a>
-<a href="/contact">Contact</a>
-<a href="/admin/login">Admin Login</a>
-</div>
-<div class="trec-disclaimer">
-<img alt="Equal Housing Opportunity" class="equal-housing-logo" src="/static/images/equal-housing-logo.png"/>Equal Housing Opportunity • All information deemed reliable but not guaranteed.
-        </div>
-</div>
-</footer>
+{{template "_footer.html"}}
 <script>
     // Filter pill functionality
     document.querySelectorAll('.filter-pill').forEach(pill => {
@@ -360,7 +299,7 @@
         }
     });
 </script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+{{template "_scripts.html" .}}
 <script>
 function aiRecommendations() {
 return {
