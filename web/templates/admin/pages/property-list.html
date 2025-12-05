@@ -411,11 +411,93 @@
                         </div>
                         <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Properties in preparation before going live</p>
                         
-                        <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                            <div class="stats-grid" style="flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-3);">
+                                <div class="stat-card" style="padding: var(--space-3);">
+                                    <div class="stat-value" style="font-size: var(--font-size-xl);" x-text="preListingStats.total || 0">0</div>
+                                    <div class="stat-label" style="font-size: var(--font-size-xs);">Total</div>
+                                </div>
+                                <div class="stat-card" style="padding: var(--space-3);">
+                                    <div class="stat-value" style="font-size: var(--font-size-xl);" x-text="preListingStats.initial || 0">0</div>
+                                    <div class="stat-label" style="font-size: var(--font-size-xs);">Initial</div>
+                                </div>
+                                <div class="stat-card" style="padding: var(--space-3);">
+                                    <div class="stat-value" style="font-size: var(--font-size-xl);" x-text="preListingStats.preparing || 0">0</div>
+                                    <div class="stat-label" style="font-size: var(--font-size-xs);">Preparing</div>
+                                </div>
+                                <div class="stat-card" style="padding: var(--space-3);">
+                                    <div class="stat-value" style="font-size: var(--font-size-xl);" x-text="preListingStats.ready || 0">0</div>
+                                    <div class="stat-label" style="font-size: var(--font-size-xs);">Ready</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" @click="showAddPreListingModal = true" style="margin-left: var(--space-4);">+ Add Pre-Listing</button>
+                        </div>
+                        
+                        <div x-show="loadingPreListings" style="text-align: center; padding: var(--space-8);">
+                            <p style="color: var(--gray-500);">Loading pipeline...</p>
+                        </div>
+                        
+                        <div x-show="!loadingPreListings && preListings.length === 0" style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
                             <div style="font-size: 3rem; margin-bottom: var(--space-4);">📋</div>
                             <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">No Pre-Listing Properties</h3>
                             <p style="color: var(--gray-500); margin-bottom: var(--space-4);">Properties awaiting photos, details, or approval will appear here</p>
-                            <button class="btn btn-primary">+ Add Pre-Listing</button>
+                            <button class="btn btn-primary" @click="showAddPreListingModal = true">+ Add Pre-Listing</button>
+                        </div>
+                        
+                        <div x-show="!loadingPreListings && preListings.length > 0" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4);">
+                            <div style="background: var(--gray-50); border-radius: var(--radius-md); padding: var(--space-4);">
+                                <h4 style="font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-3); display: flex; align-items: center; gap: var(--space-2);">
+                                    <span style="background: var(--blue-100); color: var(--blue-600); padding: 2px 8px; border-radius: var(--radius-sm); font-size: var(--font-size-xs);">Initial Contact</span>
+                                </h4>
+                                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                                    <template x-for="item in preListings.filter(p => p.status === 'email_received' || p.status === 'initial')" :key="item.id">
+                                        <div style="background: var(--white); border-radius: var(--radius-md); padding: var(--space-3); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s;" @click="viewPreListingDetails(item)" @mouseenter="$el.style.transform='translateY(-2px)'" @mouseleave="$el.style.transform='translateY(0)'">
+                                            <strong style="display: block; color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="item.address"></strong>
+                                            <p style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-2);" x-text="item.city + ', ' + item.state"></p>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--gray-400);">
+                                                <span x-text="formatDate(item.created_at)"></span>
+                                                <span class="status-badge" style="font-size: 10px;" x-text="item.status"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--gray-50); border-radius: var(--radius-md); padding: var(--space-4);">
+                                <h4 style="font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-3); display: flex; align-items: center; gap: var(--space-2);">
+                                    <span style="background: var(--yellow-100); color: var(--yellow-700); padding: 2px 8px; border-radius: var(--radius-sm); font-size: var(--font-size-xs);">Preparing</span>
+                                </h4>
+                                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                                    <template x-for="item in preListings.filter(p => p.status === 'photos_scheduled' || p.status === 'preparing')" :key="item.id">
+                                        <div style="background: var(--white); border-radius: var(--radius-md); padding: var(--space-3); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s;" @click="viewPreListingDetails(item)" @mouseenter="$el.style.transform='translateY(-2px)'" @mouseleave="$el.style.transform='translateY(0)'">
+                                            <strong style="display: block; color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="item.address"></strong>
+                                            <p style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-2);" x-text="item.city + ', ' + item.state"></p>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--gray-400);">
+                                                <span x-text="formatDate(item.created_at)"></span>
+                                                <span class="status-badge" style="font-size: 10px;" x-text="item.status"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--gray-50); border-radius: var(--radius-md); padding: var(--space-4);">
+                                <h4 style="font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-3); display: flex; align-items: center; gap: var(--space-2);">
+                                    <span style="background: var(--green-100); color: var(--green-700); padding: 2px 8px; border-radius: var(--radius-sm); font-size: var(--font-size-xs);">Ready to List</span>
+                                </h4>
+                                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                                    <template x-for="item in preListings.filter(p => p.status === 'photos_completed' || p.status === 'ready')" :key="item.id">
+                                        <div style="background: var(--white); border-radius: var(--radius-md); padding: var(--space-3); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s;" @click="viewPreListingDetails(item)" @mouseenter="$el.style.transform='translateY(-2px)'" @mouseleave="$el.style.transform='translateY(0)'">
+                                            <strong style="display: block; color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="item.address"></strong>
+                                            <p style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-2);" x-text="item.city + ', ' + item.state"></p>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--gray-400);">
+                                                <span x-text="formatDate(item.created_at)"></span>
+                                                <span class="status-badge status-active" style="font-size: 10px;" x-text="item.status"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -429,10 +511,80 @@
                         </div>
                         <p style="color: var(--gray-500); margin-bottom: var(--space-6);">AI-powered property valuations and market analysis</p>
                         
-                        <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                            <div class="stats-grid" style="flex: 1;">
+                                <div class="stat-card">
+                                    <div class="stat-icon">💰</div>
+                                    <div class="stat-value" x-text="valuationStats.total_valuations || 0">0</div>
+                                    <div class="stat-label">Total Valuations</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">📈</div>
+                                    <div class="stat-value" x-text="'$' + formatPrice(valuationStats.avg_value || 0)">$0</div>
+                                    <div class="stat-label">Avg Value</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">🎯</div>
+                                    <div class="stat-value" x-text="(valuationStats.avg_confidence || 0) + '%'">0%</div>
+                                    <div class="stat-label">Avg Confidence</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">⏱️</div>
+                                    <div class="stat-value" x-text="valuationStats.recent_count || 0">0</div>
+                                    <div class="stat-label">This Month</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" @click="requestBulkValuation()" style="margin-left: var(--space-4);">
+                                Request Valuations
+                            </button>
+                        </div>
+                        
+                        <div x-show="loadingValuations" style="text-align: center; padding: var(--space-8);">
+                            <p style="color: var(--gray-500);">Loading valuations...</p>
+                        </div>
+                        
+                        <div x-show="valuationError" style="background: var(--red-50); border: 1px solid var(--red-200); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4); color: var(--red-700);" x-text="valuationError"></div>
+                        
+                        <div x-show="!loadingValuations && valuations.length === 0" style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
                             <div style="font-size: 3rem; margin-bottom: var(--space-4);">💰</div>
-                            <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">Valuations Coming Soon</h3>
-                            <p style="color: var(--gray-500);">Get instant property valuations powered by AI</p>
+                            <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">No Valuations Yet</h3>
+                            <p style="color: var(--gray-500); margin-bottom: var(--space-4);">Request valuations for your properties to see AI-powered market estimates</p>
+                            <button class="btn btn-primary" @click="requestBulkValuation()">Request First Valuation</button>
+                        </div>
+                        
+                        <div x-show="!loadingValuations && valuations.length > 0" style="display: grid; gap: var(--space-4);">
+                            <template x-for="valuation in valuations" :key="valuation.property_id">
+                                <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-4); box-shadow: var(--shadow-sm); display: grid; grid-template-columns: 1fr auto; gap: var(--space-4); align-items: center;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2);">
+                                            <div style="width: 80px; height: 80px; background: var(--gray-100); border-radius: var(--radius-md); overflow: hidden;">
+                                                <img :src="valuation.image || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=200'" alt="Property" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                            <div style="flex: 1;">
+                                                <strong style="display: block; font-size: var(--font-size-lg); color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="valuation.address">Address</strong>
+                                                <div style="font-size: var(--font-size-sm); color: var(--gray-500);" x-text="valuation.city + ', ' + valuation.state + ' ' + valuation.zip_code">Location</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: var(--space-4); align-items: center;">
+                                        <div style="text-align: right;">
+                                            <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--gold-primary); margin-bottom: var(--space-1);" x-text="'$' + formatPrice(valuation.estimated_value)">$0</div>
+                                            <div style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-1);">
+                                                <span x-text="valuation.confidence + '% confidence'"></span>
+                                            </div>
+                                            <div style="font-size: var(--font-size-xs); color: var(--gray-400);" x-text="'Updated ' + formatDate(valuation.last_updated)">Updated</div>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                                            <button class="btn btn-secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm); white-space: nowrap;" @click="viewValuationReport(valuation.property_id)">
+                                                View Report
+                                            </button>
+                                            <button class="btn btn-secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm); white-space: nowrap;" @click="refreshValuation(valuation.property_id)">
+                                                Refresh
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -463,10 +615,26 @@
                 },
                 searchQuery: '',
                 properties: [],
+                valuations: [],
+                valuationStats: {},
+                loadingValuations: false,
+                valuationError: '',
+                preListings: [],
+                preListingStats: {},
+                loadingPreListings: false,
+                showAddPreListingModal: false,
                 
                 async init() {
                     await this.fetchSidebarCounts();
                     await this.fetchProperties();
+                    
+                    this.$watch('activeTab', (newTab) => {
+                        if (newTab === 'valuations' && this.valuations.length === 0) {
+                            this.fetchValuations();
+                        } else if (newTab === 'prelisting' && this.preListings.length === 0) {
+                            this.fetchPreListings();
+                        }
+                    });
                 },
                 
                 async fetchSidebarCounts() {
@@ -514,6 +682,135 @@
                 
                 performSearch() {
                     console.log('Search:', this.searchQuery);
+                },
+                
+                async fetchValuations() {
+                    this.loadingValuations = true;
+                    this.valuationError = '';
+                    try {
+                        const res = await fetch('/api/v1/valuation/requests');
+                        if (res.ok) {
+                            const result = await res.json();
+                            if (result.success && result.data) {
+                                this.valuations = result.data.requests || [];
+                                this.valuationStats = {
+                                    total_valuations: this.valuations.length,
+                                    avg_value: this.valuations.reduce((sum, v) => sum + (v.estimated_value || 0), 0) / (this.valuations.length || 1),
+                                    avg_confidence: Math.round(this.valuations.reduce((sum, v) => sum + (v.confidence || 0), 0) / (this.valuations.length || 1)),
+                                    recent_count: this.valuations.filter(v => {
+                                        const date = new Date(v.last_updated);
+                                        const monthAgo = new Date();
+                                        monthAgo.setMonth(monthAgo.getMonth() - 1);
+                                        return date > monthAgo;
+                                    }).length
+                                };
+                            }
+                        } else {
+                            this.valuationError = 'Failed to load valuations. Please try again.';
+                        }
+                    } catch (error) {
+                        console.error('Error fetching valuations:', error);
+                        this.valuationError = 'Error loading valuations: ' + error.message;
+                    } finally {
+                        this.loadingValuations = false;
+                    }
+                },
+                
+                async requestBulkValuation() {
+                    if (!confirm('Request valuations for all active properties? This may take a few moments.')) {
+                        return;
+                    }
+                    
+                    this.loadingValuations = true;
+                    try {
+                        const propertyRequests = this.properties.slice(0, 10).map(p => ({
+                            address: p.address,
+                            city: p.city,
+                            state: p.state,
+                            zip_code: p.zip_code,
+                            bedrooms: p.bedrooms,
+                            bathrooms: p.bathrooms,
+                            square_feet: p.square_feet,
+                            property_type: p.property_type || 'residential'
+                        }));
+                        
+                        const res = await fetch('/api/v1/valuation/bulk-estimate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(propertyRequests)
+                        });
+                        
+                        if (res.ok) {
+                            alert('Valuations requested successfully!');
+                            await this.fetchValuations();
+                        } else {
+                            alert('Failed to request valuations. Please try again.');
+                        }
+                    } catch (error) {
+                        console.error('Error requesting valuations:', error);
+                        alert('Error requesting valuations: ' + error.message);
+                    } finally {
+                        this.loadingValuations = false;
+                    }
+                },
+                
+                async refreshValuation(propertyId) {
+                    alert('Refreshing valuation for property ' + propertyId + '...');
+                },
+                
+                viewValuationReport(propertyId) {
+                    window.location.href = '/admin/valuations/' + propertyId;
+                },
+                
+                async fetchPreListings() {
+                    this.loadingPreListings = true;
+                    try {
+                        const res = await fetch('/api/v1/pre-listing/items?page=1&limit=50');
+                        if (res.ok) {
+                            const result = await res.json();
+                            if (result.success && result.data) {
+                                this.preListings = result.data.items || [];
+                                this.calculatePreListingStats();
+                            }
+                        }
+                        
+                        const statsRes = await fetch('/api/v1/pre-listing/stats');
+                        if (statsRes.ok) {
+                            const statsResult = await statsRes.json();
+                            if (statsResult.success) {
+                                this.preListingStats = statsResult.data || {};
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching pre-listings:', error);
+                    } finally {
+                        this.loadingPreListings = false;
+                    }
+                },
+                
+                calculatePreListingStats() {
+                    this.preListingStats = {
+                        total: this.preListings.length,
+                        initial: this.preListings.filter(p => p.status === 'email_received' || p.status === 'initial').length,
+                        preparing: this.preListings.filter(p => p.status === 'photos_scheduled' || p.status === 'preparing').length,
+                        ready: this.preListings.filter(p => p.status === 'photos_completed' || p.status === 'ready').length
+                    };
+                },
+                
+                viewPreListingDetails(item) {
+                    console.log('Viewing pre-listing:', item);
+                    alert('Pre-listing details for: ' + item.address);
+                },
+                
+                formatDate(dateString) {
+                    if (!dateString) return 'N/A';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                },
+                
+                formatPrice(value) {
+                    if (!value) return '0';
+                    return Math.round(value).toLocaleString('en-US');
                 }
             };
         }
