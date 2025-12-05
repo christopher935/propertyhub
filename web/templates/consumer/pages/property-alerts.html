@@ -1,166 +1,152 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Property Alerts | Landlords of Texas</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/design-tokens.css">
-    <link rel="stylesheet" href="/static/css/scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components.css">
-</head>
-<body class="scout-consumer-layout page-property-alerts">
 
-<header class="header">
-    <nav class="nav container">
-        <a href="/" class="logo">
-            <div class="logo-icon">🏠</div>
-            Landlords of Texas
-        </a>
-        <div class="nav-menu">
-            <a href="/properties" class="nav-link">Properties</a>
-            <a href="/property-alerts" class="nav-link active">Alerts</a>
-        </div>
-    </nav>
-</header>
+<html lang="en">
+{{template "_head.html" .}}
+<body class="scout-consumer-layout page-property-alerts">
+{{template "_svg_sprite.html"}}
+{{template "_nav.html" .}}
+
+<section class="hero">
+<div class="hero-container">
+<div class="hero-content" style="text-align: center;">
+<h1 class="hero-text-heading">Property Alerts</h1>
+<p class="hero-text-text">Get notified when new properties match your criteria</p>
+</div>
+</div>
+</section>
 
 <main class="main-content">
-    <div class="alerts-container">
-        <div class="page-header">
-            <h1 class="page-title">Property Alerts</h1>
-            <p class="page-subtitle">Get notified when new properties match your criteria</p>
-        </div>
-
-        <div class="alerts-card">
-            <h2 class="alerts-title">Set Up Your Alerts</h2>
-            <p class="alerts-subtitle">We'll notify you when properties match your preferences</p>
+<div class="container">
+<section class="section">
+<div style="max-width: 48rem; margin: 0 auto;">
+<div style="background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-xl); padding: var(--space-8);">
+<h2 style="font-size: var(--font-size-2xl); font-weight: 600; margin-bottom: var(--space-2); color: var(--navy-primary);">Set Up Your Alerts</h2>
+<p style="color: var(--gray-600); margin-bottom: var(--space-6);">We'll notify you when properties match your preferences</p>
             
-            <form id="alertForm">
-                <div class="form-section">
-                    <div class="form-group">
-                        <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--navy-primary);">Email Address *</label>
-                        <input type="email" id="email" required style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;font-size:16px;">
-                    </div>
-                </div>
+<form id="alertForm">
+<div style="margin-bottom: var(--space-6);">
+<label style="display: block; font-weight: 600; margin-bottom: var(--space-2); color: var(--navy-primary);">Email Address *</label>
+<input type="email" id="email" required style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-size: var(--font-size-base);">
+</div>
 
-                <div class="form-section">
-                    <h3 class="form-section-title">Price Range</h3>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                        <div class="form-group">
-                            <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--gray-700);">Min Price</label>
-                            <input type="number" id="minPrice" placeholder="$0" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;">
-                        </div>
-                        <div class="form-group">
-                            <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--gray-700);">Max Price</label>
-                            <input type="number" id="maxPrice" placeholder="Any" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;">
-                        </div>
-                    </div>
-                </div>
+<div style="margin-bottom: var(--space-6);">
+<h3 style="font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--space-4); color: var(--navy-primary);">Price Range</h3>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+<div>
+<label style="display: block; font-weight: 500; margin-bottom: var(--space-2); color: var(--gray-700);">Min Price</label>
+<input type="number" id="minPrice" placeholder="$0" style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+</div>
+<div>
+<label style="display: block; font-weight: 500; margin-bottom: var(--space-2); color: var(--gray-700);">Max Price</label>
+<input type="number" id="maxPrice" placeholder="Any" style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+</div>
+</div>
+</div>
 
-                <div class="form-section">
-                    <h3 class="form-section-title">Property Size</h3>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                        <div class="form-group">
-                            <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--gray-700);">Min Bedrooms</label>
-                            <select id="minBedrooms" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;">
-                                <option value="0">Any</option>
-                                <option value="1">1+</option>
-                                <option value="2">2+</option>
-                                <option value="3">3+</option>
-                                <option value="4">4+</option>
-                                <option value="5">5+</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--gray-700);">Min Bathrooms</label>
-                            <select id="minBathrooms" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;">
-                                <option value="0">Any</option>
-                                <option value="1">1+</option>
-                                <option value="1.5">1.5+</option>
-                                <option value="2">2+</option>
-                                <option value="2.5">2.5+</option>
-                                <option value="3">3+</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+<div style="margin-bottom: var(--space-6);">
+<h3 style="font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--space-4); color: var(--navy-primary);">Property Size</h3>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+<div>
+<label style="display: block; font-weight: 500; margin-bottom: var(--space-2); color: var(--gray-700);">Min Bedrooms</label>
+<select id="minBedrooms" style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+<option value="0">Any</option>
+<option value="1">1+</option>
+<option value="2">2+</option>
+<option value="3">3+</option>
+<option value="4">4+</option>
+<option value="5">5+</option>
+</select>
+</div>
+<div>
+<label style="display: block; font-weight: 500; margin-bottom: var(--space-2); color: var(--gray-700);">Min Bathrooms</label>
+<select id="minBathrooms" style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+<option value="0">Any</option>
+<option value="1">1+</option>
+<option value="1.5">1.5+</option>
+<option value="2">2+</option>
+<option value="2.5">2.5+</option>
+<option value="3">3+</option>
+</select>
+</div>
+</div>
+</div>
 
-                <div class="form-section">
-                    <h3 class="form-section-title">Location</h3>
-                    <div class="form-group">
-                        <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--gray-700);">Preferred Cities</label>
-                        <input type="text" id="cities" placeholder="e.g., Houston, Austin, Dallas" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;">
-                        <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">Comma-separated list</p>
-                    </div>
-                </div>
+<div style="margin-bottom: var(--space-6);">
+<h3 style="font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--space-4); color: var(--navy-primary);">Location</h3>
+<label style="display: block; font-weight: 500; margin-bottom: var(--space-2); color: var(--gray-700);">Preferred Cities</label>
+<input type="text" id="cities" placeholder="e.g., Houston, Austin, Dallas" style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+<p style="font-size: var(--font-size-sm); color: var(--gray-500); margin-top: var(--space-1);">Comma-separated list</p>
+</div>
 
-                <div class="form-section">
-                    <h3 class="form-section-title">Property Types</h3>
-                    <div class="checkbox-grid">
-                        <label class="checkbox-item">
-                            <input type="checkbox" class="property-type-check" value="Single Family"> Single Family
-                        </label>
-                        <label class="checkbox-item">
-                            <input type="checkbox" class="property-type-check" value="Apartment"> Apartment
-                        </label>
-                        <label class="checkbox-item">
-                            <input type="checkbox" class="property-type-check" value="Condo"> Condo
-                        </label>
-                        <label class="checkbox-item">
-                            <input type="checkbox" class="property-type-check" value="Townhouse"> Townhouse
-                        </label>
-                    </div>
-                </div>
+<div style="margin-bottom: var(--space-6);">
+<h3 style="font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--space-4); color: var(--navy-primary);">Property Types</h3>
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3);">
+<label style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); cursor: pointer;">
+<input type="checkbox" class="property-type-check" value="Single Family" style="width: 16px; height: 16px;"> Single Family
+</label>
+<label style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); cursor: pointer;">
+<input type="checkbox" class="property-type-check" value="Apartment" style="width: 16px; height: 16px;"> Apartment
+</label>
+<label style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); cursor: pointer;">
+<input type="checkbox" class="property-type-check" value="Condo" style="width: 16px; height: 16px;"> Condo
+</label>
+<label style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); cursor: pointer;">
+<input type="checkbox" class="property-type-check" value="Townhouse" style="width: 16px; height: 16px;"> Townhouse
+</label>
+</div>
+</div>
 
-                <div class="form-section">
-                    <h3 class="form-section-title">Alert Frequency</h3>
-                    <div class="frequency-options">
-                        <div class="frequency-option" data-value="instant">
-                            <div class="frequency-option-title">Instant</div>
-                            <div class="frequency-option-desc">As listed</div>
-                        </div>
-                        <div class="frequency-option" data-value="daily">
-                            <div class="frequency-option-title">Daily</div>
-                            <div class="frequency-option-desc">Once per day</div>
-                        </div>
-                        <div class="frequency-option" data-value="weekly">
-                            <div class="frequency-option-title">Weekly</div>
-                            <div class="frequency-option-desc">Once per week</div>
-                        </div>
-                    </div>
-                    <input type="hidden" id="frequency" value="instant">
-                </div>
+<div style="margin-bottom: var(--space-8);">
+<h3 style="font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--space-4); color: var(--navy-primary);">Alert Frequency</h3>
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3);">
+<div class="frequency-option" data-value="instant" style="padding: var(--space-4); border: 2px solid var(--gray-300); border-radius: var(--radius-lg); text-align: center; cursor: pointer;">
+<div style="font-weight: 600; margin-bottom: var(--space-1); color: var(--navy-primary);">Instant</div>
+<div style="font-size: var(--font-size-sm); color: var(--gray-600);">As listed</div>
+</div>
+<div class="frequency-option" data-value="daily" style="padding: var(--space-4); border: 2px solid var(--gray-300); border-radius: var(--radius-lg); text-align: center; cursor: pointer;">
+<div style="font-weight: 600; margin-bottom: var(--space-1); color: var(--navy-primary);">Daily</div>
+<div style="font-size: var(--font-size-sm); color: var(--gray-600);">Once per day</div>
+</div>
+<div class="frequency-option" data-value="weekly" style="padding: var(--space-4); border: 2px solid var(--gray-300); border-radius: var(--radius-lg); text-align: center; cursor: pointer;">
+<div style="font-weight: 600; margin-bottom: var(--space-1); color: var(--navy-primary);">Weekly</div>
+<div style="font-size: var(--font-size-sm); color: var(--gray-600);">Once per week</div>
+</div>
+</div>
+<input type="hidden" id="frequency" value="instant">
+</div>
 
-                <button type="submit" class="btn btn-primary">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;margin-right:8px;">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-                    </svg>
-                    Save Alert Preferences
-                </button>
-            </form>
-        </div>
+<button type="submit" class="btn btn-primary-consumer btn-lg" style="width: 100%;">
+<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle; margin-right: var(--space-2);">
+<path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+</svg>
+Save Alert Preferences
+</button>
+</form>
 
-        <div id="successMessage" style="display:none;">
-            ✅ Alert preferences saved! You'll receive notifications for matching properties.
-        </div>
-    </div>
+<div id="successMessage" style="display: none; margin-top: var(--space-4); padding: var(--space-4); background: var(--green-50); border: 1px solid var(--green-200); border-radius: var(--radius-md); color: var(--green-800); text-align: center;">
+<svg height="20" width="20" style="display: inline-block; vertical-align: middle; margin-right: var(--space-2); color: var(--green-600);"><use href="#icon-check-badge"></use></svg>
+Alert preferences saved! You'll receive notifications for matching properties.
+</div>
+</div>
+</div>
+</section>
+</div>
 </main>
 
 <script>
 document.querySelectorAll('.frequency-option').forEach(option => {
     option.addEventListener('click', function() {
-        document.querySelectorAll('.frequency-option').forEach(o => o.classList.remove('selected'));
-        this.classList.add('selected');
+        document.querySelectorAll('.frequency-option').forEach(o => {
+            o.style.borderColor = 'var(--gray-300)';
+            o.style.background = 'var(--white)';
+        });
+        this.style.borderColor = 'var(--blue-600)';
+        this.style.background = 'var(--blue-50)';
         document.getElementById('frequency').value = this.dataset.value;
     });
 });
-document.querySelector('.frequency-option').classList.add('selected');
-</script>
+document.querySelector('.frequency-option').click();
 
-<script>
 document.getElementById('alertForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -220,7 +206,6 @@ async function loadExistingPreferences() {
             document.getElementById('minBedrooms').value = pref.min_bedrooms || 0;
             document.getElementById('minBathrooms').value = pref.min_bathrooms || 0;
             document.getElementById('cities').value = pref.preferred_cities || '';
-            document.getElementById('frequency').value = pref.alert_frequency || 'instant';
             
             if (pref.property_types) {
                 const types = pref.property_types.split(',');
@@ -228,6 +213,11 @@ async function loadExistingPreferences() {
                     const checkbox = document.querySelector(`.property-type-check[value="${type.trim()}"]`);
                     if (checkbox) checkbox.checked = true;
                 });
+            }
+            
+            if (pref.alert_frequency) {
+                const freqOption = document.querySelector(`.frequency-option[data-value="${pref.alert_frequency}"]`);
+                if (freqOption) freqOption.click();
             }
         }
     } catch (error) {
@@ -238,5 +228,7 @@ async function loadExistingPreferences() {
 loadExistingPreferences();
 </script>
 
+{{template "_footer.html"}}
+{{template "_scripts.html" .}}
 </body>
 </html>
