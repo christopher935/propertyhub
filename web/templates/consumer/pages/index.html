@@ -258,8 +258,8 @@ onerror="this.style.display='none'; this.parentElement.querySelector('.property-
 </section>
 
 <!-- Property Quick View Modal -->
-<div id="quick-view-modal" style="display: none; position: fixed; inset: 0; z-index: 50; align-items: center; justify-content: center;">
-    <div class="modal-backdrop" @click="closeQuickView()"></div>
+<div id="quick-view-modal" role="dialog" aria-modal="true" aria-labelledby="qv-address" style="display: none; position: fixed; inset: 0; z-index: 50; align-items: center; justify-content: center;">
+    <div class="modal-backdrop" @click="closeQuickView()" role="presentation"></div>
     <div class="modal-wrapper">
         <div class="modal-container" style="max-width: 70rem;">
             <div class="modal-header">

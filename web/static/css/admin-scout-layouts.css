@@ -144,7 +144,7 @@
 }
 
 .nav-section.expanded .nav-section-toggle {
-  transform: rotate(90deg);
+  opacity: 1;
 }
 
 .nav-section-items {
