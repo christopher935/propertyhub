@@ -60,11 +60,11 @@ type SessionLocation struct {
 
 // PropertySummary represents basic property information
 type PropertySummary struct {
-	ID      int64  `json:"id"`
-	Address string `json:"address"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	Price   int    `json:"price"`
+	ID      uint    `json:"id"`
+	Address string  `json:"address"`
+	City    string  `json:"city"`
+	State   string  `json:"state"`
+	Price   float64 `json:"price"`
 }
 
 // GetActiveSessions retrieves currently active user sessions with behavioral data
@@ -139,13 +139,12 @@ func (h *BehavioralSessionsHandler) buildActiveSession(session models.Behavioral
 		activeSession.LeadName = fmt.Sprintf("%s %s", lead.FirstName, lead.LastName)
 		activeSession.IsAnonymous = lead.Email == ""
 		
-		// Get location from lead
-		if lead.City != "" || lead.State != "" {
-			activeSession.Location = SessionLocation{
-				City:    lead.City,
-				State:   lead.State,
-				Country: "USA",
-			}
+		// Location data not available from Lead model
+		// Could be enriched from IP geolocation in the future
+		activeSession.Location = SessionLocation{
+			City:    "Unknown",
+			State:   "Unknown",
+			Country: "USA",
 		}
 	}
 
