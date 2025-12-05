@@ -116,11 +116,41 @@ func (h *PropertiesHandler) GetConsumerProperties(w http.ResponseWriter, r *http
 
 	city := r.URL.Query().Get("city")
 	search := r.URL.Query().Get("search")
+	minPrice := r.URL.Query().Get("min_price")
+	maxPrice := r.URL.Query().Get("max_price")
+	bedrooms := r.URL.Query().Get("bedrooms")
+	bathrooms := r.URL.Query().Get("bathrooms")
+	sortBy := r.URL.Query().Get("sort_by")
+	sortOrder := r.URL.Query().Get("sort_order")
 
 	query := h.db.Model(&models.Property{}).Where("status = ?", "active")
 
 	if city != "" && city != "all" {
 		query = query.Where("city = ?", city)
+	}
+
+	if minPrice != "" {
+		if price, err := strconv.ParseFloat(minPrice, 64); err == nil {
+			query = query.Where("price >= ?", price)
+		}
+	}
+
+	if maxPrice != "" {
+		if price, err := strconv.ParseFloat(maxPrice, 64); err == nil {
+			query = query.Where("price <= ?", price)
+		}
+	}
+
+	if bedrooms != "" {
+		if beds, err := strconv.Atoi(bedrooms); err == nil {
+			query = query.Where("bedrooms >= ?", beds)
+		}
+	}
+
+	if bathrooms != "" {
+		if baths, err := strconv.ParseFloat(bathrooms, 64); err == nil {
+			query = query.Where("bathrooms >= ?", baths)
+		}
 	}
 
 	if search != "" {
@@ -132,7 +162,28 @@ func (h *PropertiesHandler) GetConsumerProperties(w http.ResponseWriter, r *http
 
 	var properties []models.Property
 	offset := (page - 1) * limit
-	err := query.Offset(offset).Limit(limit).Order("created_at DESC").Find(&properties).Error
+
+	orderClause := "created_at DESC"
+	if sortBy != "" {
+		order := "DESC"
+		if sortOrder == "asc" {
+			order = "ASC"
+		}
+		switch sortBy {
+		case "price":
+			orderClause = "price " + order
+		case "bedrooms":
+			orderClause = "bedrooms " + order
+		case "bathrooms":
+			orderClause = "bathrooms " + order
+		case "square_feet":
+			orderClause = "square_feet " + order
+		default:
+			orderClause = "created_at DESC"
+		}
+	}
+
+	err := query.Offset(offset).Limit(limit).Order(orderClause).Find(&properties).Error
 
 	if err != nil {
 		log.Printf("Error fetching consumer properties: %v", err)
