@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Lead Assignment - PropertyHub Admin</title>
+    
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div class="admin-layout" x-data="leadAssignmentData()" x-init="init()">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="/admin/dashboard" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">PH</div>
+                    <span>PropertyHub</span>
+                </a>
+            </div>
+            
+            <nav class="admin-sidebar-nav">
+                <div class="nav-section">
+                    <a href="/admin/dashboard" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section expanded" x-data="{ open: true }">
+                    <button class="nav-section-header active" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Leads</span>
+                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/leads" class="nav-item">All Leads</a></li>
+                        <li><a href="/admin/leads?segment=hot" class="nav-item">Hot Leads</a></li>
+                        <li><a href="/admin/leads/assign" class="nav-item active">Lead Assignment</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <a href="/admin/team" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Team</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-content">
+                    <div>
+                        <h1 class="admin-header-title">Lead Assignment</h1>
+                        <p style="color: var(--gray-500); margin-top: var(--space-2);">Assign leads to team members</p>
+                    </div>
+                    
+                    <div class="admin-header-actions">
+                        <div class="admin-user-menu">
+                            <div class="admin-user-avatar">AD</div>
+                            <div class="admin-user-info">
+                                <div class="admin-user-name">Admin</div>
+                                <div class="admin-user-role">Administrator</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="admin-content">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6);">
+                    <div>
+                        <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
+                            <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Unassigned Leads</h3>
+                            
+                            <div x-show="loading" class="d-flex justify-center p-6">
+                                <div class="loading"></div>
+                            </div>
+                            
+                            <div x-show="!loading">
+                                <div style="margin-bottom: var(--space-4);">
+                                    <input type="search" x-model="searchQuery" placeholder="Search leads..." 
+                                           style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+                                </div>
+                                
+                                <div style="max-height: 600px; overflow-y: auto;">
+                                    <template x-for="lead in filteredLeads" :key="lead.id">
+                                        <div style="padding: var(--space-4); border: 1px solid var(--gray-200); border-radius: var(--radius-md); margin-bottom: var(--space-3); cursor: pointer; transition: all 0.2s;" 
+                                             :class="{ 'border-blue-500': selectedLeadId === lead.id }"
+                                             @click="selectLead(lead.id)">
+                                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-2);">
+                                                <div>
+                                                    <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="lead.name"></div>
+                                                    <div style="font-size: var(--font-size-sm); color: var(--gray-500);" x-text="lead.email"></div>
+                                                </div>
+                                                <span class="status-badge" :class="'status-' + lead.status" x-text="lead.status"></span>
+                                            </div>
+                                            <div style="font-size: var(--font-size-sm); color: var(--gray-600);">
+                                                <div x-text="'Source: ' + lead.source"></div>
+                                                <div x-text="'Created: ' + new Date(lead.created_at).toLocaleDateString()"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    
+                                    <div x-show="filteredLeads.length === 0" style="text-align: center; padding: var(--space-8); color: var(--gray-400);">
+                                        <div style="font-size: 3rem; margin-bottom: var(--space-2);">📋</div>
+                                        <p>No unassigned leads</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm); margin-bottom: var(--space-6);">
+                            <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Assign to Team Member</h3>
+                            
+                            <div x-show="!selectedLeadId" style="text-align: center; padding: var(--space-8); color: var(--gray-400);">
+                                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto var(--space-3);">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <p>Select a lead to assign</p>
+                            </div>
+                            
+                            <div x-show="selectedLeadId">
+                                <div style="margin-bottom: var(--space-4);">
+                                    <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
+                                        Select Agent <span style="color: var(--error);">*</span>
+                                    </label>
+                                    <select x-model="selectedAgentId" 
+                                            style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+                                        <option value="">Choose an agent...</option>
+                                        <template x-for="agent in agents" :key="agent.id">
+                                            <option :value="agent.id" x-text="agent.name + ' (' + agent.active_leads + ' active leads)'"></option>
+                                        </template>
+                                    </select>
+                                </div>
+                                
+                                <div style="margin-bottom: var(--space-4);">
+                                    <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
+                                        Assignment Notes
+                                    </label>
+                                    <textarea x-model="assignmentNotes" rows="3" placeholder="Add any notes about this assignment..." 
+                                              style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); resize: vertical;"></textarea>
+                                </div>
+                                
+                                <button @click="assignLead" :disabled="!selectedAgentId || assigning" class="btn btn-primary" style="width: 100%;">
+                                    <span x-show="!assigning">Assign Lead</span>
+                                    <span x-show="assigning">Assigning...</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
+                            <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Team Workload</h3>
+                            <div style="display: grid; gap: var(--space-3);">
+                                <template x-for="agent in agents" :key="agent.id">
+                                    <div style="padding: var(--space-3); background: var(--gray-50); border-radius: var(--radius-md);">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-2);">
+                                            <span style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="agent.name"></span>
+                                            <span style="color: var(--gray-600);" x-text="agent.active_leads + ' leads'"></span>
+                                        </div>
+                                        <div style="height: 6px; background: var(--gray-200); border-radius: 3px; overflow: hidden;">
+                                            <div style="height: 100%; background: var(--gold-primary); border-radius: 3px; transition: width 0.3s;" 
+                                                 :style="'width: ' + (agent.active_leads * 10) + '%'"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function leadAssignmentData() {
+            return {
+                loading: true,
+                assigning: false,
+                leads: [],
+                agents: [],
+                searchQuery: '',
+                selectedLeadId: null,
+                selectedAgentId: '',
+                assignmentNotes: '',
+                
+                get filteredLeads() {
+                    if (!this.searchQuery) return this.leads;
+                    const query = this.searchQuery.toLowerCase();
+                    return this.leads.filter(lead => 
+                        lead.name.toLowerCase().includes(query) || 
+                        lead.email.toLowerCase().includes(query)
+                    );
+                },
+                
+                async init() {
+                    await Promise.all([
+                        this.fetchUnassignedLeads(),
+                        this.fetchAgents()
+                    ]);
+                    this.loading = false;
+                },
+                
+                async fetchUnassignedLeads() {
+                    try {
+                        const response = await fetch('/api/leads?assigned=false');
+                        if (response.ok) {
+                            this.leads = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch leads:', error);
+                    }
+                },
+                
+                async fetchAgents() {
+                    try {
+                        const response = await fetch('/api/admin/team/agents');
+                        if (response.ok) {
+                            this.agents = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch agents:', error);
+                    }
+                },
+                
+                selectLead(leadId) {
+                    this.selectedLeadId = leadId;
+                },
+                
+                async assignLead() {
+                    if (!this.selectedLeadId || !this.selectedAgentId) return;
+                    
+                    this.assigning = true;
+                    
+                    try {
+                        const response = await fetch('/api/admin/leads/assign', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                lead_id: this.selectedLeadId,
+                                agent_id: this.selectedAgentId,
+                                notes: this.assignmentNotes
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            this.leads = this.leads.filter(l => l.id !== this.selectedLeadId);
+                            this.selectedLeadId = null;
+                            this.selectedAgentId = '';
+                            this.assignmentNotes = '';
+                            await this.fetchAgents();
+                            alert('Lead assigned successfully!');
+                        } else {
+                            alert('Failed to assign lead. Please try again.');
+                        }
+                    } catch (error) {
+                        console.error('Error assigning lead:', error);
+                        alert('An error occurred. Please try again.');
+                    } finally {
+                        this.assigning = false;
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>

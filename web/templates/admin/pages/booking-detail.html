@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Showing Details - PropertyHub Admin</title>
+    
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div class="admin-layout" x-data="bookingDetailData()" x-init="init()">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="/admin/dashboard" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">PH</div>
+                    <span>PropertyHub</span>
+                </a>
+            </div>
+            
+            <nav class="admin-sidebar-nav">
+                <div class="nav-section">
+                    <a href="/admin/dashboard" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Properties</span>
+                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/properties" class="nav-item">All Properties</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <a href="/admin/bookings" class="nav-section-header active">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Bookings</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-content">
+                    <div>
+                        <div style="margin-bottom: var(--space-2);">
+                            <a href="/admin/bookings" style="color: var(--gray-500); font-size: var(--font-size-sm); text-decoration: none;">
+                                ← Back to Bookings
+                            </a>
+                        </div>
+                        <h1 class="admin-header-title">Showing Details</h1>
+                    </div>
+                    
+                    <div class="admin-header-actions">
+                        <div class="admin-user-menu">
+                            <div class="admin-user-avatar" x-text="userProfile.initials"></div>
+                            <div class="admin-user-info">
+                                <div class="admin-user-name" x-text="userProfile.username"></div>
+                                <div class="admin-user-role" x-text="userProfile.role"></div>
+                            </div>
+                        </div>
+                        
+                        <a href="/admin/logout" class="btn-logout">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="admin-content">
+                <div x-show="loading" class="d-flex justify-center p-6">
+                    <div class="loading"></div>
+                </div>
+                
+                <div x-show="!loading">
+                    <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-6);">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+                                    <h2 style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin: 0;">
+                                        Showing #<span x-text="booking.id"></span>
+                                    </h2>
+                                    <span class="status-badge" :class="'status-' + booking.status" x-text="booking.status"></span>
+                                </div>
+                                <p style="color: var(--gray-500); margin-bottom: var(--space-2);">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: inline; vertical-align: middle; margin-right: var(--space-2);">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span x-text="new Date(booking.scheduled_at).toLocaleString()"></span>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: var(--space-3);">
+                            <button class="btn btn-primary" @click="showRescheduleModal = true" x-show="booking.status === 'confirmed'">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-2);">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                Reschedule
+                            </button>
+                            <button class="btn btn-secondary" @click="cancelBooking" x-show="booking.status === 'confirmed'">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-2);">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Cancel Showing
+                            </button>
+                            <button class="btn btn-secondary" @click="markCompleted" x-show="booking.status === 'confirmed'">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-2);">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Mark Completed
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6);">
+                        <div>
+                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
+                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Property Details</h3>
+                                <div style="display: flex; gap: var(--space-4); align-items: start;">
+                                    <div x-show="booking.property_photo" style="width: 120px; height: 120px; border-radius: var(--radius-md); overflow: hidden; background: var(--gray-100);">
+                                        <img :src="booking.property_photo" alt="Property" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <h4 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);" x-text="booking.property_address"></h4>
+                                        <p style="color: var(--gray-600); margin-bottom: var(--space-3);" x-text="booking.property_city + ', ' + booking.property_state"></p>
+                                        <a :href="'/admin/property-detail/' + booking.property_id" class="btn btn-secondary" style="font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
+                                            View Property Details →
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
+                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Lead Information</h3>
+                                <div style="display: grid; gap: var(--space-3);">
+                                    <div>
+                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Name</div>
+                                        <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="booking.lead_name"></div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Email</div>
+                                        <a :href="'mailto:' + booking.lead_email" style="color: var(--gold-primary); text-decoration: none;" x-text="booking.lead_email"></a>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Phone</div>
+                                        <a :href="'tel:' + booking.lead_phone" style="color: var(--gold-primary); text-decoration: none;" x-text="booking.lead_phone"></a>
+                                    </div>
+                                    <div>
+                                        <a :href="'/admin/lead-detail/' + booking.lead_id" class="btn btn-secondary" style="font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
+                                            View Lead Profile →
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
+                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Notes</h3>
+                                <div style="margin-bottom: var(--space-4);">
+                                    <template x-for="note in notes" :key="note.id">
+                                        <div style="padding: var(--space-3); background: var(--gray-50); border-radius: var(--radius-md); margin-bottom: var(--space-3);">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-2);">
+                                                <span style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="note.created_by"></span>
+                                                <span style="font-size: var(--font-size-xs); color: var(--gray-500);" x-text="new Date(note.created_at).toLocaleString()"></span>
+                                            </div>
+                                            <p style="color: var(--gray-700);" x-text="note.content"></p>
+                                        </div>
+                                    </template>
+                                    <div x-show="notes.length === 0" style="text-align: center; padding: var(--space-4); color: var(--gray-400);">
+                                        No notes yet
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <textarea x-model="newNote" placeholder="Add a note..." rows="3" 
+                                              style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); resize: vertical; margin-bottom: var(--space-3);"></textarea>
+                                    <button @click="addNote" class="btn btn-primary">Add Note</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
+                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Showing Details</h3>
+                                <div style="display: grid; gap: var(--space-4);">
+                                    <div>
+                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Scheduled Date & Time</div>
+                                        <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="new Date(booking.scheduled_at).toLocaleString()"></div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Duration</div>
+                                        <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);">30 minutes</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Created</div>
+                                        <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="new Date(booking.created_at).toLocaleString()"></div>
+                                    </div>
+                                    <div x-show="booking.cancelled_at">
+                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Cancelled</div>
+                                        <div style="font-weight: var(--font-weight-semibold); color: var(--error);" x-text="booking.cancelled_at ? new Date(booking.cancelled_at).toLocaleString() : ''"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function bookingDetailData() {
+            return {
+                loading: true,
+                bookingId: null,
+                showRescheduleModal: false,
+                booking: {
+                    id: null,
+                    status: 'confirmed',
+                    scheduled_at: '',
+                    property_id: null,
+                    property_address: '',
+                    property_city: '',
+                    property_state: '',
+                    property_photo: '',
+                    lead_id: null,
+                    lead_name: '',
+                    lead_email: '',
+                    lead_phone: '',
+                    created_at: '',
+                    cancelled_at: null
+                },
+                notes: [],
+                newNote: '',
+                userProfile: {
+                    username: 'Admin',
+                    role: 'Administrator',
+                    initials: 'AD'
+                },
+                
+                async init() {
+                    this.bookingId = window.location.pathname.split('/').pop();
+                    await this.fetchBooking();
+                    await this.fetchNotes();
+                },
+                
+                async fetchBooking() {
+                    try {
+                        const response = await fetch(`/api/v1/bookings/${this.bookingId}`);
+                        if (response.ok) {
+                            this.booking = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch booking:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async fetchNotes() {
+                    try {
+                        const response = await fetch(`/api/v1/bookings/${this.bookingId}/notes`);
+                        if (response.ok) {
+                            this.notes = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch notes:', error);
+                    }
+                },
+                
+                async addNote() {
+                    if (!this.newNote.trim()) return;
+                    
+                    try {
+                        const response = await fetch(`/api/v1/bookings/${this.bookingId}/notes`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: this.newNote })
+                        });
+                        
+                        if (response.ok) {
+                            await this.fetchNotes();
+                            this.newNote = '';
+                        }
+                    } catch (error) {
+                        console.error('Failed to add note:', error);
+                    }
+                },
+                
+                async cancelBooking() {
+                    if (confirm('Are you sure you want to cancel this showing?')) {
+                        try {
+                            const response = await fetch(`/api/v1/bookings/${this.bookingId}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ status: 'cancelled' })
+                            });
+                            
+                            if (response.ok) {
+                                await this.fetchBooking();
+                            }
+                        } catch (error) {
+                            console.error('Failed to cancel booking:', error);
+                        }
+                    }
+                },
+                
+                async markCompleted() {
+                    try {
+                        const response = await fetch(`/api/v1/bookings/${this.bookingId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'completed' })
+                        });
+                        
+                        if (response.ok) {
+                            await this.fetchBooking();
+                        }
+                    } catch (error) {
+                        console.error('Failed to mark as completed:', error);
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>

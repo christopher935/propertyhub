@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Commission Updated - PropertyHub Admin</title>
+    
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div class="admin-layout" x-data="successData()" x-init="init()">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="/admin/dashboard" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">PH</div>
+                    <span>PropertyHub</span>
+                </a>
+            </div>
+            
+            <nav class="admin-sidebar-nav">
+                <div class="nav-section">
+                    <a href="/admin/dashboard" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Dashboard</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-content">
+                    <h1 class="admin-header-title">Commission Updated Successfully</h1>
+                    
+                    <div class="admin-header-actions">
+                        <div class="admin-user-menu">
+                            <div class="admin-user-avatar">AD</div>
+                            <div class="admin-user-info">
+                                <div class="admin-user-name">Admin</div>
+                                <div class="admin-user-role">Administrator</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="admin-content">
+                <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+                    <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); box-shadow: var(--shadow-sm);">
+                        <div style="width: 80px; height: 80px; background: var(--success-light, #d1fae5); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-6);">
+                            <svg width="40" height="40" fill="none" stroke="var(--success, #10B981)" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        
+                        <h2 style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--navy-primary); margin-bottom: var(--space-3);">
+                            Commission Updated Successfully!
+                        </h2>
+                        
+                        <p style="color: var(--gray-600); margin-bottom: var(--space-6); font-size: var(--font-size-lg);">
+                            The commission details have been updated successfully.
+                        </p>
+                        
+                        <div style="display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap;">
+                            <a :href="commissionId ? '/admin/commission-detail/' + commissionId : '/admin/dashboard'" class="btn btn-primary">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-2);">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                View Commission
+                            </a>
+                            <a href="/admin/dashboard" class="btn btn-secondary">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-2);">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                                Back to Dashboard
+                            </a>
+                        </div>
+                        
+                        <div style="margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--gray-200);">
+                            <p style="font-size: var(--font-size-sm); color: var(--gray-500);">
+                                Redirecting in <span x-text="countdown"></span> seconds...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function successData() {
+            return {
+                commissionId: null,
+                countdown: 5,
+                
+                init() {
+                    const params = new URLSearchParams(window.location.search);
+                    this.commissionId = params.get('id');
+                    
+                    const interval = setInterval(() => {
+                        this.countdown--;
+                        if (this.countdown <= 0) {
+                            clearInterval(interval);
+                            if (this.commissionId) {
+                                window.location.href = `/admin/commission-detail/${this.commissionId}`;
+                            } else {
+                                window.location.href = '/admin/dashboard';
+                            }
+                        }
+                    }, 1000);
+                }
+            };
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Feedback Details - PropertyHub Admin</title>
+    
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div class="admin-layout" x-data="feedbackDetailData()" x-init="init()">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="/admin/dashboard" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">PH</div>
+                    <span>PropertyHub</span>
+                </a>
+            </div>
+            
+            <nav class="admin-sidebar-nav">
+                <div class="nav-section">
+                    <a href="/admin/dashboard" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <a href="/admin/customer-feedback" class="nav-section-header active">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Customer Feedback</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-content">
+                    <div>
+                        <div style="margin-bottom: var(--space-2);">
+                            <a href="/admin/customer-feedback" style="color: var(--gray-500); font-size: var(--font-size-sm); text-decoration: none;">
+                                ← Back to Feedback
+                            </a>
+                        </div>
+                        <h1 class="admin-header-title">Feedback Details</h1>
+                    </div>
+                    
+                    <div class="admin-header-actions">
+                        <div class="admin-user-menu">
+                            <div class="admin-user-avatar">AD</div>
+                            <div class="admin-user-info">
+                                <div class="admin-user-name">Admin</div>
+                                <div class="admin-user-role">Administrator</div>
+                            </div>
+                        </div>
+                        
+                        <a href="/admin/logout" class="btn-logout">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="admin-content">
+                <div x-show="loading" class="d-flex justify-center p-6">
+                    <div class="loading"></div>
+                </div>
+                
+                <div x-show="!loading">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6);">
+                        <div>
+                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-4);">
+                                    <div>
+                                        <h2 style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);" x-text="feedback.customer_name"></h2>
+                                        <div style="display: flex; align-items: center; gap: var(--space-2);">
+                                            <template x-for="i in 5" :key="i">
+                                                <svg width="20" height="20" :fill="i <= feedback.rating ? 'var(--gold-primary)' : 'var(--gray-300)'" viewBox="0 0 24 24">
+                                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                                </svg>
+                                            </template>
+                                            <span style="color: var(--gray-600); margin-left: var(--space-2);" x-text="feedback.rating + ' out of 5'"></span>
+                                        </div>
+                                    </div>
+                                    <span class="status-badge" :class="'status-' + feedback.status" x-text="feedback.status"></span>
+                                </div>
+                                
+                                <div style="margin-bottom: var(--space-6);">
+                                    <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-3);">Feedback</h3>
+                                    <p style="color: var(--gray-600); line-height: 1.6;" x-text="feedback.comment"></p>
+                                </div>
+                                
+                                <div style="padding-top: var(--space-4); border-top: 1px solid var(--gray-200);">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+                                        <div>
+                                            <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Customer Email</div>
+                                            <a :href="'mailto:' + feedback.customer_email" style="color: var(--gold-primary); text-decoration: none;" x-text="feedback.customer_email"></a>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Date Submitted</div>
+                                            <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="new Date(feedback.created_at).toLocaleDateString()"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
+                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Response</h3>
+                                
+                                <div x-show="feedback.response" style="padding: var(--space-4); background: var(--gray-50); border-radius: var(--radius-md); margin-bottom: var(--space-4);">
+                                    <p style="color: var(--gray-700); margin-bottom: var(--space-2);" x-text="feedback.response"></p>
+                                    <div style="font-size: var(--font-size-sm); color: var(--gray-500);" x-text="'Responded on ' + new Date(feedback.responded_at).toLocaleDateString()"></div>
+                                </div>
+                                
+                                <div x-show="!feedback.response">
+                                    <textarea x-model="responseText" placeholder="Type your response here..." rows="4" 
+                                              style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); resize: vertical; margin-bottom: var(--space-3);"></textarea>
+                                    <button @click="submitResponse" class="btn btn-primary" :disabled="!responseText.trim() || submitting">
+                                        <span x-show="!submitting">Send Response</span>
+                                        <span x-show="submitting">Sending...</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
+                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Property Details</h3>
+                                <div style="display: grid; gap: var(--space-3);">
+                                    <div>
+                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Property</div>
+                                        <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="feedback.property_address"></div>
+                                    </div>
+                                    <div>
+                                        <a :href="'/admin/property-detail/' + feedback.property_id" class="btn btn-secondary" style="width: 100%; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
+                                            View Property Details →
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
+                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Actions</h3>
+                                <div style="display: grid; gap: var(--space-3);">
+                                    <button @click="markAsResolved" class="btn btn-primary" style="width: 100%;" x-show="feedback.status !== 'resolved'">
+                                        Mark as Resolved
+                                    </button>
+                                    <button @click="archiveFeedback" class="btn btn-secondary" style="width: 100%;">
+                                        Archive
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function feedbackDetailData() {
+            return {
+                loading: true,
+                submitting: false,
+                feedbackId: null,
+                responseText: '',
+                feedback: {
+                    id: null,
+                    customer_name: '',
+                    customer_email: '',
+                    rating: 0,
+                    comment: '',
+                    status: 'pending',
+                    property_id: null,
+                    property_address: '',
+                    response: '',
+                    responded_at: null,
+                    created_at: ''
+                },
+                
+                async init() {
+                    this.feedbackId = window.location.pathname.split('/').pop();
+                    await this.fetchFeedback();
+                },
+                
+                async fetchFeedback() {
+                    try {
+                        const response = await fetch(`/api/admin/feedback/${this.feedbackId}`);
+                        if (response.ok) {
+                            this.feedback = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch feedback:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async submitResponse() {
+                    this.submitting = true;
+                    
+                    try {
+                        const response = await fetch(`/api/admin/feedback/${this.feedbackId}/respond`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ response: this.responseText })
+                        });
+                        
+                        if (response.ok) {
+                            await this.fetchFeedback();
+                            this.responseText = '';
+                            alert('Response sent successfully!');
+                        } else {
+                            alert('Failed to send response. Please try again.');
+                        }
+                    } catch (error) {
+                        console.error('Error sending response:', error);
+                        alert('An error occurred. Please try again.');
+                    } finally {
+                        this.submitting = false;
+                    }
+                },
+                
+                async markAsResolved() {
+                    try {
+                        const response = await fetch(`/api/admin/feedback/${this.feedbackId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'resolved' })
+                        });
+                        
+                        if (response.ok) {
+                            await this.fetchFeedback();
+                        }
+                    } catch (error) {
+                        console.error('Error updating status:', error);
+                    }
+                },
+                
+                async archiveFeedback() {
+                    if (confirm('Are you sure you want to archive this feedback?')) {
+                        try {
+                            const response = await fetch(`/api/admin/feedback/${this.feedbackId}`, {
+                                method: 'DELETE'
+                            });
+                            
+                            if (response.ok) {
+                                window.location.href = '/admin/customer-feedback';
+                            }
+                        } catch (error) {
+                            console.error('Error archiving feedback:', error);
+                        }
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>
