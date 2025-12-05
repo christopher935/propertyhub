@@ -192,7 +192,7 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	
 	// Live Activity API (Admin Real-Time)
 	api.GET("/admin/live-activity", h.LiveActivity.GetLiveActivity)
-	api.GET("/admin/active-sessions", h.LiveActivity.GetActiveSessions)
+	api.GET("/admin/active-sessions", h.BehavioralSessions.GetActiveSessions)
 	api.GET("/admin/session/:id", h.LiveActivity.GetSessionDetails)
 
 	// Behavioral Sessions API (Admin Real-Time - Who's Browsing Now)
