@@ -1030,6 +1030,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
 
+                <!-- Behavioral Trends Chart -->
+                <div class="chart-card" style="margin-top: 24px;">
+                    <div class="chart-header">
+                        <h3 class="chart-title">User Engagement Trends (Last 30 Days)</h3>
+                        <div class="chart-controls">
+                            <button class="filter-btn active" onclick="loadTrendsData('daily', 30, 'engagement')">30 Days</button>
+                            <button class="filter-btn" onclick="loadTrendsData('daily', 60, 'engagement')">60 Days</button>
+                            <button class="filter-btn" onclick="loadTrendsData('daily', 90, 'engagement')">90 Days</button>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="behavioralTrendsChart" style="height: 300px;"></canvas>
+                    </div>
+                </div>
+
                 <!-- Device Performance -->
                 <div class="chart-cards-grid" style="margin-top: 24px;">
                     <div class="chart-card">
@@ -1263,6 +1278,137 @@ document.addEventListener('DOMContentLoaded', function() {
             gray: '#6b7280'
         };
 
+        // API Data Storage
+        let funnelData = null;
+        let trendsData = null;
+        let segmentsData = null;
+        let funnelChart = null;
+        let leadQualityChartInstance = null;
+
+        // Fetch Conversion Funnel Data
+        async function loadFunnelData(days = 30) {
+            try {
+                const response = await fetch(`/api/business-intelligence/conversion-funnel?days=${days}`);
+                const result = await response.json();
+                if (result.success && result.data) {
+                    funnelData = result.data;
+                    updateFunnelChart();
+                    updateFunnelStats();
+                }
+            } catch (error) {
+                console.error('Error loading funnel data:', error);
+            }
+        }
+
+        // Fetch Behavioral Trends
+        async function loadTrendsData(period = 'daily', days = 30, metric = 'all') {
+            try {
+                const response = await fetch(`/api/behavioral/trends?period=${period}&days=${days}&metric=${metric}`);
+                const result = await response.json();
+                if (result.trends) {
+                    trendsData = result.trends;
+                    updateTrendsChart();
+                }
+            } catch (error) {
+                console.error('Error loading trends data:', error);
+            }
+        }
+
+        // Fetch Lead Segments
+        async function loadSegmentsData() {
+            try {
+                const response = await fetch('/api/behavioral/segments');
+                const result = await response.json();
+                if (result.segments) {
+                    segmentsData = result.segments;
+                    updateSegmentsDisplay();
+                }
+            } catch (error) {
+                console.error('Error loading segments data:', error);
+            }
+        }
+
+        // Update Funnel Chart with Real Data
+        function updateFunnelChart() {
+            if (!funnelData || !funnelData.funnel) return;
+            
+            const funnel = funnelData.funnel;
+            const labels = funnel.map(stage => stage.stage || stage.name);
+            const counts = funnel.map(stage => stage.count || stage.lead_count);
+            
+            if (funnelChart) {
+                funnelChart.data.labels = labels;
+                funnelChart.data.datasets[0].data = counts;
+                funnelChart.update();
+            }
+        }
+
+        // Update Funnel Stats
+        function updateFunnelStats() {
+            if (!funnelData || !funnelData.funnel) return;
+            
+            const funnel = funnelData.funnel;
+            if (funnel.length >= 2) {
+                const visitorToLead = ((funnel[1].count / funnel[0].count) * 100).toFixed(1);
+                document.querySelector('.stat-card:nth-child(1) .stat-card-value').textContent = visitorToLead + '%';
+            }
+            if (funnel.length >= 3) {
+                const leadToInquiry = ((funnel[2].count / funnel[1].count) * 100).toFixed(1);
+                document.querySelector('.stat-card:nth-child(2) .stat-card-value').textContent = leadToInquiry + '%';
+            }
+        }
+
+        // Update Trends Chart
+        function updateTrendsChart() {
+            if (!trendsData) return;
+            
+            if (trendsData.engagement && leadQualityChartInstance) {
+                const engagementTrend = trendsData.engagement;
+                const labels = engagementTrend.map(point => new Date(point.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                const values = engagementTrend.map(point => point.value);
+                
+                leadQualityChartInstance.data.labels = labels.slice(-30);
+                leadQualityChartInstance.data.datasets[0].data = values.slice(-30);
+                leadQualityChartInstance.update();
+            }
+            
+            if (trendsData.active_users && behavioralTrendsChart) {
+                const activeUsersTrend = trendsData.active_users;
+                const labels = activeUsersTrend.map(point => new Date(point.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                const values = activeUsersTrend.map(point => point.value);
+                
+                behavioralTrendsChart.data.labels = labels;
+                behavioralTrendsChart.data.datasets[0].data = values;
+                behavioralTrendsChart.update();
+            }
+        }
+
+        // Update Segments Display
+        function updateSegmentsDisplay() {
+            if (!segmentsData) return;
+            
+            const hotSegment = segmentsData.find(s => s.segment === 'high_engagement');
+            const warmSegment = segmentsData.find(s => s.segment === 'medium_engagement');
+            const coldSegment = segmentsData.find(s => s.segment === 'low_engagement');
+            
+            if (hotSegment) {
+                const hotLeadStat = document.querySelector('#tab4 .stat-card:nth-child(2) .stat-card-value');
+                if (hotLeadStat) hotLeadStat.textContent = hotSegment.lead_count || hotSegment.LeadCount;
+            }
+            
+            if (warmSegment) {
+                const warmLeadStat = document.querySelector('#tab4 .stat-card:nth-child(3) .stat-card-value');
+                if (warmLeadStat) warmLeadStat.textContent = warmSegment.lead_count || warmSegment.LeadCount;
+            }
+        }
+
+        // Load all data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFunnelData(30);
+            loadTrendsData('daily', 30, 'all');
+            loadSegmentsData();
+        });
+
         // Revenue Chart
         const revenueCtx = document.getElementById('revenueChart');
         if (revenueCtx) {
@@ -1302,30 +1448,48 @@ document.addEventListener('DOMContentLoaded', function() {
         // Funnel Chart
         const funnelCtx = document.getElementById('funnelChart');
         if (funnelCtx) {
-            new Chart(funnelCtx, {
+            funnelChart = new Chart(funnelCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Visitors', 'Leads', 'Inquiries', 'Applications', 'Leases'],
+                    labels: ['inquiry', 'property_view', 'property_save', 'showing_requested', 'showing_completed', 'application_started', 'application_submitted', 'lease_signed'],
                     datasets: [{
                         label: 'Count',
-                        data: [8642, 1590, 672, 189, 121],
+                        data: [0, 0, 0, 0, 0, 0, 0, 0],
                         backgroundColor: [
                             chartColors.info,
                             chartColors.primary,
+                            chartColors.primary,
                             chartColors.warning,
+                            chartColors.warning,
+                            chartColors.success,
                             chartColors.success,
                             chartColors.danger
                         ]
                     }]
                 },
                 options: {
+                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.x.toLocaleString() + ' leads';
+                                }
+                            }
+                        }
                     },
                     scales: {
-                        y: { beginAtZero: true }
+                        x: { 
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        }
                     }
                 }
             });
@@ -1382,39 +1546,45 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Lead Quality Chart
+        // Lead Quality Chart (Engagement Trends)
         const leadQualityCtx = document.getElementById('leadQualityChart');
         if (leadQualityCtx) {
-            new Chart(leadQualityCtx, {
+            leadQualityChartInstance = new Chart(leadQualityCtx, {
                 type: 'line',
                 data: {
-                    labels: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    labels: [],
                     datasets: [
                         {
-                            label: 'Hot Leads',
-                            data: [186, 204, 218, 232, 242, 248],
-                            borderColor: chartColors.danger,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Warm Leads',
-                            data: [428, 446, 468, 486, 498, 512],
-                            borderColor: chartColors.warning,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Cold Leads',
-                            data: [742, 768, 794, 812, 824, 830],
-                            borderColor: chartColors.info,
-                            tension: 0.4
+                            label: 'Engagement Score',
+                            data: [],
+                            borderColor: chartColors.primary,
+                            backgroundColor: chartColors.primary + '20',
+                            tension: 0.4,
+                            fill: true
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Avg Events/User: ' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true }
+                        y: { 
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Avg Events per User'
+                            }
+                        }
                     }
                 }
             });
@@ -1446,6 +1616,50 @@ document.addEventListener('DOMContentLoaded', function() {
                         r: {
                             beginAtZero: true,
                             max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Behavioral Trends Chart (Tab 5)
+        const behavioralTrendsCtx = document.getElementById('behavioralTrendsChart');
+        let behavioralTrendsChart = null;
+        if (behavioralTrendsCtx) {
+            behavioralTrendsChart = new Chart(behavioralTrendsCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Active Users',
+                        data: [],
+                        borderColor: chartColors.primary,
+                        backgroundColor: chartColors.primary + '30',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(0);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(0);
+                                }
+                            }
                         }
                     }
                 }
