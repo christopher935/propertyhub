@@ -9001,7 +9001,8 @@ body.page-analytics {
 }
 
 .property-image img,
-.property-image-image {
+.property-image-image,
+.property-card-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -9009,7 +9010,8 @@ body.page-analytics {
 }
 
 .property-card:hover .property-image img,
-.property-card:hover .property-image-image {
+.property-card:hover .property-image-image,
+.property-card:hover .property-card-image {
   transform: scale(1.05);
 }
 

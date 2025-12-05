@@ -167,11 +167,14 @@
             {{range .Properties}}
             <div class="property-card" data-bathrooms="{{.Bathrooms}}" data-bedrooms="{{.Bedrooms}}" data-location="{{.Neighborhood}}" data-price="{{.MonthlyRent}}">
 <div class="property-image">
-                    {{if .MainPhoto}}
-                    <img alt="{{.Address}}" loading="lazy" src="{{.MainPhoto}}"/>
-                    {{else}}
-                    <div class="property-placeholder"><svg height="120" width="120"><use href="#icon-home"></use></svg></div>
+                    {{if .FeaturedImage}}
+                    <img alt="{{.Address}}" loading="lazy" src="{{.FeaturedImage}}" onerror="this.style.display='none'; this.parentElement.querySelector('.property-placeholder').style.display='flex'"/>
+                    {{else if .Images}}
+                    <img alt="{{.Address}}" loading="lazy" src="{{index .Images 0}}" onerror="this.style.display='none'; this.parentElement.querySelector('.property-placeholder').style.display='flex'"/>
                     {{end}}
+                    <div class="property-placeholder" style="{{if or .FeaturedImage .Images}}display: none;{{else}}display: flex;{{end}}">
+                        <svg height="120" width="120" style="color: var(--gray-400);"><use href="#icon-home"></use></svg>
+                    </div>
                     <span class="badge badge-{{if eq .Status "available"}}success{{else if eq .Status "just-listed"}}info{{else}}secondary{{end}}">
                         {{if eq .Status "available"}}Available{{else if eq .Status "just-listed"}}New Listing{{else}}For Rent{{end}}
                     </span>

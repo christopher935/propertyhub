@@ -107,25 +107,41 @@ function homepageProperties() {
             document.getElementById('qv-full-details-link').href = '/properties/' + p.id;
             
             // Update gallery if images exist
-            if (p.images && p.images.length > 0) {
-                this.updateGallery(p.images);
+            let imagesToShow = [];
+            if (p.featured_image) {
+                imagesToShow = [p.featured_image];
+                if (p.images && p.images.length > 0) {
+                    imagesToShow = imagesToShow.concat(p.images.filter(img => img !== p.featured_image));
+                }
+            } else if (p.images && p.images.length > 0) {
+                imagesToShow = p.images;
+            }
+            
+            if (imagesToShow.length > 0) {
+                this.updateGallery(imagesToShow);
             } else {
-                // Hide gallery if no images
                 const gallery = document.querySelector('.gallery-main');
                 if (gallery) gallery.style.display = 'none';
             }
         },
         
         updateGallery(images) {
-            if (!images || images.length === 0) return;
+            if (!images || images.length === 0) {
+                const gallery = document.querySelector('.gallery-main');
+                if (gallery) gallery.style.display = 'none';
+                return;
+            }
             
             const mainImage = document.getElementById('qv-main-image');
             const counter = document.getElementById('qv-image-counter');
             const thumbnails = document.getElementById('qv-thumbnails');
+            const gallery = document.querySelector('.gallery-main');
             
             if (mainImage) {
                 mainImage.src = images[this.currentImageIndex];
-                const gallery = document.querySelector('.gallery-main');
+                mainImage.onerror = () => {
+                    if (gallery) gallery.style.display = 'none';
+                };
                 if (gallery) gallery.style.display = 'block';
             }
             
@@ -146,6 +162,9 @@ function homepageProperties() {
                     const thumbImg = document.createElement('img');
                     thumbImg.src = img;
                     thumbImg.alt = 'Thumbnail ' + (index + 1);
+                    thumbImg.onerror = () => {
+                        thumb.style.display = 'none';
+                    };
                     
                     thumb.appendChild(thumbImg);
                     thumbnails.appendChild(thumb);
