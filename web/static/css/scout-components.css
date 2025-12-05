@@ -32,9 +32,9 @@ body {
 /* TREC Compliance Footer */
 .trec-footer {
   background: var(--gray-50);
-  padding: var(--space-12) 32px;
+  padding: var(--space-12) var(--space-8);
   border-top: 1px solid var(--gray-200);
-  margin-top: 80px;
+  margin-top: var(--space-20);
 }
 
 .trec-content {
@@ -210,7 +210,7 @@ a:hover {
 
 .nav-link:hover {
   color: var(--gold-primary);
-  background: rgba(27, 53, 89, 0.05);
+  background: var(--navy-tint-light);
 }
 
 .nav-link.active {
@@ -1049,7 +1049,7 @@ body.page-login {
   max-width: 420px;
   background: var(--white);
   border-radius: var(--radius-2xl);
-  padding: var(--space-12) 40px;
+  padding: var(--space-12) var(--space-10);
   box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1), 0 8px 10px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--gray-100);
   position: relative;
@@ -1063,7 +1063,7 @@ body.page-login {
   right: 0;
   height: 4px;
   background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
-  border-radius: var(--radius-2xl) 20px 0 0;
+  border-radius: var(--radius-2xl) var(--radius-xl) 0 0;
 }
 
 .page-login .login-header {
@@ -1140,7 +1140,7 @@ body.page-login {
 .page-login .form-input:focus {
   outline: none;
   border-color: var(--gold-primary);
-  box-shadow: 0 0 0 4px rgba(194, 168, 117, 0.1);
+  box-shadow: 0 0 0 4px var(--gold-tint);
 }
 
 .page-login .form-input::placeholder {
@@ -1227,8 +1227,8 @@ body.page-login {
 }
 
 .page-login .security-notice {
-  background: rgba(43, 75, 115, 0.05);
-  border: 1px solid rgba(43, 75, 115, 0.1);
+  background: var(--navy-tint-light);
+  border: 1px solid var(--navy-tint);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   margin-top: 24px;
@@ -1442,7 +1442,7 @@ body.page-analytics {
 }
 
 .page-analytics .nav-item.active {
-  background: rgba(194, 168, 117, 0.1);
+  background: var(--gold-tint);
   color: var(--navy-primary);
   border-right: 3px solid var(--gold-primary);
 }
@@ -3227,7 +3227,7 @@ body.page-analytics {
 .form-input:focus {
     outline: none;
     border-color: var(--navy-primary);
-    box-shadow: 0 0 0 3px rgba(27, 53, 89, 0.1);
+    box-shadow: 0 0 0 3px var(--navy-tint);
 }
 
 .form-textarea {
@@ -3244,7 +3244,7 @@ body.page-analytics {
 .form-textarea:focus {
     outline: none;
     border-color: var(--navy-primary);
-    box-shadow: 0 0 0 3px rgba(27, 53, 89, 0.1);
+    box-shadow: 0 0 0 3px var(--navy-tint);
 }
 
 /* 6. Consumer Booking Buttons (GOLD) */
@@ -4783,7 +4783,7 @@ body.page-analytics {
 
 .nav-section-header.active {
     color: var(--navy-primary);
-    background: rgba(27, 53, 89, 0.05);
+    background: var(--navy-tint-light);
 }
 
 .nav-section-icon {
@@ -4858,7 +4858,7 @@ body.page-analytics {
 
 .nav-item.active {
     color: var(--navy-primary);
-    background: rgba(27, 53, 89, 0.05);
+    background: var(--navy-tint-light);
     font-weight: 500;
 }
 
@@ -4907,7 +4907,7 @@ body.page-analytics {
 
 .admin-user-button:hover {
     border-color: var(--navy-primary);
-    background: rgba(27, 53, 89, 0.05);
+    background: var(--navy-tint-light);
 }
 
 .admin-user-avatar {
@@ -4998,7 +4998,7 @@ body.page-analytics {
 .stat-card-icon {
     width: 40px;
     height: 40px;
-    background: rgba(27, 53, 89, 0.1);
+    background: var(--navy-tint);
     color: var(--navy-primary);
     border-radius: var(--radius-lg);
     display: flex;
@@ -9129,7 +9129,7 @@ body.page-analytics {
 .mfa-input:focus {
   outline: none;
   border-color: var(--navy-primary);
-  box-shadow: 0 0 0 3px rgba(43, 75, 115, 0.1);
+  box-shadow: 0 0 0 3px var(--navy-tint);
 }
 
 /* Form Enhancements for Auth */
@@ -10903,7 +10903,7 @@ html {
 .contact-form .form-textarea:focus {
   outline: none;
   border-color: var(--navy-primary);
-  box-shadow: 0 0 0 3px rgba(27, 53, 89, 0.1);
+  box-shadow: 0 0 0 3px var(--navy-tint);
 }
 
 .contact-form .form-textarea {
@@ -11358,7 +11358,7 @@ html {
 .login-form .form-input:focus {
   outline: none;
   border-color: var(--navy-primary);
-  box-shadow: 0 0 0 3px rgba(27, 53, 89, 0.1);
+  box-shadow: 0 0 0 3px var(--navy-tint);
 }
 
 .auth-form .form-input.error,

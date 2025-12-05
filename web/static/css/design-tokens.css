@@ -13,6 +13,11 @@
   --gold-light: #e6c966;
   --gold-dark: #b8941f;
   
+  /* Tint/Overlay Colors - for backgrounds and shadows */
+  --gold-tint: color-mix(in srgb, var(--gold-primary) 10%, transparent);
+  --navy-tint-light: color-mix(in srgb, var(--navy-primary) 5%, transparent);
+  --navy-tint: color-mix(in srgb, var(--navy-primary) 10%, transparent);
+  
   /* Neutral Colors */
   --white: #FFFFFF;
   --gray-50: #F9FAFB;
@@ -125,6 +130,66 @@
   --z-index-modal: 50;
   --z-index-popover: 60;
   --z-index-tooltip: 70;
+
+  /* ================================================
+     VARIABLE ALIASES FOR CROSS-FILE COMPATIBILITY
+     These map alternative naming conventions to primary tokens
+     ================================================ */
+  
+  /* Color aliases (--color-* → primary tokens) */
+  --color-primary: var(--navy-primary);
+  --color-secondary: var(--gold-primary);
+  --color-navy: var(--navy-primary);
+  --color-navy-light: var(--navy-light);
+  --color-navy-dark: var(--navy-dark);
+  --color-gold: var(--gold-primary);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-white: var(--white);
+  --color-black: var(--gray-900);
+  
+  /* Gray scale aliases */
+  --color-gray-50: var(--gray-50);
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
+  --color-gray-700: var(--gray-700);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-900);
+  
+  /* Semantic color aliases */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  
+  /* Layout variables (used by scout-layouts.css, admin files) */
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 64px;
+  --header-height: 64px;
+  --border-color: var(--gray-200);
+  --border-color-light: var(--gray-100);
+  --border-color-dark: var(--gray-300);
+  
+  /* Typography aliases */
+  --font-display: var(--font-family-primary);
+  --font-body: var(--font-family-secondary);
+  
+  /* Transition presets */
+  --transition-base: 300ms ease;
+  --transition-fast: 150ms ease;
+  --transition-slow: 500ms ease;
+  
+  /* Z-index extensions */
+  --z-fixed: 1030;
+  --z-sticky: 1020;
+  --z-overlay: 1040;
+  
+  /* Border radius alias */
+  --border-radius-full: 9999px;
 }
 
 /* =============================================================================
