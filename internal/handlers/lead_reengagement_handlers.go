@@ -132,32 +132,36 @@ func (h *LeadReengagementHandler) ImportLeads(c *gin.Context) {
 		return
 	}
 
-	// TODO: Integrate with FUB API to fetch contact details
-	// For now, simulate the import process
-
+	// Fetch contacts from FUB API
 	imported := 0
 	skipped := 0
 	errors := []string{}
 
 	for _, contactID := range request.FUBContactIDs {
-		// Simulate FUB contact fetch
+		// Fetch contact from FUB
+		var fubLead models.FUBLead
+		if err := h.db.Where("fub_lead_id = ?", contactID).First(&fubLead).Error; err != nil {
+			errors = append(errors, fmt.Sprintf("Failed to find FUB contact %s: %v", contactID, err))
+			skipped++
+			continue
+		}
+
 		// Encrypt PII fields before storage
-		testEmail := fmt.Sprintf("contact_%s@example.com", contactID)
-		encryptedEmail, err := h.encryptionManager.EncryptEmail(testEmail)
+		encryptedEmail, err := h.encryptionManager.EncryptEmail(fubLead.Email)
 		if err != nil {
 			errors = append(errors, fmt.Sprintf("Failed to encrypt email for contact %s: %v", contactID, err))
 			skipped++
 			continue
 		}
 
-		encryptedFirstName, err := h.encryptionManager.Encrypt("Test")
+		encryptedFirstName, err := h.encryptionManager.Encrypt(fubLead.FirstName)
 		if err != nil {
 			errors = append(errors, fmt.Sprintf("Failed to encrypt first name for contact %s: %v", contactID, err))
 			skipped++
 			continue
 		}
 
-		encryptedLastName, err := h.encryptionManager.Encrypt("Contact")
+		encryptedLastName, err := h.encryptionManager.Encrypt(fubLead.LastName)
 		if err != nil {
 			errors = append(errors, fmt.Sprintf("Failed to encrypt last name for contact %s: %v", contactID, err))
 			skipped++
