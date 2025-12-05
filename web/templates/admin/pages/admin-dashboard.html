@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="/static/js/ux-enhancements.js"></script>
     <style>
         .heatmap-grid {
             display: grid;
@@ -2061,5 +2062,25 @@
             return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
         };
     </script>
+    
+    <!-- Deal Closed Celebration Modal -->
+    <div class="celebration-modal" x-data="dealClosedCelebration()" x-show="showCelebration" x-transition style="display: none;">
+        <div class="celebration-content">
+            <div class="celebration-emoji">🎊</div>
+            <h2>Deal Closed!</h2>
+            <p class="celebration-details" x-text="celebrationMessage"></p>
+            <div class="celebration-stats">
+                <div class="stat">
+                    <span class="stat-value" x-text="dealValue"></span>
+                    <span class="stat-label">Deal Value</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" x-text="daysToClose"></span>
+                    <span class="stat-label">Days to Close</span>
+                </div>
+            </div>
+            <button class="btn btn-primary" @click="showCelebration = false">Continue</button>
+        </div>
+    </div>
 </body>
 </html>

@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="/static/css/scout-components.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="/static/js/booking-calendar.js"></script>
+    <script src="/static/js/ux-enhancements.js"></script>
 </head>
 <body class="admin-analytics-page">
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -310,12 +311,20 @@
         <a href="/" class="btn btn-primary">Return to Home</a>
     </div>
     
-    <div x-show="booking && !loading" style="display: none;">
-        <div style="font-size: 80px; color: var(--color-success); margin-bottom: 20px;">✓</div>
-        <h1 style="font-size: 32px; margin: 20px 0;">Tour Confirmed!</h1>
-        <p style="font-size: 18px; color: var(--color-charcoal-60); margin-bottom: 40px;">
-            Your property tour has been scheduled. You'll receive a confirmation email and calendar invitation shortly.
-        </p>
+    <div x-show="booking && !loading" x-data="bookingCelebration()" x-init="celebrate()" class="confirmation-success" style="display: none;">
+        <!-- Confetti animation -->
+        <div class="confetti-container" x-show="showConfetti">
+        </div>
+        
+        <div class="animated-checkmark">
+            <svg viewBox="0 0 52 52">
+                <circle cx="26" cy="26" r="25" fill="none" stroke="#10b981" stroke-width="2"/>
+                <path fill="none" stroke="#10b981" stroke-width="3" d="M14 27l7 7 16-16"/>
+            </svg>
+        </div>
+        
+        <h1 class="celebration-title">🎉 Tour Confirmed!</h1>
+        <p class="celebration-subtitle">You're one step closer to your new home</p>
         <div class="card" style="max-width: 500px; margin: 0 auto 40px; text-align: left;">
             <div class="card-body">
                 <p><strong>Reference Number:</strong> <span x-text="booking?.reference_number"></span></p>
@@ -330,7 +339,24 @@
                 </template>
             </div>
         </div>
-        <div style="margin-bottom: 20px;">
+        <div class="next-steps">
+            <h3>What's Next?</h3>
+            <ol class="next-steps-list">
+                <li>📧 Check your email for confirmation details</li>
+                <li>📅 Add the tour to your calendar</li>
+                <li>📝 Prepare questions about the property</li>
+            </ol>
+        </div>
+        
+        <div class="share-moment">
+            <p>Excited? Share with friends!</p>
+            <div class="share-buttons">
+                <button class="btn btn-share" @click="shareOnTwitter()">Twitter</button>
+                <button class="btn btn-share" @click="copyLink()">Copy Link</button>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
             <a href="/" class="btn btn-primary">Return to Home</a>
             <a href="/properties" class="btn btn-secondary" style="margin-left: 10px;">View More Properties</a>
         </div>

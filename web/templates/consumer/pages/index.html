@@ -13,6 +13,7 @@
 <link href="/static/css/scout-utilities.css?v=20251205" rel="stylesheet"/>
 <link href="/static/css/scout-layouts.css?v=20251205" rel="stylesheet"/>
 <link href="/static/css/scout-components.css?v=20251205" rel="stylesheet"/>
+<script src="/static/js/ux-enhancements.js"></script>
 </head>
 <body class="scout-consumer-layout page-homepage">
 <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -129,6 +130,21 @@
 </div>
 </section>
 
+<!-- Continue Where You Left Off Banner -->
+<div class="container">
+<div class="continue-banner" x-data="continueBanner()" x-show="hasIncompleteAction" x-transition>
+    <div class="banner-content">
+        <svg class="banner-icon"><use href="#icon-clock"></use></svg>
+        <div class="banner-text">
+            <p class="banner-title" x-text="bannerTitle"></p>
+            <p class="banner-subtitle" x-text="bannerSubtitle"></p>
+        </div>
+        <a :href="continueUrl" class="btn btn-primary-consumer">Continue</a>
+        <button class="banner-dismiss" @click="dismiss()">×</button>
+    </div>
+</div>
+</div>
+
 <section class="section" id="properties" x-data="homepageProperties()" x-init="init()" @keydown.escape.window="closeQuickView()">
 <div class="container">
 <!-- Loading State -->
@@ -151,6 +167,16 @@
 </span>
 <span class="badge badge-info" x-show="property.status === 'for_sale'">
 <span class="badge-dot"></span> For Sale
+</span>
+<!-- NEW: Differentiation badges -->
+<span class="badge badge-featured" x-show="property.featured">
+<svg class="badge-icon"><use href="#icon-star"></use></svg> Featured
+</span>
+<span class="badge badge-new" x-show="isNew(property.created_at)">
+<svg class="badge-icon"><use href="#icon-sparkles"></use></svg> New
+</span>
+<span class="badge badge-hot" x-show="property.view_count > 50">
+<svg class="badge-icon"><use href="#icon-fire"></use></svg> Popular
 </span>
 </div>
 <div class="property-image property-image-clickable" @click="openQuickView(property.id)">

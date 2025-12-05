@@ -13,6 +13,7 @@
 <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
 <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
 <link href="/static/css/scout-components.css" rel="stylesheet"/>
+<script src="/static/js/ux-enhancements.js"></script>
 </head>
 <body class="scout-consumer-layout page-homepage">
 <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
@@ -62,6 +63,34 @@
 </div>
 </div>
 </section>
+<!-- Search Journey Progress -->
+<div class="container">
+<div class="search-journey" x-data="searchJourney()" x-show="hasActivity">
+    <div class="journey-progress">
+        <div class="journey-step" :class="{ 'completed': viewedProperties > 0 }">
+            <span class="step-icon">👀</span>
+            <span class="step-label">Browsing</span>
+        </div>
+        <div class="journey-connector"></div>
+        <div class="journey-step" :class="{ 'completed': savedProperties > 0 }">
+            <span class="step-icon">❤️</span>
+            <span class="step-label">Saved <span x-text="savedProperties"></span></span>
+        </div>
+        <div class="journey-connector"></div>
+        <div class="journey-step" :class="{ 'active': savedProperties > 0 && !hasBooked }">
+            <span class="step-icon">📅</span>
+            <span class="step-label">Schedule Tour</span>
+        </div>
+        <div class="journey-connector"></div>
+        <div class="journey-step">
+            <span class="step-icon">🏠</span>
+            <span class="step-label">Find Home</span>
+        </div>
+    </div>
+    <p class="journey-encouragement" x-text="getEncouragement()"></p>
+</div>
+</div>
+
 <!-- Filters Section -->
 <section class="features properties-filters-section">
 <div class="features-container">
@@ -175,9 +204,21 @@
                     <div class="property-placeholder" style="{{if or .FeaturedImage .Images}}display: none;{{else}}display: flex;{{end}}">
                         <svg height="120" width="120" style="color: var(--gray-400);"><use href="#icon-home"></use></svg>
                     </div>
-                    <span class="badge badge-{{if eq .Status "available"}}success{{else if eq .Status "just-listed"}}info{{else}}secondary{{end}}">
-                        {{if eq .Status "available"}}Available{{else if eq .Status "just-listed"}}New Listing{{else}}For Rent{{end}}
-                    </span>
+                    <div class="property-badges">
+                        <span class="badge badge-{{if eq .Status "available"}}success{{else if eq .Status "just-listed"}}info{{else}}secondary{{end}}">
+                            {{if eq .Status "available"}}Available{{else if eq .Status "just-listed"}}New Listing{{else}}For Rent{{end}}
+                        </span>
+                        {{if .Featured}}
+                        <span class="badge badge-featured">
+                            <svg class="badge-icon"><use href="#icon-star"></use></svg> Featured
+                        </span>
+                        {{end}}
+                        {{if .ViewCount}}{{if gt .ViewCount 50}}
+                        <span class="badge badge-hot">
+                            <svg class="badge-icon"><use href="#icon-fire"></use></svg> Popular
+                        </span>
+                        {{end}}{{end}}
+                    </div>
 </div>
 <div class="property-details">
 <h3 class="property-title">
