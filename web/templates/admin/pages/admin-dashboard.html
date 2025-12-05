@@ -124,6 +124,36 @@
                     <h1 class="admin-header-title">Dashboard</h1>
                     
                     <div class="admin-header-actions">
+                        <!-- Active Visitors Counter -->
+                        <div class="visitor-counter" 
+                             x-data="visitorCounter()"
+                             x-init="init()"
+                             :class="{ 'high-traffic': count >= 6, 'no-visitors': count === 0 }">
+                            <div class="counter-main" @mouseenter="showBreakdown = true" @mouseleave="showBreakdown = false">
+                                <span class="counter-icon">👁️</span>
+                                <span class="counter-value" 
+                                      x-text="count"
+                                      :class="{ 'pulse': justChanged }"></span>
+                                <span class="counter-label">
+                                    <span x-text="count === 1 ? 'visitor' : 'visitors'"></span> browsing now
+                                </span>
+                                <div class="counter-trend" x-show="trend !== 0">
+                                    <span x-text="trend > 0 ? '▲' : '▼'" :class="trend > 0 ? 'trend-up' : 'trend-down'"></span>
+                                    <span x-text="Math.abs(trend)"></span>
+                                </div>
+                            </div>
+                            <div class="counter-breakdown" x-show="showBreakdown && Object.keys(byPage).length > 0" x-transition>
+                                <template x-for="(pageCount, page) in byPage" :key="page">
+                                    <div class="breakdown-item">
+                                        <span class="breakdown-count" x-text="pageCount"></span> on <span class="breakdown-page" x-text="page"></span>
+                                    </div>
+                                </template>
+                                <div class="breakdown-meta" x-show="hotCount > 0">
+                                    <span class="hot-badge">🔥 <span x-text="hotCount"></span> hot leads</span>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="admin-search">
                             <input type="search" placeholder="Search leads, properties..." x-model="searchQuery" @input.debounce.300ms="performSearch">
                             <svg class="admin-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -715,6 +745,96 @@
                 
                 easeOutQuart(x) {
                     return 1 - Math.pow(1 - x, 4);
+                }
+            };
+        }
+        
+        function visitorCounter() {
+            return {
+                count: 0,
+                trend: 0,
+                byPage: {},
+                hotCount: 0,
+                returningCount: 0,
+                justChanged: false,
+                showBreakdown: false,
+                ws: null,
+                reconnectAttempts: 0,
+                maxReconnectAttempts: 5,
+                
+                init() {
+                    this.fetchCount();
+                    this.connectWebSocket();
+                },
+                
+                connectWebSocket() {
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    const wsUrl = `${protocol}//${window.location.host}/api/ws`;
+                    
+                    try {
+                        this.ws = new WebSocket(wsUrl);
+                        
+                        this.ws.onopen = () => {
+                            console.log('WebSocket connected');
+                            this.reconnectAttempts = 0;
+                        };
+                        
+                        this.ws.onmessage = (event) => {
+                            try {
+                                const message = JSON.parse(event.data);
+                                if (message.type === 'visitor_count') {
+                                    this.updateCount(message.data);
+                                }
+                            } catch (e) {
+                                console.error('Error parsing WebSocket message:', e);
+                            }
+                        };
+                        
+                        this.ws.onerror = (error) => {
+                            console.error('WebSocket error:', error);
+                        };
+                        
+                        this.ws.onclose = () => {
+                            console.log('WebSocket disconnected');
+                            if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                                this.reconnectAttempts++;
+                                const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+                                setTimeout(() => this.connectWebSocket(), delay);
+                            }
+                        };
+                    } catch (e) {
+                        console.error('Error creating WebSocket:', e);
+                    }
+                },
+                
+                updateCount(data) {
+                    const oldCount = this.count;
+                    this.count = data.count || 0;
+                    this.trend = data.trend || 0;
+                    this.byPage = data.by_page || {};
+                    this.hotCount = data.hot_count || 0;
+                    this.returningCount = data.returning_count || 0;
+                    
+                    if (oldCount !== this.count) {
+                        this.justChanged = true;
+                        setTimeout(() => this.justChanged = false, 1000);
+                    }
+                },
+                
+                async fetchCount() {
+                    try {
+                        const res = await fetch('/api/stats/live');
+                        const data = await res.json();
+                        this.updateCount({
+                            count: data.active_visitors || 0,
+                            trend: data.visitors_trend || 0,
+                            by_page: data.visitors_by_page || {},
+                            hot_count: data.hot_visitors || 0,
+                            returning_count: data.returning_visitors || 0
+                        });
+                    } catch (error) {
+                        console.error('Failed to fetch visitor count:', error);
+                    }
                 }
             };
         }

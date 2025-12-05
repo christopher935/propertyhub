@@ -228,6 +228,9 @@ log.Println("🔗 Webhook handlers initialized")
 	liveActivityHandler := handlers.NewLiveActivityHandler(gormDB)
 	log.Println("📡 Live activity handler initialized")
 
+	webSocketHandler := handlers.NewWebSocketHandler(gormDB, dashboardStatsService)
+	log.Println("🔌 WebSocket handler initialized")
+
 	bookingHandler := handlers.NewBookingHandler(gormDB, repos, encryptionManager)
 	log.Println("📅 Booking handler initialized")
 
@@ -262,6 +265,7 @@ log.Println("🔗 Webhook handlers initialized")
 		SecurityMonitoring:    securityMonitoringHandler,
 		AdvancedSecurityAPI:   advancedSecurityAPIHandler,
 		Webhook:               webhookHandler,
+		WebSocket:             webSocketHandler,
 		DB:                    gormDB,
 	}
 	log.Println("📦 Handler struct initialized for route registration")

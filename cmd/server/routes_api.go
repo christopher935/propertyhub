@@ -9,6 +9,11 @@ import (
 // RegisterAPIRoutes registers all API routes
 func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHandler *handlers.PropertyValuationHandlers, emailAutomationHandler *handlers.EmailAutomationHandlers) {
 	// ============================================================================
+	// WEBSOCKET - Real-time Updates
+	// ============================================================================
+	api.GET("/ws", h.WebSocket.HandleWebSocket)
+
+	// ============================================================================
 	// TIERED STATS API - Dashboard Intelligence with Redis Caching
 	// ============================================================================
 	api.GET("/stats/live", h.TieredStats.GetLiveStats)

@@ -2,6 +2,7 @@ package services
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -31,6 +32,8 @@ func (dss *DashboardStatsService) GetLiveStats() (map[string]interface{}, error)
 	var currentShowings int64
 	
 	fifteenMinutesAgo := time.Now().Add(-15 * time.Minute)
+	fiveMinutesAgo := time.Now().Add(-5 * time.Minute)
+	
 	dss.db.Table("users").
 		Where("last_active_at > ?", fifteenMinutesAgo).
 		Count(&activeUsers)
@@ -44,11 +47,79 @@ func (dss *DashboardStatsService) GetLiveStats() (map[string]interface{}, error)
 		Where("start_time <= ? AND end_time >= ? AND status = ?", now, now, "confirmed").
 		Count(&currentShowings)
 	
+	var activeVisitors int64
+	dss.db.Table("behavioral_sessions").
+		Where("end_time IS NULL AND start_time > ?", fifteenMinutesAgo).
+		Count(&activeVisitors)
+	
+	var visitorsLastFive int64
+	dss.db.Table("behavioral_sessions").
+		Where("end_time IS NULL AND start_time > ?", fiveMinutesAgo).
+		Count(&visitorsLastFive)
+	
+	var visitorsFiveToTen int64
+	dss.db.Table("behavioral_sessions").
+		Where("end_time IS NULL AND start_time BETWEEN ? AND ?", time.Now().Add(-10*time.Minute), fiveMinutesAgo).
+		Count(&visitorsFiveToTen)
+	
+	visitorsTrend := int64(0)
+	if visitorsFiveToTen > 0 {
+		visitorsTrend = visitorsLastFive - visitorsFiveToTen
+	} else if visitorsLastFive > 0 {
+		visitorsTrend = visitorsLastFive
+	}
+	
+	type PageCount struct {
+		CurrentPage string
+		Count       int64
+	}
+	
+	var pageCounts []PageCount
+	dss.db.Table("behavioral_sessions s").
+		Select("COALESCE((SELECT e.event_data->>'current_page' FROM behavioral_events e WHERE e.session_id = s.id ORDER BY e.created_at DESC LIMIT 1), '/') as current_page, COUNT(*) as count").
+		Where("s.end_time IS NULL AND s.start_time > ?", fifteenMinutesAgo).
+		Group("current_page").
+		Find(&pageCounts)
+	
+	visitorsByPage := make(map[string]int)
+	for _, pc := range pageCounts {
+		pageName := pc.CurrentPage
+		if pageName == "" || pageName == "/" {
+			pageName = "homepage"
+		} else if strings.Contains(pageName, "/properties") {
+			pageName = "properties"
+		} else if strings.Contains(pageName, "/booking") {
+			pageName = "booking"
+		} else if strings.Contains(pageName, "/contact") {
+			pageName = "contact"
+		} else {
+			pageName = "other"
+		}
+		visitorsByPage[pageName] += int(pc.Count)
+	}
+	
+	var hotVisitors int64
+	dss.db.Table("behavioral_sessions s").
+		Joins("LEFT JOIN behavioral_scores bs ON s.lead_id = bs.lead_id").
+		Where("s.end_time IS NULL AND s.start_time > ? AND bs.composite_score >= ?", fifteenMinutesAgo, 70).
+		Count(&hotVisitors)
+	
+	var returningVisitors int64
+	dss.db.Table("behavioral_sessions s1").
+		Where("s1.end_time IS NULL AND s1.start_time > ?", fifteenMinutesAgo).
+		Where("EXISTS (SELECT 1 FROM behavioral_sessions s2 WHERE s2.lead_id = s1.lead_id AND s2.id != s1.id AND s2.start_time < ?)", fifteenMinutesAgo).
+		Count(&returningVisitors)
+	
 	return map[string]interface{}{
-		"active_users":     activeUsers,
-		"unread_messages":  unreadMessages,
-		"current_showings": currentShowings,
-		"timestamp":        time.Now(),
+		"active_users":        activeUsers,
+		"unread_messages":     unreadMessages,
+		"current_showings":    currentShowings,
+		"active_visitors":     activeVisitors,
+		"visitors_trend":      visitorsTrend,
+		"visitors_by_page":    visitorsByPage,
+		"hot_visitors":        hotVisitors,
+		"returning_visitors":  returningVisitors,
+		"timestamp":           time.Now(),
 	}, nil
 }
 
