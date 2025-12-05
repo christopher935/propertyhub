@@ -79,9 +79,12 @@ err := gormDB.AutoMigrate(
 In `cmd/server/main.go`, after other service initializations:
 
 ```go
-// Initialize WebSocket Hub
-wsHub := handlers.NewWebSocketHub()
-go wsHub.Run()
+// Initialize WebSocket Hub (requires DashboardStatsService for visitor counting)
+// This service is likely already initialized - locate it in your main.go
+// Example: dashboardStatsService := services.NewDashboardStatsService(gormDB, ...)
+
+wsHub := handlers.NewWebSocketHub(dashboardStatsService)
+// Note: wsHub.Run() is called automatically in NewWebSocketHub
 log.Println("🔌 WebSocket hub started")
 
 // Initialize Admin Notification Service
@@ -121,10 +124,14 @@ Then in `cmd/server/main.go` where AllHandlers is initialized:
 allHandlers := &AllHandlers{
     // ... existing handlers
     AdminNotification: adminNotificationHandler,
-    WebSocket:         handlers.NewWebSocketHandler(wsHub),
+    WebSocket:         handlers.NewWebSocketHandler(gormDB, dashboardStatsService),
     // ... rest
 }
 ```
+
+**Note:** The WebSocketHandler now uses the existing WebSocketHub, so you don't need to create a new one.
+If your existing code already initializes a WebSocketHandler, you can access its hub with `websocketHandler.GetHub()`
+and pass that to the AdminNotificationService instead.
 
 ### Step 4: Register Routes
 
