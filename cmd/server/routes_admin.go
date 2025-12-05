@@ -84,6 +84,7 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 	// Handler-based routes (keep these as-is)
 	r.GET("/admin/behavioral-intelligence", h.Behavioral.BehavioralIntelligencePage)
 	r.GET("/admin/email-senders", h.EmailSender.AdminEmailSendersPage)
+	r.GET("/admin/command-center", h.CommandCenter.RenderPage)
 
 	// Customer Feedback
 	r.GET("/admin/customer-feedback", func(c *gin.Context) {

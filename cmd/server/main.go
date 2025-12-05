@@ -237,6 +237,19 @@ log.Println("🔗 Webhook handlers initialized")
 	bookingHandler := handlers.NewBookingHandler(gormDB, repos, encryptionManager)
 	log.Println("📅 Booking handler initialized")
 
+	// Command Center - AI-driven actionable insights
+	propertyMatcher := services.NewPropertyMatchingService(gormDB)
+	fubIntegrationService := services.NewBehavioralFUBIntegrationService(gormDB, cfg.FUBAPIKey)
+	commandCenterHandler := handlers.NewCommandCenterHandlers(
+		gormDB,
+		propertyHubAI,
+		scoringEngine,
+		insightGenerator,
+		propertyMatcher,
+		fubIntegrationService,
+	)
+	log.Println("🎯 Command Center handler initialized")
+
 	log.Println("✅ All enterprise handlers initialized successfully")
 
 	// Create handlers struct for route registration
