@@ -60,11 +60,11 @@ type SessionLocation struct {
 
 // PropertySummary represents basic property information
 type PropertySummary struct {
-	ID      int64  `json:"id"`
-	Address string `json:"address"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	Price   int    `json:"price"`
+	ID      uint    `json:"id"`
+	Address string  `json:"address"`
+	City    string  `json:"city"`
+	State   string  `json:"state"`
+	Price   float64 `json:"price"`
 }
 
 // GetActiveSessions retrieves currently active user sessions with behavioral data
