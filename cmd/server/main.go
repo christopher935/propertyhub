@@ -224,6 +224,9 @@ log.Println("🔗 Webhook handlers initialized")
 	liveActivityHandler := handlers.NewLiveActivityHandler(gormDB)
 	log.Println("📡 Live activity handler initialized")
 
+	bookingHandler := handlers.NewBookingHandler(gormDB, repos, encryptionManager)
+	log.Println("📅 Booking handler initialized")
+
 	log.Println("✅ All enterprise handlers initialized successfully")
 
 	// Create handlers struct for route registration
@@ -237,6 +240,7 @@ log.Println("🔗 Webhook handlers initialized")
 		Behavioral:            behavioralHandler,
 		InsightsAPI:           handlers.NewInsightsAPIHandlers(gormDB),
 		ContextFUB:            contextFUBHandler,
+		Booking:               bookingHandler,
 		Calendar:              calendarHandler,
 		DataMigration:         dataMigrationHandler,
 		EmailSender:           emailSenderHandler,
