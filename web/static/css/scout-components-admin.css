@@ -7203,3 +7203,11 @@ opacity: 0.7;
 .transition-fast {
   transition: all 0.2s ease;
 }
+
+/* ============================================
+   ADMIN SECTION LABELS
+   ============================================ */
+
+.admin-section-label .section-label-text {
+  color: var(--navy-primary);
+}

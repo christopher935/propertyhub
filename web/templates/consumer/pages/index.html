@@ -147,6 +147,11 @@
 
 <section class="section" id="properties" x-data="homepageProperties()" x-init="init()" @keydown.escape.window="closeQuickView()">
 <div class="container">
+<div class="section-label">
+  <span class="section-label-line"></span>
+  <span class="section-label-text">Featured Properties</span>
+  <span class="section-label-line"></span>
+</div>
 <!-- Loading State -->
 <div x-show="loading && properties.length === 0" class="text-center py-12">
 <p class="text-body text-gray-600">Loading properties...</p>
@@ -225,7 +230,11 @@ onerror="this.style.display='none'; this.parentElement.querySelector('.property-
 <section class="features">
 <div class="features-container">
 <div class="features-header">
-<h2 class="features-header-heading">Why Choose Landlords of Texas</h2>
+<div class="section-label">
+  <span class="section-label-line"></span>
+  <span class="section-label-text">Why Choose Landlords of Texas</span>
+  <span class="section-label-line"></span>
+</div>
 <p class="features-header-text">Professional property management with cutting-edge technology and personalized service</p>
 </div>
 <div class="features-grid">

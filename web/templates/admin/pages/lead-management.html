@@ -72,7 +72,11 @@
     <div class="admin-content" x-data="leadManagementData()" x-init="init()">
         <!-- Lead Statistics -->
         <div class="section">
-            <h2 class="section-title">Lead Overview</h2>
+            <div class="section-label admin-section-label">
+              <span class="section-label-line"></span>
+              <span class="section-label-text">Lead Overview</span>
+              <span class="section-label-line"></span>
+            </div>
             <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Manage and track all your leads with behavioral scoring</p>
             
             <div class="stats-grid">
@@ -129,7 +133,11 @@
 
         <!-- Lead Cards Grid -->
         <div class="section">
-            <h2 class="section-title">All Leads</h2>
+            <div class="section-label admin-section-label">
+              <span class="section-label-line"></span>
+              <span class="section-label-text">All Leads</span>
+              <span class="section-label-line"></span>
+            </div>
             
             <div x-show="loading" class="text-center" style="padding: var(--space-12);">
                 <div class="loading-spinner" style="margin: 0 auto;"></div>

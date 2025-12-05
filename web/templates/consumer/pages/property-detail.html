@@ -172,7 +172,11 @@
 </div>
 </section>
 <section id="location" class="property-section mb-8">
-<h2 class="text-heading-2 text-navy mb-4">Neighborhood Insights</h2>
+<div class="section-label">
+  <span class="section-label-line"></span>
+  <span class="section-label-text">Neighborhood Insights</span>
+  <span class="section-label-line"></span>
+</div>
 <p class="text-body text-gray-600 mb-6">Discover what makes this location special</p>
 <div class="neighborhood-grid">
 <div class="neighborhood-card">
@@ -193,7 +197,11 @@
 </div>
 </section>
 <section id="similar" class="property-section" x-data="similarProperties()" x-init="load()">
-<h2 class="text-heading-2 text-navy mb-4">Similar Properties</h2>
+<div class="section-label">
+  <span class="section-label-line"></span>
+  <span class="section-label-text">Similar Properties</span>
+  <span class="section-label-line"></span>
+</div>
 <p x-show="aiReason" class="ai-insight-text mb-4" x-text="aiReason"></p>
 <p class="text-body text-gray-600 mb-6">AI-matched properties based on location, price, and features</p>
 <div x-show="loading" class="text-center py-8">
@@ -222,7 +230,11 @@ No similar properties found at this time.
 </div>
 <aside class="property-sidebar">
 <div class="sidebar-card mb-6">
-<h3 class="text-heading-3 text-navy mb-4">Property Details</h3>
+<div class="section-label">
+  <span class="section-label-line"></span>
+  <span class="section-label-text">Property Details</span>
+  <span class="section-label-line"></span>
+</div>
 <div class="details-table">
 <div class="detail-row">
 <span class="detail-label">Bedrooms</span>
