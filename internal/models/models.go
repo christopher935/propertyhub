@@ -411,6 +411,8 @@ type Lead struct {
 	LastName     string      `json:"last_name" gorm:"not null"`
 	Email        string      `json:"email" gorm:"not null"`
 	Phone        string      `json:"phone"`
+	City         string      `json:"city"`
+	State        string      `json:"state"`
 	FUBLeadID    string      `json:"fub_lead_id" gorm:"uniqueIndex"`
 	Source       string      `json:"source" gorm:"default:'Website'"`
 	Status       string      `json:"status" gorm:"default:'new'"`
