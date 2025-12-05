@@ -180,7 +180,7 @@ function homepageProperties() {
                 this.selectedProperty = null;
                 if (modal) modal.style.display = 'none';
                 document.body.style.overflow = '';
-            }, 300);
+            }, 200);
         },
         
         formatPrice(price) {

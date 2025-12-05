@@ -340,21 +340,22 @@
 }
 
 .btn-primary-consumer {
-  background: linear-gradient(135deg, var(--navy-primary), var(--navy-light));
-  color: var(--white);
-  border: none;
-  box-shadow: 0 2px 4px rgba(27, 53, 89, 0.1);
+  background: var(--gold-primary);
+  color: var(--navy-dark);
+  border: 2px solid var(--gold-primary);
 }
 
 .btn-primary-consumer:hover {
-  background: linear-gradient(135deg, var(--navy-light), var(--navy-primary));
+  background: var(--gold-dark);
+  border-color: var(--gold-dark);
+  color: var(--navy-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(27, 53, 89, 0.25);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-primary-consumer:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(27, 53, 89, 0.15);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-outline {
