@@ -203,11 +203,14 @@ a:hover {
   text-decoration: none;
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-base);
-  transition: color 0.2s ease;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  transition: color 0.2s ease, background 0.2s ease;
 }
 
 .nav-link:hover {
-  color: var(--navy-primary);
+  color: var(--gold-primary);
+  background: rgba(27, 53, 89, 0.05);
 }
 
 .nav-link.active {
@@ -363,7 +366,7 @@ body.page-homepage {
    ======================================================================== */
 
 .page-homepage .hero {
-  background: var(--white);
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-primary) 100%);
   padding: var(--space-20) 0;
   position: relative;
   display: flex;
@@ -388,7 +391,7 @@ body.page-homepage {
   font-family: var(--font-family-primary);
   font-size: clamp(2.5rem, 6vw, 3.75rem);
   font-weight: var(--font-weight-bold);
-  color: var(--navy-primary);
+  color: var(--white);
   line-height: var(--line-height-tight);
   margin-bottom: var(--space-6);
 }
@@ -406,7 +409,7 @@ body.page-homepage {
 
 .page-homepage .hero-text-text {
   font-size: var(--font-size-xl);
-  color: var(--gray-600);
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: var(--space-8);
   line-height: var(--line-height-relaxed);
 }
@@ -544,7 +547,7 @@ body.page-homepage {
 }
 
 .page-homepage .feature-card:hover .feature-icon {
-  transform: translateY(-2px);
+  transform: scale(1.05);
 }
 
 .page-homepage .feature-card-heading {
@@ -8360,11 +8363,13 @@ body.page-analytics {
   cursor: pointer;
   padding: var(--space-2);
   border-radius: var(--radius-md);
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease, color 0.2s ease;
 }
 
 .modal-close:hover {
-  background: var(--gray-100);
+  background: var(--gray-200);
+  color: var(--navy-primary);
+  transform: scale(1.1);
 }
 
 .modal-close-icon {
@@ -9396,7 +9401,7 @@ body.page-analytics {
 .property-card:hover .property-image img,
 .property-card:hover .property-image-image,
 .property-card:hover .property-card-image {
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
 /* Image overlay on hover */
@@ -9903,7 +9908,7 @@ body.page-analytics {
 
 .filter-remove:hover {
   background: rgba(255, 255, 255, 0.2);
-  opacity: 0.7;
+  transform: scale(1.1);
 }
 
 /* ========================================================================
