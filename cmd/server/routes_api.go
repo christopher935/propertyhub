@@ -69,6 +69,9 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/behavioral/metrics", h.Behavioral.GetBehavioralMetrics)
 	api.GET("/behavioral/insights", h.InsightsAPI.GetPredictiveInsights)
 	api.GET("/behavioral/houston-market", h.Behavioral.GetHoustonMarketIntelligence)
+	
+	// Behavioral Analytics API
+	handlers.RegisterBehavioralAnalyticsRoutes(api, h.DB)
 
 	// Booking API
 	api.POST("/v1/bookings", h.Booking.CreateBooking)
