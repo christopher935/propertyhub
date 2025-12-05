@@ -19,7 +19,7 @@ const SavedProperties = {
 
     async loadSavedProperties() {
         try {
-            const response = await fetch(`/api/v1/properties/saved?session_id=${this.sessionId}`);
+            const response = await fetch(`/api/properties/saved?session_id=${this.sessionId}`);
             if (response.ok) {
                 const data = await response.json();
                 data.saved_properties.forEach(sp => {
@@ -35,7 +35,7 @@ const SavedProperties = {
 
     async saveProperty(propertyId) {
         try {
-            const response = await fetch('/api/v1/properties/save', {
+            const response = await fetch('/api/properties/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -64,7 +64,7 @@ const SavedProperties = {
 
     async unsaveProperty(propertyId) {
         try {
-            const response = await fetch(`/api/v1/properties/save/${propertyId}?session_id=${this.sessionId}`, {
+            const response = await fetch(`/api/properties/save/${propertyId}?session_id=${this.sessionId}`, {
                 method: 'DELETE'
             });
 

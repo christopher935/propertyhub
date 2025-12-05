@@ -13,7 +13,7 @@ const LiveActivity = {
 
     async loadLiveActivity() {
         try {
-            const response = await fetch('/api/v1/admin/live-activity?minutes=15');
+            const response = await fetch('/api/admin/live-activity?minutes=15');
             if (!response.ok) return;
             
             const data = await response.json();
@@ -26,7 +26,7 @@ const LiveActivity = {
 
     async loadActiveSessions() {
         try {
-            const response = await fetch('/api/v1/admin/active-sessions');
+            const response = await fetch('/api/admin/active-sessions');
             if (!response.ok) return;
             
             const data = await response.json();
@@ -180,7 +180,7 @@ const LiveActivity = {
 
     async viewSessionDetails(sessionId) {
         try {
-            const response = await fetch(`/api/v1/admin/session/${sessionId}`);
+            const response = await fetch(`/api/admin/session/${sessionId}`);
             if (!response.ok) return;
             
             const data = await response.json();

@@ -12,8 +12,8 @@ const AIRecommendations = {
 
         try {
             const url = this.sessionId ? 
-                `/api/v1/recommendations?session_id=${this.sessionId}&limit=6` :
-                `/api/v1/recommendations?limit=6`;
+                `/api/recommendations?session_id=${this.sessionId}&limit=6` :
+                `/api/recommendations?limit=6`;
             
             const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to load recommendations');
