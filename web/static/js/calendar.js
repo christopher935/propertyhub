@@ -620,7 +620,7 @@ class PropertyHubCalendar {
             <div class="modal availability-modal">
                 <div class="modal-header">
                     <h3>Set Availability</h3>
-                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove(); document.body.style.overflow = '';">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -666,7 +666,7 @@ class PropertyHubCalendar {
                     <button class="btn btn-primary" onclick="PropertyHubCalendar.saveAvailability('${calendarId}', this)">
                         Save Availability
                     </button>
-                    <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove(); document.body.style.overflow = '';">
                         Cancel
                     </button>
                 </div>
@@ -674,6 +674,26 @@ class PropertyHubCalendar {
         `;
 
         document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+        
+        // ESC key to close
+        const escHandler = (e) => {
+            if (e.key === 'Escape' && modal.parentElement) {
+                modal.remove();
+                document.body.style.overflow = '';
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+        
+        // Backdrop click to close
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+                document.body.style.overflow = '';
+                document.removeEventListener('keydown', escHandler);
+            }
+        });
     }
 
     async saveAvailability(calendarId, buttonElement) {
