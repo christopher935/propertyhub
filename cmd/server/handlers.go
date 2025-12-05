@@ -59,6 +59,7 @@ type AllHandlers struct {
 	Recommendations       *handlers.RecommendationsHandler
 	PropertyAlerts        *handlers.PropertyAlertsHandler
 	LiveActivity          *handlers.LiveActivityHandler
+	BehavioralSessions    *handlers.BehavioralSessionsHandler
 
 	// Security
 	SecurityMonitoring    *handlers.SecurityMonitoringHandlers
