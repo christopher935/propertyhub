@@ -261,7 +261,7 @@ log.Println("🔗 Webhook handlers initialized")
 		ApplicationWorkflow:   applicationWorkflowHandler,
 		ClosingPipeline:       closingPipelineHandler,
 		Behavioral:            behavioralHandler,
-		InsightsAPI:           handlers.NewInsightsAPIHandlers(gormDB),
+		InsightsAPI:           handlers.NewInsightsAPIHandlers(insightGenerator),
 		ContextFUB:            contextFUBHandler,
 		Booking:               bookingHandler,
 		Calendar:              calendarHandler,
