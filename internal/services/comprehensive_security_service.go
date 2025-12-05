@@ -15,43 +15,43 @@ import (
 
 // ComprehensiveSecurityService provides advanced security features with database integration
 type ComprehensiveSecurityService struct {
-	db                      *gorm.DB
-	redisClient             *redis.Client
-	auditLogger             *security.AuditLogger
-	sessionManager          *security.SessionManager
-	encryptionService       *security.DocumentEncryption
-	realtimeMonitor         *security.RealtimeMonitor
-	isInitialized           bool
+	db                *gorm.DB
+	redisClient       *redis.Client
+	auditLogger       *security.AuditLogger
+	sessionManager    *security.SessionManager
+	encryptionService *security.DocumentEncryption
+	realtimeMonitor   *security.RealtimeMonitor
+	isInitialized     bool
 }
 
 // SecurityMetrics represents comprehensive security metrics
 type SecurityMetrics struct {
-	ActiveSessions          int                    `json:"active_sessions"`
-	TotalUsers              int                    `json:"total_users"`
-	TotalRoles              int                    `json:"total_roles"`
-	TotalPermissions        int                    `json:"total_permissions"`
-	SecurityEventsLast24h   int                    `json:"security_events_24h"`
-	FailedLoginsLastHour    int                    `json:"failed_logins_1h"`
-	HighSeverityEvents      int                    `json:"high_severity_events"`
-	SystemHealthScore       float64                `json:"system_health_score"`
-	SecurityAlerts          []SecurityAlert        `json:"security_alerts"`
-	ThreatLevel             string                 `json:"threat_level"`
-	LastSecurityScan        time.Time              `json:"last_security_scan"`
-	ComplianceStatus        map[string]interface{} `json:"compliance_status"`
+	ActiveSessions        int                    `json:"active_sessions"`
+	TotalUsers            int                    `json:"total_users"`
+	TotalRoles            int                    `json:"total_roles"`
+	TotalPermissions      int                    `json:"total_permissions"`
+	SecurityEventsLast24h int                    `json:"security_events_24h"`
+	FailedLoginsLastHour  int                    `json:"failed_logins_1h"`
+	HighSeverityEvents    int                    `json:"high_severity_events"`
+	SystemHealthScore     float64                `json:"system_health_score"`
+	SecurityAlerts        []SecurityAlert        `json:"security_alerts"`
+	ThreatLevel           string                 `json:"threat_level"`
+	LastSecurityScan      time.Time              `json:"last_security_scan"`
+	ComplianceStatus      map[string]interface{} `json:"compliance_status"`
 }
 
 type SecurityAlert struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"`
-	Severity    string                 `json:"severity"`
-	Message     string                 `json:"message"`
-	Timestamp   time.Time              `json:"timestamp"`
-	IPAddress   string                 `json:"ip_address"`
-	UserID      *uint                  `json:"user_id,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata"`
-	IsResolved  bool                   `json:"is_resolved"`
-	ResolvedBy  *uint                  `json:"resolved_by,omitempty"`
-	ResolvedAt  *time.Time             `json:"resolved_at,omitempty"`
+	ID         string                 `json:"id"`
+	Type       string                 `json:"type"`
+	Severity   string                 `json:"severity"`
+	Message    string                 `json:"message"`
+	Timestamp  time.Time              `json:"timestamp"`
+	IPAddress  string                 `json:"ip_address"`
+	UserID     *uint                  `json:"user_id,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata"`
+	IsResolved bool                   `json:"is_resolved"`
+	ResolvedBy *uint                  `json:"resolved_by,omitempty"`
+	ResolvedAt *time.Time             `json:"resolved_at,omitempty"`
 }
 
 type SecurityConfiguration struct {
@@ -69,9 +69,9 @@ type SecurityConfiguration struct {
 // NewComprehensiveSecurityService creates a new comprehensive security service
 func NewComprehensiveSecurityService(db *gorm.DB, redisClient *redis.Client) *ComprehensiveSecurityService {
 	service := &ComprehensiveSecurityService{
-		db:                     db,
-		redisClient:            redisClient,
-		isInitialized:          false,
+		db:            db,
+		redisClient:   redisClient,
+		isInitialized: false,
 	}
 
 	return service
@@ -192,114 +192,6 @@ func (s *ComprehensiveSecurityService) initializeSecurityConfiguration() error {
 
 	log.Println("⚙️ Security configuration initialized")
 	return nil
-}
-
-// GetSecurityMetrics returns comprehensive security metrics
-func (s *ComprehensiveSecurityService) GetSecurityMetrics() (*SecurityMetrics, error) {
-	if !s.isInitialized {
-		return nil, fmt.Errorf("security service not initialized")
-	}
-
-	metrics := &SecurityMetrics{
-		SecurityAlerts:    make([]SecurityAlert, 0),
-		ComplianceStatus:  make(map[string]interface{}),
-		LastSecurityScan:  time.Now(),
-		SystemHealthScore: 95.0,
-		ThreatLevel:       "Low",
-		ActiveSessions: 1,
-		TotalUsers: 1,
-		TotalRoles: 4,
-		TotalPermissions: 11,
-		SecurityEventsLast24h: 0,
-		FailedLoginsLastHour: 0,
-		HighSeverityEvents: 0,
-	}
-
-	// Generate security alerts
-	metrics.SecurityAlerts = s.generateSecurityAlerts()
-
-	// Calculate threat level
-	metrics.ThreatLevel = s.calculateThreatLevel(metrics)
-
-	// Compliance status
-	metrics.ComplianceStatus = map[string]interface{}{
-		"trec_compliance":        true,
-		"data_encryption":        true,
-		"audit_logging":          true,
-		"access_control":         true,
-		"session_management":     true,
-		"password_policy":        true,
-		"multi_factor_auth":      false,
-		"security_monitoring":    true,
-		"last_compliance_check":  time.Now(),
-	}
-
-	return metrics, nil
-}
-
-// generateSecurityAlerts creates security alerts based on recent events
-func (s *ComprehensiveSecurityService) generateSecurityAlerts() []SecurityAlert {
-	alerts := make([]SecurityAlert, 0)
-
-	// Example alert generation
-	alert := SecurityAlert{
-		ID:        fmt.Sprintf("system_check_%d", time.Now().Unix()),
-		Type:      "system_health",
-		Severity:  "info",
-		Message:   "Security system operational - all checks passed",
-		Timestamp: time.Now(),
-		IPAddress: "system",
-		Metadata: map[string]interface{}{
-			"check_type": "automated",
-			"status":     "healthy",
-		},
-		IsResolved: true,
-	}
-	alerts = append(alerts, alert)
-
-	return alerts
-}
-
-// calculateThreatLevel determines the current threat level based on metrics
-func (s *ComprehensiveSecurityService) calculateThreatLevel(metrics *SecurityMetrics) string {
-	score := 0
-
-	// Increase score based on various factors
-	if metrics.FailedLoginsLastHour > 10 {
-		score += 3
-	} else if metrics.FailedLoginsLastHour > 5 {
-		score += 2
-	} else if metrics.FailedLoginsLastHour > 0 {
-		score += 1
-	}
-
-	if metrics.HighSeverityEvents > 5 {
-		score += 4
-	} else if metrics.HighSeverityEvents > 2 {
-		score += 2
-	} else if metrics.HighSeverityEvents > 0 {
-		score += 1
-	}
-
-	if len(metrics.SecurityAlerts) > 3 {
-		score += 2
-	} else if len(metrics.SecurityAlerts) > 0 {
-		score += 1
-	}
-
-	// Determine threat level
-	switch {
-	case score >= 7:
-		return "Critical"
-	case score >= 5:
-		return "High"
-	case score >= 3:
-		return "Medium"
-	case score >= 1:
-		return "Low"
-	default:
-		return "Minimal"
-	}
 }
 
 // IsInitialized returns whether the service has been initialized

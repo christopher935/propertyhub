@@ -314,15 +314,6 @@ func (rm *RealtimeMonitor) GetActiveAlerts() ([]SecurityAlert, error) {
 	return alerts, err
 }
 
-// GetSecurityMetrics returns security metrics for a date range
-func (rm *RealtimeMonitor) GetSecurityMetrics(startDate, endDate time.Time) ([]SecurityMetrics, error) {
-	var metrics []SecurityMetrics
-	err := rm.db.Where("metric_date BETWEEN ? AND ?", startDate, endDate).
-		Order("metric_date DESC").
-		Find(&metrics).Error
-	return metrics, err
-}
-
 // AcknowledgeAlert acknowledges a security alert
 func (rm *RealtimeMonitor) AcknowledgeAlert(alertID uint, acknowledgedBy string) error {
 	now := time.Now()
