@@ -192,28 +192,31 @@
 </div>
 </div>
 </section>
-<section id="similar" class="property-section">
+<section id="similar" class="property-section" x-data="similarProperties()" x-init="load()">
 <h2 class="text-heading-2 text-navy mb-4">Similar Properties</h2>
-<p class="text-body text-gray-600 mb-6">Other properties you might be interested in</p>
-<div class="similar-properties-grid">
-{{range .SimilarProperties}}
+<p x-show="aiReason" class="ai-insight-text mb-4" x-text="aiReason"></p>
+<p class="text-body text-gray-600 mb-6">AI-matched properties based on location, price, and features</p>
+<div x-show="loading" class="text-center py-8">
+<div class="loading-spinner"></div>
+<p class="text-gray-500 mt-2">Finding similar properties...</p>
+</div>
+<div x-show="!loading" class="similar-properties-grid">
+<template x-for="property in properties" :key="property.id">
 <div class="card property-card">
 <div class="similar-property-image">
-{{if .FeaturedImage}}
-<img src="{{.FeaturedImage}}" alt="{{.Address}}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px 8px 0 0;">
-{{else}}
-<div class="similar-placeholder"><svg height="48" width="48"><use href="#icon-home-modern"></use></svg></div>
-{{end}}
+<img x-show="property.featured_image" :src="property.featured_image" :alt="property.address" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px 8px 0 0;">
+<div x-show="!property.featured_image" class="similar-placeholder"><svg height="48" width="48"><use href="#icon-home-modern"></use></svg></div>
 </div>
 <div class="similar-property-info">
-<h3 class="text-heading-3 text-navy mb-1"><a href="/property/{{.ID}}">{{.Address}}</a></h3>
-<p class="text-gold font-bold mb-2">{{formatPrice .Price}}/month</p>
-<p class="text-sm text-gray-600">{{.Bedrooms}} bed • {{.Bathrooms}} bath • {{formatNumber .SquareFeet}} sq ft</p>
+<h3 class="text-heading-3 text-navy mb-1"><a :href="'/properties/' + property.id" x-text="property.address"></a></h3>
+<p class="text-gold font-bold mb-2" x-text="'$' + property.price.toLocaleString() + '/month'"></p>
+<p class="text-sm text-gray-600" x-text="property.bedrooms + ' bed • ' + property.bathrooms + ' bath • ' + property.square_feet.toLocaleString() + ' sq ft'"></p>
 </div>
 </div>
-{{else}}
-<p class="text-gray-500">No similar properties found.</p>
-{{end}}
+</template>
+<div x-show="properties.length === 0 && !loading" class="text-gray-500 py-8 text-center" style="grid-column: 1 / -1;">
+No similar properties found at this time.
+</div>
 </div>
 </section>
 </div>
@@ -294,6 +297,30 @@
             </p>
 </div>
 </footer>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script src="/static/js/property-details.js"></script>
+<script>
+function similarProperties() {
+return {
+properties: [],
+aiReason: '',
+loading: true,
+async load() {
+const propertyId = window.location.pathname.split('/').pop();
+try {
+const response = await fetch(`/api/properties/${propertyId}/similar`);
+if (!response.ok) throw new Error('Failed to load similar properties');
+const data = await response.json();
+this.properties = data.similar_properties || [];
+this.aiReason = data.ai_reason || '';
+} catch (error) {
+console.error('Error loading similar properties:', error);
+} finally {
+this.loading = false;
+}
+}
+}
+}
+</script>
 </body>
 </html>

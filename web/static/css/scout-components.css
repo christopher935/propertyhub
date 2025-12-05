@@ -12061,3 +12061,103 @@ html {
         margin: 20px;
     }
 }
+
+/* ========================================================================
+   AI FEATURES STYLING
+   ======================================================================== */
+
+/* AI Badge for recommended properties */
+.badge-ai-pick {
+  background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+  color: var(--navy-dark);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-ai-pick::before {
+  content: "✨ ";
+}
+
+/* AI Recommendations Section */
+.ai-recommendations-section {
+  background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+  padding: 60px 0;
+  margin-bottom: 40px;
+  border-radius: 16px;
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ai-icon {
+  color: var(--gold-primary);
+}
+
+.ai-explanation {
+  color: var(--gray-700);
+  font-size: 14px;
+  font-style: italic;
+  margin-bottom: 24px;
+}
+
+.recommendation-carousel {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.recommendation-card {
+  position: relative;
+}
+
+/* AI Insight text styling */
+.ai-insight-text {
+  background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+  padding: 12px 16px;
+  border-left: 4px solid var(--gold-primary);
+  border-radius: 8px;
+  color: var(--gray-700);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.ai-insight-text::before {
+  content: "🤖 AI Insight: ";
+  font-weight: 600;
+  color: var(--gold-primary);
+}
+
+/* Loading spinner */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--gray-200);
+  border-top-color: var(--gold-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* AI Recommendations responsive */
+@media (max-width: 768px) {
+  .recommendation-carousel {
+    grid-template-columns: 1fr;
+  }
+  
+  .ai-recommendations-section {
+    padding: 40px 16px;
+  }
+}

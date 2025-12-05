@@ -6638,3 +6638,119 @@ canvas.chart-lg {
         height: 75px;
     }
 }
+
+/* ========================================================================
+   AI BEHAVIORAL SCORING STYLES
+   ======================================================================== */
+
+/* Lead Score Badges */
+.lead-hot {
+border-left: 4px solid #ef4444;
+background: linear-gradient(to right, #fef2f2 0%, transparent 100%);
+}
+
+.lead-warm {
+border-left: 4px solid #f59e0b;
+background: linear-gradient(to right, #fffbeb 0%, transparent 100%);
+}
+
+.lead-cold {
+border-left: 4px solid #6b7280;
+background: linear-gradient(to right, #f3f4f6 0%, transparent 100%);
+}
+
+/* AI Action Suggestions Panel */
+.ai-actions-panel {
+background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+border: 2px solid var(--gold-primary);
+border-radius: 12px;
+padding: 20px;
+margin-top: 24px;
+}
+
+.ai-actions-panel h4 {
+display: flex;
+align-items: center;
+gap: 8px;
+color: var(--navy-primary);
+margin-bottom: 16px;
+font-size: 18px;
+}
+
+.ai-actions-panel h4 svg {
+color: var(--gold-primary);
+width: 20px;
+height: 20px;
+}
+
+.ai-actions-panel .action-list {
+list-style: none;
+padding: 0;
+margin: 0;
+}
+
+.ai-actions-panel .action-list li {
+padding: 12px;
+background: white;
+border-radius: 8px;
+margin-bottom: 12px;
+font-size: 14px;
+color: var(--gray-700);
+border-left: 4px solid var(--gold-primary);
+}
+
+.ai-actions-panel .action-list li strong {
+color: var(--navy-primary);
+}
+
+/* Score badge for stat cards */
+.score-badge {
+display: inline-flex;
+align-items: center;
+padding: 4px 12px;
+border-radius: 12px;
+font-size: 11px;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+
+.score-badge.hot {
+background: #fef2f2;
+color: #dc2626;
+border: 1px solid #ef4444;
+}
+
+.score-badge.warm {
+background: #fffbeb;
+color: #d97706;
+border: 1px solid #f59e0b;
+}
+
+.score-badge.cold {
+background: #f3f4f6;
+color: #4b5563;
+border: 1px solid #6b7280;
+}
+
+/* AI Live indicator */
+.badge-live {
+background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+color: white;
+padding: 4px 10px;
+border-radius: 12px;
+font-size: 11px;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+0%, 100% {
+opacity: 1;
+}
+50% {
+opacity: 0.7;
+}
+}
