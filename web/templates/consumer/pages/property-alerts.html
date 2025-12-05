@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/static/css/scout-layouts.css">
     <link rel="stylesheet" href="/static/css/scout-components.css">
 </head>
-<body class="scout-consumer-layout">
+<body class="scout-consumer-layout page-property-alerts">
 
 <header class="header">
     <nav class="nav container">
@@ -28,100 +28,137 @@
 </header>
 
 <main class="main-content">
-    <div class="container" style="max-width:700px;">
-        <div class="page-header" style="padding:60px 0 40px;">
-            <h1 class="text-heading-1 text-navy mb-2">Property Alerts</h1>
-            <p class="text-body text-gray-600">Get notified when new properties match your criteria</p>
+    <div class="alerts-container">
+        <div class="page-header">
+            <h1 class="page-title">Property Alerts</h1>
+            <p class="page-subtitle">Get notified when new properties match your criteria</p>
         </div>
 
-        <form id="alertForm" style="background:white;padding:32px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-            <div class="form-group" style="margin-bottom:24px;">
-                <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Email Address *</label>
-                <input type="email" id="email" required style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;font-size:16px;">
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
-                <div class="form-group">
-                    <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Min Price</label>
-                    <input type="number" id="minPrice" placeholder="$0" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+        <div class="alerts-card">
+            <h2 class="alerts-title">Set Up Your Alerts</h2>
+            <p class="alerts-subtitle">We'll notify you when properties match your preferences</p>
+            
+            <form id="alertForm">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--navy-primary);">Email Address *</label>
+                        <input type="email" id="email" required style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;font-size:16px;">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Max Price</label>
-                    <input type="number" id="maxPrice" placeholder="Any" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+
+                <div class="form-section">
+                    <h3 class="form-section-title">Price Range</h3>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <div class="form-group">
+                            <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--gray-700);">Min Price</label>
+                            <input type="number" id="minPrice" placeholder="$0" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;">
+                        </div>
+                        <div class="form-group">
+                            <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--gray-700);">Max Price</label>
+                            <input type="number" id="maxPrice" placeholder="Any" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;">
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
-                <div class="form-group">
-                    <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Min Bedrooms</label>
-                    <select id="minBedrooms" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
-                        <option value="0">Any</option>
-                        <option value="1">1+</option>
-                        <option value="2">2+</option>
-                        <option value="3">3+</option>
-                        <option value="4">4+</option>
-                        <option value="5">5+</option>
-                    </select>
+                <div class="form-section">
+                    <h3 class="form-section-title">Property Size</h3>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <div class="form-group">
+                            <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--gray-700);">Min Bedrooms</label>
+                            <select id="minBedrooms" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;">
+                                <option value="0">Any</option>
+                                <option value="1">1+</option>
+                                <option value="2">2+</option>
+                                <option value="3">3+</option>
+                                <option value="4">4+</option>
+                                <option value="5">5+</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--gray-700);">Min Bathrooms</label>
+                            <select id="minBathrooms" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;">
+                                <option value="0">Any</option>
+                                <option value="1">1+</option>
+                                <option value="1.5">1.5+</option>
+                                <option value="2">2+</option>
+                                <option value="2.5">2.5+</option>
+                                <option value="3">3+</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Min Bathrooms</label>
-                    <select id="minBathrooms" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
-                        <option value="0">Any</option>
-                        <option value="1">1+</option>
-                        <option value="1.5">1.5+</option>
-                        <option value="2">2+</option>
-                        <option value="2.5">2.5+</option>
-                        <option value="3">3+</option>
-                    </select>
+
+                <div class="form-section">
+                    <h3 class="form-section-title">Location</h3>
+                    <div class="form-group">
+                        <label style="display:block;font-weight:600;margin-bottom:8px;color:var(--gray-700);">Preferred Cities</label>
+                        <input type="text" id="cities" placeholder="e.g., Houston, Austin, Dallas" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;">
+                        <p style="font-size:13px;color:var(--gray-500);margin-top:4px;">Comma-separated list</p>
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-group" style="margin-bottom:24px;">
-                <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Preferred Cities</label>
-                <input type="text" id="cities" placeholder="e.g., Houston, Austin, Dallas" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
-                <p style="font-size:13px;color:#6b7280;margin-top:4px;">Comma-separated list</p>
-            </div>
-
-            <div class="form-group" style="margin-bottom:24px;">
-                <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Property Types</label>
-                <div style="display:flex;flex-wrap:wrap;gap:12px;">
-                    <label style="display:flex;align-items:center;gap:6px;">
-                        <input type="checkbox" class="property-type-check" value="Single Family"> Single Family
-                    </label>
-                    <label style="display:flex;align-items:center;gap:6px;">
-                        <input type="checkbox" class="property-type-check" value="Apartment"> Apartment
-                    </label>
-                    <label style="display:flex;align-items:center;gap:6px;">
-                        <input type="checkbox" class="property-type-check" value="Condo"> Condo
-                    </label>
-                    <label style="display:flex;align-items:center;gap:6px;">
-                        <input type="checkbox" class="property-type-check" value="Townhouse"> Townhouse
-                    </label>
+                <div class="form-section">
+                    <h3 class="form-section-title">Property Types</h3>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="property-type-check" value="Single Family"> Single Family
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="property-type-check" value="Apartment"> Apartment
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="property-type-check" value="Condo"> Condo
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="property-type-check" value="Townhouse"> Townhouse
+                        </label>
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-group" style="margin-bottom:32px;">
-                <label style="display:block;font-weight:600;margin-bottom:8px;color:#1e3a8a;">Alert Frequency</label>
-                <select id="frequency" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
-                    <option value="instant">Instant (as soon as new properties are listed)</option>
-                    <option value="daily">Daily Digest</option>
-                    <option value="weekly">Weekly Summary</option>
-                </select>
-            </div>
+                <div class="form-section">
+                    <h3 class="form-section-title">Alert Frequency</h3>
+                    <div class="frequency-options">
+                        <div class="frequency-option" data-value="instant">
+                            <div class="frequency-option-title">Instant</div>
+                            <div class="frequency-option-desc">As listed</div>
+                        </div>
+                        <div class="frequency-option" data-value="daily">
+                            <div class="frequency-option-title">Daily</div>
+                            <div class="frequency-option-desc">Once per day</div>
+                        </div>
+                        <div class="frequency-option" data-value="weekly">
+                            <div class="frequency-option-title">Weekly</div>
+                            <div class="frequency-option-desc">Once per week</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="frequency" value="instant">
+                </div>
 
-            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;margin-right:8px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-                </svg>
-                Save Alert Preferences
-            </button>
-        </form>
+                <button type="submit" class="btn btn-primary">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;margin-right:8px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                    </svg>
+                    Save Alert Preferences
+                </button>
+            </form>
+        </div>
 
-        <div id="successMessage" style="display:none;background:#d1fae5;color:#065f46;padding:16px;border-radius:8px;margin-top:20px;text-align:center;font-weight:600;">
+        <div id="successMessage" style="display:none;">
             ✅ Alert preferences saved! You'll receive notifications for matching properties.
         </div>
     </div>
 </main>
+
+<script>
+document.querySelectorAll('.frequency-option').forEach(option => {
+    option.addEventListener('click', function() {
+        document.querySelectorAll('.frequency-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+        document.getElementById('frequency').value = this.dataset.value;
+    });
+});
+document.querySelector('.frequency-option').classList.add('selected');
+</script>
 
 <script>
 document.getElementById('alertForm').addEventListener('submit', async (e) => {
