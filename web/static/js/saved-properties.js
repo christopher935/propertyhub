@@ -139,26 +139,18 @@ const SavedProperties = {
     },
 
     showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <span>${message}</span>
-            <button onclick="this.parentElement.remove()" style="margin-left: 10px; cursor: pointer;">&times;</button>
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-message">${message}</div>
+            <button onclick="this.remove()" style="background:none;border:none;cursor:pointer;color:var(--gray-500);font-size:20px;line-height:1;">&times;</button>
         `;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 10000;
-            animation: slideIn 0.3s ease-out;
-        `;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 3000);
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(20px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 };
 

@@ -32,8 +32,8 @@
 <main class="main-content">
     <div class="container">
         <div class="page-header">
-            <h1 class="text-heading-1 text-navy mb-2">Saved Properties</h1>
-            <p class="text-body text-gray-600">Properties you've saved for later</p>
+            <h1 class="page-title">Saved Properties</h1>
+            <p class="page-subtitle">Properties you've saved for later</p>
         </div>
 
         <div id="savedPropertiesContainer">
@@ -45,8 +45,8 @@
                 <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                 </svg>
-                <h2 class="text-heading-3 text-navy mb-2">No saved properties yet</h2>
-                <p class="text-body text-gray-600 mb-6">Start saving properties you're interested in to keep track of them</p>
+                <h2>No saved properties yet</h2>
+                <p>Start saving properties you're interested in to keep track of them</p>
                 <a href="/properties" class="btn btn-primary">Browse Properties</a>
             </div>
 
@@ -101,9 +101,14 @@ function renderSavedProperties(savedProperties) {
             <div class="saved-property-card" data-property-id="${prop.id}">
                 <div class="saved-property-image">
                     ${prop.featured_image || (prop.images && prop.images.length > 0) ? 
-                        `<img src="${prop.featured_image || prop.images[0]}" alt="${prop.address}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='<svg width=60 height=60 fill=currentColor><use href=#icon-home-modern></use></svg>'">` : 
+                        `<img src="${prop.featured_image || prop.images[0]}" alt="${prop.address}" onerror="this.style.display='none';this.parentElement.innerHTML='<svg width=60 height=60 fill=currentColor style=color:var(--gray-400);><use href=#icon-home-modern></use></svg>'">` : 
                         `<svg width="60" height="60" fill="currentColor" style="color:var(--gray-400);"><use href="#icon-home-modern"></use></svg>`
                     }
+                    <button class="unsave-btn" onclick="unsaveAndRemove(${prop.id})" title="Remove from saved">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="saved-property-details">
                     <div class="saved-property-price">$${prop.price.toLocaleString()}</div>
@@ -116,13 +121,8 @@ function renderSavedProperties(savedProperties) {
                         <span>•</span>
                         <span>${sqft}</span>
                     </div>
-                    <div style="display:flex;gap:8px;">
-                        <a href="/property/${prop.id}" class="btn btn-primary btn-sm" style="flex:1;">View Details</a>
-                        <button class="save-heart saved" onclick="unsaveAndRemove(${prop.id})" style="flex:0;">
-                            <svg class="heart-icon" fill="currentColor" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                            </svg>
-                        </button>
+                    <div class="saved-property-actions">
+                        <a href="/property/${prop.id}" class="btn btn-primary">View Details</a>
                     </div>
                 </div>
             </div>
@@ -159,18 +159,7 @@ async function unsaveAndRemove(propertyId) {
 loadSavedPropertiesPage();
 </script>
 
-<style>
-.page-header {
-    padding: 60px 0 40px;
-}
 
-.loading-state {
-    text-align: center;
-    padding: 80px 20px;
-    color: #6b7280;
-    font-size: 16px;
-}
-</style>
 
 </body>
 </html>
