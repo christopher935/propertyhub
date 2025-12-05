@@ -9,6 +9,27 @@ import (
 	"time"
 )
 
+func addCommas(n int) string {
+	s := strconv.Itoa(n)
+	if n < 0 {
+		return "-" + addCommas(-n)
+	}
+	if len(s) <= 3 {
+		return s
+	}
+	return addCommas(n/1000) + "," + s[len(s)-3:]
+}
+
+func addCommasFloat(f float64) string {
+	intPart := int(f)
+	fracPart := f - float64(intPart)
+	result := addCommas(intPart)
+	if fracPart > 0 {
+		result += fmt.Sprintf(".%02d", int(fracPart*100))
+	}
+	return result
+}
+
 // GetFuncMap returns all template functions for use in Gin templates
 func GetFuncMap() template.FuncMap {
 	return template.FuncMap{
@@ -81,32 +102,32 @@ func GetFuncMap() template.FuncMap {
 		"formatPrice": func(price interface{}) string {
 			switch v := price.(type) {
 			case int:
-				return fmt.Sprintf("$%,d", v)
+				return "$" + addCommas(v)
 			case int64:
-				return fmt.Sprintf("$%,d", v)
+				return "$" + addCommas(int(v))
 			case float64:
-				return fmt.Sprintf("$%,.2f", v)
+				return "$" + addCommasFloat(v)
 			case float32:
-				return fmt.Sprintf("$%,.2f", v)
+				return "$" + addCommasFloat(float64(v))
 			case string:
 				if f, err := strconv.ParseFloat(v, 64); err == nil {
-					return fmt.Sprintf("$%,.2f", f)
+					return "$" + addCommasFloat(f)
 				}
 				return v
 			default:
-				return fmt.Sprintf("%v", v)
+				return fmt.Sprintf("$%v", v)
 			}
 		},
 		"formatNumber": func(n interface{}) string {
 			switch v := n.(type) {
 			case int:
-				return fmt.Sprintf("%,d", v)
+				return addCommas(v)
 			case int64:
-				return fmt.Sprintf("%,d", v)
+				return addCommas(int(v))
 			case float64:
-				return fmt.Sprintf("%,.2f", v)
+				return addCommasFloat(v)
 			case float32:
-				return fmt.Sprintf("%,.2f", v)
+				return addCommasFloat(float64(v))
 			default:
 				return fmt.Sprintf("%v", v)
 			}
