@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You - PropertyHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/css/design-tokens.css">
+    <link rel="stylesheet" href="/static/css/scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components.css">
+    <link rel="stylesheet" href="/static/css/serif-effects.css?v=20251205">
+</head>
+<body class="consumer-thank-you-page page-texture">
+<!-- Ambient glow elements -->
+<div class="ambient-glow ambient-glow--top-right" aria-hidden="true"></div>
+<div class="ambient-glow ambient-glow--bottom-left" aria-hidden="true"></div>
+
+    <!-- Consumer Header -->
+    <header class="consumer-header">
+        <div class="consumer-header-content">
+            <div class="consumer-header-logo">
+                <h1>PropertyHub</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="consumer-main-content">
+        <div class="confirmation-container">
+            <!-- Success Icon -->
+            <div class="confirmation-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+            </div>
+
+            <!-- Thank You Message -->
+            <div class="confirmation-content">
+                <h1 class="confirmation-title">Thank You for Your Feedback!</h1>
+                <p class="confirmation-message">
+                    We really appreciate you taking the time to share your thoughts about your showing experience. Your feedback helps us improve our service and find you the perfect home.
+                </p>
+            </div>
+
+            <!-- What's Next -->
+            <div class="next-steps-card">
+                <h2 class="next-steps-title">What happens next?</h2>
+                <div class="next-steps-list">
+                    <div class="next-step-item">
+                        <div class="next-step-icon">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 32px; height: 32px; color: #0891b2;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="next-step-content">
+                            <h3 class="next-step-heading">We'll review your feedback</h3>
+                            <p class="next-step-description">Your comments will be shared with our team to help us serve you better</p>
+                        </div>
+                    </div>
+
+                    <div class="next-step-item">
+                        <div class="next-step-icon">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 32px; height: 32px; color: #0891b2;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z"></path>
+                            </svg>
+                        </div>
+                        <div class="next-step-content">
+                            <h3 class="next-step-heading">We'll be in touch</h3>
+                            <p class="next-step-description">If you requested follow-up, we'll contact you within 24 hours</p>
+                        </div>
+                    </div>
+
+                    <div class="next-step-item">
+                        <div class="next-step-icon">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 32px; height: 32px; color: #0891b2;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                        </div>
+                        <div class="next-step-content">
+                            <h3 class="next-step-heading">Continue your search</h3>
+                            <p class="next-step-description">Browse more properties and schedule additional showings</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="confirmation-actions">
+                <a href="/properties" class="btn btn-primary-consumer btn-lg">Browse More Properties</a>
+                <a href="/" class="btn btn-secondary btn-lg">Return to Home</a>
+            </div>
+
+            <!-- Additional Help -->
+            <div class="help-section">
+                <p class="help-text">Have questions or need assistance?</p>
+                <div class="help-links">
+                    <a href="/contact" class="help-link">Contact Us</a>
+                    <span class="help-separator">•</span>
+                    <a href="tel:+17135550123" class="help-link">Call (713) 555-0123</a>
+                    <span class="help-separator">•</span>
+                    <a href="mailto:info@propertyhub.com" class="help-link">Email Us</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Consumer Footer -->
+    <footer class="consumer-footer">
+        <div class="consumer-footer-content">
+            <p>&copy; 2025 PropertyHub. All rights reserved.</p>
+            <div class="consumer-footer-links">
+                <a href="/privacy-policy">Privacy Policy</a>
+                <a href="/terms-of-service">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

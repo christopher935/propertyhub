@@ -1,0 +1,82 @@
+/* =============================================================================
+   SERIF EFFECTS - Paper texture and ambient glow
+   ============================================================================= */
+
+/* Paper Texture Overlay
+   Creates tactile, print-like quality across the page */
+.page-texture::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.03; /* Very subtle - 3% */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* Alternative: CSS-only grain effect */
+.page-texture-alt::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.02;
+  background: repeating-conic-gradient(
+    from 0deg,
+    transparent 0deg 90deg,
+    rgba(0,0,0,0.03) 90deg 180deg
+  );
+  background-size: 4px 4px;
+}
+
+/* Ambient Glow
+   Large soft circle creating warm atmospheric depth */
+.ambient-glow {
+  position: fixed;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.ambient-glow--top-right {
+  top: -20%;
+  right: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(
+    circle,
+    rgba(184, 134, 11, 0.02) 0%,  /* accent color at 2% */
+    transparent 70%
+  );
+}
+
+.ambient-glow--bottom-left {
+  bottom: -20%;
+  left: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(184, 134, 11, 0.015) 0%,
+    transparent 70%
+  );
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .page-texture::before,
+  .ambient-glow {
+    display: none;
+  }
+}
+
+/* Performance: Disable on mobile for battery/performance */
+@media (max-width: 768px) {
+  .page-texture::before {
+    display: none;
+  }
+  .ambient-glow {
+    opacity: 0.5; /* Reduce but don't remove */
+  }
+}

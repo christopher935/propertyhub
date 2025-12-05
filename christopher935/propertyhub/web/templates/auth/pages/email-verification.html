@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email | Landlords of Texas</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/css/design-tokens.css">
+    <link rel="stylesheet" href="/static/css/scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components.css">
+    <link rel="stylesheet" href="/static/css/serif-effects.css?v=20251205">
+</head>
+<body class="page-login page-texture">
+<!-- Ambient glow elements -->
+<div class="ambient-glow ambient-glow--top-right" aria-hidden="true"></div>
+<div class="ambient-glow ambient-glow--bottom-left" aria-hidden="true"></div>
+
+<!-- SVG Icon Sprite -->
+<svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="icon-envelope" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+</svg>
+
+<div class="login-container">
+    <div class="login-card" style="max-width: 600px;">
+        <!-- Header -->
+        <div class="login-header">
+            <a class="logo" href="/">
+                <span class="logo-icon">
+                    <svg height="48" width="48"><use href="#icon-home"></use></svg>
+                </span>
+                <span>Landlords of Texas</span>
+            </a>
+            <h2>Verify Your Email</h2>
+            <p>We've sent a verification link to your email address</p>
+        </div>
+
+        <!-- Email Info -->
+        <div style="margin-bottom: var(--space-6);">
+            <div style="display: flex; gap: var(--space-4); padding: var(--space-4) 0; border-bottom: 1px solid var(--gray-200);">
+                <div style="flex-shrink: 0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: var(--font-size-3xl);">
+                    📧
+                </div>
+                <div>
+                    <div style="font-size: var(--font-size-xs); color: var(--gray-500); font-weight: var(--font-weight-medium); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1);">EMAIL ADDRESS</div>
+                    <div style="font-size: var(--font-size-base); color: var(--navy-primary); font-weight: var(--font-weight-semibold);">user@example.com</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: var(--space-4); padding: var(--space-4) 0; border-bottom: 1px solid var(--gray-200);">
+                <div style="flex-shrink: 0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: var(--font-size-3xl);">
+                    ⏰
+                </div>
+                <div>
+                    <div style="font-size: var(--font-size-xs); color: var(--gray-500); font-weight: var(--font-weight-medium); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1);">LINK EXPIRES</div>
+                    <div style="font-size: var(--font-size-base); color: var(--navy-primary); font-weight: var(--font-weight-semibold);">In 24 hours</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: var(--space-4); padding: var(--space-4) 0;">
+                <div style="flex-shrink: 0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: var(--font-size-3xl);">
+                    ✅
+                </div>
+                <div>
+                    <div style="font-size: var(--font-size-xs); color: var(--gray-500); font-weight: var(--font-weight-medium); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-1);">STATUS</div>
+                    <div style="font-size: var(--font-size-base); color: var(--navy-primary); font-weight: var(--font-weight-semibold);">Verification Pending</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Alert -->
+        <div style="background: var(--info-light); border: 1px solid var(--info); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-6);">
+            <p style="margin: 0; font-size: var(--font-size-sm); color: var(--info-dark);">
+                <strong>Next Steps:</strong> Check your inbox and click the verification link. If you don't see the email, check your spam folder.
+            </p>
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+            <button class="btn btn-primary" style="width: 100%;">Resend Verification Email</button>
+            <div class="login-footer" style="border-top: none; padding-top: 0; margin-top: 0;">
+                <a class="auth-link" href="/contact" style="font-size: var(--font-size-sm);">Need help? Contact Support</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TREC Footer -->
+<footer class="trec-footer">
+    <div class="trec-content">
+        <p class="trec-content-text">Landlords of Texas, LLC • License # 9008008 • (281) 925-7222</p>
+        <p class="trec-content-text">Terry Evans - Principal Broker #615707</p>
+        <p class="trec-content-text">
+            <a class="trec-content-link" href="https://content.harstatic.com/pdf/TREC_CPN.pdf" target="_blank" rel="noopener">TREC Consumer Protection Notice</a> • 
+            <a class="trec-content-link" href="https://members.har.com/mhf/terms/dispBrokerInfo.cfm?sitetype=aws&cid=625244" target="_blank" rel="noopener">Information About Brokerage Services</a>
+        </p>
+        <p class="trec-content-text">
+            <a class="trec-content-link" href="/terms">Terms of Service</a> • 
+            <a class="trec-content-link" href="/privacy">Privacy Policy</a> • 
+            <a class="trec-content-link" href="javascript:revokeCookieConsent()">Cookie Preferences</a> • 
+            <a class="trec-content-link" href="/contact">Contact</a> • 
+            <a class="trec-content-link" href="/admin">Admin Login</a>
+        </p>
+        <p class="trec-content-text">
+            <img src="/static/images/equal-housing-logo.png" alt="Equal Housing Opportunity" style="height: 20px; vertical-align: middle; margin-right: var(--space-2);">
+            Equal Housing Opportunity • All information deemed reliable but not guaranteed.
+        </p>
+    </div>
+</footer>
+
+</body>
+</html>
