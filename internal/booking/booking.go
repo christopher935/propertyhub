@@ -3,508 +3,343 @@ package booking
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"chrisgross-ctrl-project/internal/models"
-	"chrisgross-ctrl-project/internal/utils"
 )
 
-// BookingEngine handles all booking operations and TREC compliance
-type BookingEngine struct {
+// ShowingEngine handles all showing/appointment operations and TREC compliance
+type ShowingEngine struct {
 	trecComplianceEnabled bool
 	maxAdvanceBookingDays int
 	cancellationGraceDays int
 }
 
-// BookingStatus represents booking states
-type BookingStatus string
+// ShowingStatus represents showing appointment states
+type ShowingStatus string
 
 const (
-	StatusPending    BookingStatus = "pending"
-	StatusConfirmed  BookingStatus = "confirmed"
-	StatusCheckedIn  BookingStatus = "checked_in"
-	StatusCheckedOut BookingStatus = "checked_out"
-	StatusCancelled  BookingStatus = "cancelled"
-	StatusNoShow     BookingStatus = "no_show"
-	StatusRefunded   BookingStatus = "refunded"
+	StatusScheduled   ShowingStatus = "scheduled"
+	StatusConfirmed   ShowingStatus = "confirmed"
+	StatusCompleted   ShowingStatus = "completed"
+	StatusCancelled   ShowingStatus = "cancelled"
+	StatusNoShow      ShowingStatus = "no_show"
+	StatusRescheduled ShowingStatus = "rescheduled"
 )
 
-// PaymentStatus represents payment states
-type PaymentStatus string
-
-const (
-	PaymentPending   PaymentStatus = "pending"
-	PaymentPaid      PaymentStatus = "paid"
-	PaymentPartial   PaymentStatus = "partial"
-	PaymentRefunded  PaymentStatus = "refunded"
-	PaymentFailed    PaymentStatus = "failed"
-)
-
-// TRECDisclosure represents required TREC disclosures
+// TRECDisclosure represents required TREC disclosures for real estate showings
 type TRECDisclosure struct {
-	Type        string    `json:"type"`
-	Title       string    `json:"title"`
-	Content     string    `json:"content"`
-	Required    bool      `json:"required"`
-	Acknowledged bool     `json:"acknowledged"`
-	SignedAt    time.Time `json:"signed_at"`
-	IPAddress   string    `json:"ip_address"`
-	UserAgent   string    `json:"user_agent"`
+	Type         string    `json:"type"`
+	Title        string    `json:"title"`
+	Content      string    `json:"content"`
+	Required     bool      `json:"required"`
+	Acknowledged bool      `json:"acknowledged"`
+	SignedAt     time.Time `json:"signed_at"`
+	IPAddress    string    `json:"ip_address"`
+	UserAgent    string    `json:"user_agent"`
 }
 
-// BookingValidationError represents booking validation errors
-type BookingValidationError struct {
+// ShowingValidationError represents showing validation errors
+type ShowingValidationError struct {
 	Field   string `json:"field"`
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
-func (e *BookingValidationError) Error() string {
+func (e *ShowingValidationError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Field, e.Message)
 }
 
-// Common booking errors
+// Common showing errors
 var (
-	ErrPropertyNotAvailable = errors.New("property not available for selected dates")
-	ErrInvalidDateRange     = errors.New("invalid date range")
-	ErrMinimumStayRequired  = errors.New("minimum stay requirement not met")
-	ErrMaximumStayExceeded  = errors.New("maximum stay exceeded")
-	ErrAdvanceBookingLimit  = errors.New("booking too far in advance")
-	ErrPastDateBooking      = errors.New("cannot book dates in the past")
-	ErrGuestLimitExceeded   = errors.New("guest limit exceeded")
-	ErrTRECComplianceRequired = errors.New("TREC compliance acknowledgment required")
-	ErrInsufficientPayment  = errors.New("insufficient payment amount")
-	ErrCancellationNotAllowed = errors.New("cancellation not allowed")
+	ErrPropertyNotAvailable    = errors.New("property not available for selected time slot")
+	ErrInvalidDateTime         = errors.New("invalid date or time")
+	ErrPastDateBooking         = errors.New("cannot schedule showings in the past")
+	ErrAdvanceBookingLimit     = errors.New("booking too far in advance")
+	ErrAttendeeLimit           = errors.New("attendee limit exceeded")
+	ErrTRECComplianceRequired  = errors.New("TREC compliance acknowledgment required")
+	ErrCancellationNotAllowed  = errors.New("cancellation not allowed")
+	ErrInvalidDuration         = errors.New("invalid showing duration")
+	ErrConflictingAppointment  = errors.New("time slot conflicts with existing appointment")
 )
 
-// NewBookingEngine creates a new booking engine
-func NewBookingEngine(trecEnabled bool, maxAdvanceDays, cancellationGraceDays int) *BookingEngine {
-	return &BookingEngine{
+// NewShowingEngine creates a new showing engine
+func NewShowingEngine(trecEnabled bool, maxAdvanceDays, cancellationGraceDays int) *ShowingEngine {
+	return &ShowingEngine{
 		trecComplianceEnabled: trecEnabled,
 		maxAdvanceBookingDays: maxAdvanceDays,
 		cancellationGraceDays: cancellationGraceDays,
 	}
 }
 
-// ValidateBookingRequest validates a booking request
-func (b *BookingEngine) ValidateBookingRequest(request *BookingRequest, property *models.Property) ([]BookingValidationError, error) {
-	var errors []BookingValidationError
+// ValidateShowingRequest validates a showing request
+func (s *ShowingEngine) ValidateShowingRequest(request *ShowingRequest, property *models.Property) ([]ShowingValidationError, error) {
+	var errors []ShowingValidationError
 	
-	// Validate dates
-	if err := b.validateDates(request.CheckIn, request.CheckOut); err != nil {
-		errors = append(errors, BookingValidationError{
-			Field:   "dates",
-			Code:    "INVALID_DATES",
+	// Validate date/time
+	if err := s.validateDateTime(request.ShowingDate, request.ShowingTime); err != nil {
+		errors = append(errors, ShowingValidationError{
+			Field:   "datetime",
+			Code:    "INVALID_DATETIME",
 			Message: err.Error(),
 		})
 	}
 	
 	// Validate availability
-	if !b.isPropertyAvailable(property, request.CheckIn, request.CheckOut) {
-		errors = append(errors, BookingValidationError{
+	showingDateTime := s.combineDateTime(request.ShowingDate, request.ShowingTime)
+	if !s.isPropertyAvailable(property, showingDateTime, request.DurationMinutes) {
+		errors = append(errors, ShowingValidationError{
 			Field:   "availability",
 			Code:    "NOT_AVAILABLE",
-			Message: "Property not available for selected dates",
+			Message: "Property not available for selected time slot",
 		})
 	}
 	
-	// Validate stay length
-	if err := b.validateStayLength(request.CheckIn, request.CheckOut, property); err != nil {
-		errors = append(errors, BookingValidationError{
-			Field:   "stay_length",
-			Code:    "INVALID_STAY_LENGTH",
+	// Validate duration
+	if err := s.validateDuration(request.DurationMinutes); err != nil {
+		errors = append(errors, ShowingValidationError{
+			Field:   "duration",
+			Code:    "INVALID_DURATION",
 			Message: err.Error(),
 		})
 	}
 	
-	// Validate guest count
-	if request.Guests > property.MaxGuests {
-		errors = append(errors, BookingValidationError{
-			Field:   "guests",
-			Code:    "GUEST_LIMIT_EXCEEDED",
-			Message: fmt.Sprintf("Maximum %d guests allowed", property.MaxGuests),
+	// Validate attendee count (1-10 people for showings)
+	if request.AttendeeCount < 1 || request.AttendeeCount > 10 {
+		errors = append(errors, ShowingValidationError{
+			Field:   "attendee_count",
+			Code:    "ATTENDEE_LIMIT_EXCEEDED",
+			Message: "Attendee count must be between 1 and 10",
 		})
 	}
 	
 	// TREC compliance validation
-	if b.trecComplianceEnabled && !request.TRECCompliant {
-		errors = append(errors, BookingValidationError{
+	if s.trecComplianceEnabled && !request.TRECCompliant {
+		errors = append(errors, ShowingValidationError{
 			Field:   "trec_compliance",
 			Code:    "TREC_REQUIRED",
 			Message: "TREC disclosure acknowledgment required",
 		})
 	}
 	
-	// Validate payment
-	expectedAmount := b.calculateTotalAmount(request.CheckIn, request.CheckOut, property)
-	if request.PaymentAmount < expectedAmount {
-		errors = append(errors, BookingValidationError{
-			Field:   "payment",
-			Code:    "INSUFFICIENT_PAYMENT",
-			Message: fmt.Sprintf("Payment of $%.2f required", expectedAmount),
-		})
-	}
-	
 	if len(errors) > 0 {
-		return errors, fmt.Errorf("booking validation failed")
+		return errors, fmt.Errorf("showing validation failed")
 	}
 	
 	return nil, nil
 }
 
-// CreateBooking creates a new booking
-func (b *BookingEngine) CreateBooking(request *BookingRequest, property *models.Property, user *models.User) (*models.Booking, error) {
+// CreateShowing creates a new showing appointment
+func (s *ShowingEngine) CreateShowing(request *ShowingRequest, property *models.Property, leadID string) (*models.Booking, error) {
 	// Validate the request
-	if validationErrors, err := b.ValidateBookingRequest(request, property); err != nil {
+	if validationErrors, err := s.ValidateShowingRequest(request, property); err != nil {
 		return nil, fmt.Errorf("validation failed: %v", validationErrors)
 	}
 	
-	// Calculate pricing
-	nights := int(request.CheckOut.Sub(request.CheckIn).Hours() / 24)
-	baseAmount := property.BasePrice * float64(nights)
-	cleaningFee := property.CleaningFee
-	serviceFee := baseAmount * 0.15 // 15% service fee
-	totalAmount := baseAmount + cleaningFee + serviceFee
+	// Combine date and time
+	showingDateTime := s.combineDateTime(request.ShowingDate, request.ShowingTime)
 	
-	// Create booking
-	booking := &models.Booking{
-		ID:            utils.GenerateID(),
-		PropertyID:    property.ID,
-		UserID:        user.ID,
-		CheckIn:       request.CheckIn,
-		CheckOut:      request.CheckOut,
-		Guests:        request.Guests,
-		Status:        string(StatusPending),
-		PaymentStatus: string(PaymentPending),
-		BaseAmount:    baseAmount,
-		CleaningFee:   cleaningFee,
-		ServiceFee:    serviceFee,
-		TotalAmount:   totalAmount,
-		PaidAmount:    request.PaymentAmount,
-		Currency:      "USD",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+	// Create showing appointment
+	showing := &models.Booking{
+		PropertyID:      property.ID,
+		FUBLeadID:       leadID,
+		ShowingDate:     showingDateTime,
+		DurationMinutes: request.DurationMinutes,
+		Status:          string(StatusScheduled),
+		ShowingType:     request.ShowingType,
+		AttendeeCount:   request.AttendeeCount,
+		Notes:           request.Notes,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
 	}
 	
-	// Generate booking reference
-	booking.BookingReference = utils.GenerateBookingReference()
-	
-	// Add TREC compliance data if enabled
-	if b.trecComplianceEnabled {
-		booking.TRECCompliant = true
-		booking.TRECDisclosures = b.generateTRECDisclosures(request)
-	}
-	
-	return booking, nil
+	return showing, nil
 }
 
-// CheckAvailability checks property availability for date range
-func (b *BookingEngine) CheckAvailability(property *models.Property, checkIn, checkOut time.Time) (*AvailabilityResponse, error) {
-	if err := b.validateDates(checkIn, checkOut); err != nil {
+// CheckAvailability checks property availability for a specific time slot
+func (s *ShowingEngine) CheckAvailability(property *models.Property, showingDate time.Time, showingTime string, durationMinutes int) (*AvailabilityResponse, error) {
+	if err := s.validateDateTime(showingDate, showingTime); err != nil {
 		return nil, err
 	}
 	
-	// Check blackout dates
-	blackoutDates := b.getBlackoutDates(property.ID, checkIn, checkOut)
+	showingDateTime := s.combineDateTime(showingDate, showingTime)
+	
+	// Check blackout dates (agent unavailability)
+	blackoutDates := s.getBlackoutDates(property.ID, showingDateTime)
 	if len(blackoutDates) > 0 {
 		return &AvailabilityResponse{
 			Available:     false,
-			Reason:        "Blackout dates",
+			Reason:        "Agent unavailable",
 			BlackoutDates: blackoutDates,
 		}, nil
 	}
 	
-	// Check existing bookings
-	conflictingBookings := b.getConflictingBookings(property.ID, checkIn, checkOut)
-	if len(conflictingBookings) > 0 {
+	// Check existing appointments
+	conflictingShowings := s.getConflictingShowings(property.ID, showingDateTime, durationMinutes)
+	if len(conflictingShowings) > 0 {
 		return &AvailabilityResponse{
-			Available:          false,
-			Reason:            "Already booked",
-			ConflictingBookings: conflictingBookings,
+			Available:           false,
+			Reason:              "Time slot already booked",
+			ConflictingShowings: conflictingShowings,
 		}, nil
 	}
 	
-	// Calculate pricing
-	pricing := b.calculatePricing(property, checkIn, checkOut)
-	
 	return &AvailabilityResponse{
 		Available: true,
-		Pricing:   pricing,
 	}, nil
 }
 
-// ConfirmBooking confirms a pending booking
-func (b *BookingEngine) ConfirmBooking(bookingID, userID string) error {
-	// This would typically fetch booking from repository
-	// For now, placeholder logic
-	
-	// Verify payment
+// ConfirmShowing confirms a scheduled showing
+func (s *ShowingEngine) ConfirmShowing(showingID, leadID string) error {
+	// This would typically fetch showing from repository
 	// Send confirmation emails
-	// Update booking status
+	// Update showing status to confirmed
 	
 	return nil
 }
 
-// CancelBooking cancels a booking based on cancellation policy
-func (b *BookingEngine) CancelBooking(bookingID, userID, reason string) (*CancellationResult, error) {
-	// This would fetch booking from repository
-	booking := &models.Booking{} // placeholder
+// CancelShowing cancels a showing appointment
+func (s *ShowingEngine) CancelShowing(showingID, leadID, reason string) (*CancellationResult, error) {
+	// This would fetch showing from repository
+	showing := &models.Booking{} // placeholder
 	
-	// Check cancellation policy
-	policy := b.getCancellationPolicy(booking.CheckIn)
-	if !policy.AllowsCancellation {
+	// Check if cancellation is allowed (e.g., must be more than 2 hours before showing)
+	hoursUntilShowing := showing.ShowingDate.Sub(time.Now()).Hours()
+	if hoursUntilShowing < 2 {
 		return nil, ErrCancellationNotAllowed
 	}
 	
-	// Calculate refund amount
-	refundAmount := b.calculateRefund(booking, policy)
-	
 	result := &CancellationResult{
-		BookingID:    bookingID,
-		RefundAmount: refundAmount,
-		RefundMethod: "original_payment",
-		ProcessTime:  "3-5 business days",
-		Policy:       policy,
+		ShowingID:       showingID,
+		CancellationFee: 0, // No fees for showing cancellations
+		ProcessTime:     "immediate",
 	}
 	
 	return result, nil
 }
 
-// ProcessCheckIn processes guest check-in
-func (b *BookingEngine) ProcessCheckIn(bookingID, userID string, checkInData *CheckInData) error {
-	// Validate check-in time
-	// Verify identity if required
-	// Generate access codes
-	// Send check-in instructions
-	// Update booking status
+// RescheduleShowing reschedules an existing showing to a new time
+func (s *ShowingEngine) RescheduleShowing(showingID, leadID string, newDate time.Time, newTime string) error {
+	// Validate new date/time
+	if err := s.validateDateTime(newDate, newTime); err != nil {
+		return err
+	}
+	
+	// Check availability for new time slot
+	// Update showing record
+	// Send reschedule notifications
 	
 	return nil
 }
 
-// ProcessCheckOut processes guest check-out
-func (b *BookingEngine) ProcessCheckOut(bookingID, userID string, checkOutData *CheckOutData) error {
-	// Validate check-out time
-	// Process damages assessment
-	// Calculate additional charges
-	// Process security deposit return
-	// Send checkout confirmation
-	// Update booking status
-	
-	return nil
-}
-
-// validateDates validates check-in and check-out dates
-func (b *BookingEngine) validateDates(checkIn, checkOut time.Time) error {
+// validateDateTime validates showing date and time
+func (s *ShowingEngine) validateDateTime(showingDate time.Time, showingTime string) error {
 	now := time.Now()
 	
-	// Check if dates are in the past
-	if checkIn.Before(now) {
+	// Check if date is in the past
+	if showingDate.Before(now.Truncate(24 * time.Hour)) {
 		return ErrPastDateBooking
 	}
 	
-	// Check if check-out is after check-in
-	if !checkOut.After(checkIn) {
-		return ErrInvalidDateRange
-	}
-	
-	// Check advance booking limit
-	maxAdvanceDate := now.AddDate(0, 0, b.maxAdvanceBookingDays)
-	if checkIn.After(maxAdvanceDate) {
+	// Check advance booking limit (e.g., 180 days)
+	maxAdvanceDate := now.AddDate(0, 0, s.maxAdvanceBookingDays)
+	if showingDate.After(maxAdvanceDate) {
 		return ErrAdvanceBookingLimit
 	}
 	
-	return nil
-}
-
-// validateStayLength validates minimum and maximum stay requirements
-func (b *BookingEngine) validateStayLength(checkIn, checkOut time.Time, property *models.Property) error {
-	nights := int(checkOut.Sub(checkIn).Hours() / 24)
-	
-	if property.MinStayNights > 0 && nights < property.MinStayNights {
-		return ErrMinimumStayRequired
-	}
-	
-	if property.MaxStayNights > 0 && nights > property.MaxStayNights {
-		return ErrMaximumStayExceeded
+	// Validate time format
+	if showingTime == "" {
+		return ErrInvalidDateTime
 	}
 	
 	return nil
 }
 
-// isPropertyAvailable checks if property is available for dates
-func (b *BookingEngine) isPropertyAvailable(property *models.Property, checkIn, checkOut time.Time) bool {
+// validateDuration validates showing duration (15-180 minutes)
+func (s *ShowingEngine) validateDuration(durationMinutes int) error {
+	if durationMinutes < 15 || durationMinutes > 180 {
+		return ErrInvalidDuration
+	}
+	
+	return nil
+}
+
+// isPropertyAvailable checks if property is available for showing at specified time
+func (s *ShowingEngine) isPropertyAvailable(property *models.Property, showingDateTime time.Time, durationMinutes int) bool {
 	// Check blackout dates
-	blackoutDates := b.getBlackoutDates(property.ID, checkIn, checkOut)
+	blackoutDates := s.getBlackoutDates(property.ID, showingDateTime)
 	if len(blackoutDates) > 0 {
 		return false
 	}
 	
-	// Check existing bookings
-	conflictingBookings := b.getConflictingBookings(property.ID, checkIn, checkOut)
-	return len(conflictingBookings) == 0
+	// Check existing showings
+	conflictingShowings := s.getConflictingShowings(property.ID, showingDateTime, durationMinutes)
+	return len(conflictingShowings) == 0
 }
 
-// calculateTotalAmount calculates total booking amount
-func (b *BookingEngine) calculateTotalAmount(checkIn, checkOut time.Time, property *models.Property) float64 {
-	nights := int(checkOut.Sub(checkIn).Hours() / 24)
-	baseAmount := property.BasePrice * float64(nights)
-	cleaningFee := property.CleaningFee
-	serviceFee := baseAmount * 0.15 // 15% service fee
-	
-	return baseAmount + cleaningFee + serviceFee
+// combineDateTime combines date and time into a single datetime
+func (s *ShowingEngine) combineDateTime(date time.Time, timeStr string) time.Time {
+	// Parse time string and combine with date
+	// This is a simplified implementation
+	return date
 }
 
-// generateTRECDisclosures generates required TREC disclosures
-func (b *BookingEngine) generateTRECDisclosures(request *BookingRequest) string {
+// generateTRECDisclosures generates required TREC disclosures for showings
+func (s *ShowingEngine) generateTRECDisclosures(request *ShowingRequest) string {
 	disclosures := []TRECDisclosure{
 		{
-			Type:     "property_condition",
-			Title:    "Property Condition Disclosure",
-			Content:  "The property is provided 'as-is' and guest acknowledges inspection of the property condition...",
+			Type:     "property_access",
+			Title:    "Property Access Disclosure",
+			Content:  "The property showing is for informational purposes only...",
 			Required: true,
 		},
 		{
-			Type:     "liability_waiver",
-			Title:    "Liability Waiver",
-			Content:  "Guest acknowledges and assumes all risks associated with the use of the property...",
-			Required: true,
-		},
-		{
-			Type:     "cancellation_policy",
-			Title:    "Cancellation Policy Disclosure",
-			Content:  "Guest acknowledges understanding of the cancellation policy and associated fees...",
+			Type:     "representation",
+			Title:    "Agency Representation Disclosure",
+			Content:  "Landlords of Texas represents the property owner/landlord...",
 			Required: true,
 		},
 	}
 	
-	return utils.ConvertToJSON(disclosures)
+	// Convert to JSON string
+	return fmt.Sprintf("%v", disclosures)
 }
 
-// getBlackoutDates gets blackout dates for property in date range
-func (b *BookingEngine) getBlackoutDates(propertyID string, checkIn, checkOut time.Time) []time.Time {
-	// This would query database for blackout dates
+// getBlackoutDates gets blackout dates (agent unavailability) for property
+func (s *ShowingEngine) getBlackoutDates(propertyID uint, showingDateTime time.Time) []time.Time {
+	// This would query database for agent blackout dates
 	// Placeholder implementation
 	return []time.Time{}
 }
 
-// getConflictingBookings gets existing bookings that conflict with date range
-func (b *BookingEngine) getConflictingBookings(propertyID string, checkIn, checkOut time.Time) []string {
-	// This would query database for conflicting bookings
+// getConflictingShowings gets existing showings that conflict with time slot
+func (s *ShowingEngine) getConflictingShowings(propertyID uint, showingDateTime time.Time, durationMinutes int) []string {
+	// This would query database for conflicting showings
 	// Placeholder implementation
 	return []string{}
 }
 
-// calculatePricing calculates detailed pricing for date range
-func (b *BookingEngine) calculatePricing(property *models.Property, checkIn, checkOut time.Time) *PricingBreakdown {
-	nights := int(checkOut.Sub(checkIn).Hours() / 24)
-	baseAmount := property.BasePrice * float64(nights)
-	cleaningFee := property.CleaningFee
-	serviceFee := baseAmount * 0.15
-	taxes := (baseAmount + serviceFee) * 0.08 // 8% tax
-	totalAmount := baseAmount + cleaningFee + serviceFee + taxes
-	
-	return &PricingBreakdown{
-		BaseAmount:   baseAmount,
-		CleaningFee:  cleaningFee,
-		ServiceFee:   serviceFee,
-		Taxes:        taxes,
-		TotalAmount:  totalAmount,
-		Currency:     "USD",
-		Nights:       nights,
-		AverageNightly: baseAmount / float64(nights),
-	}
-}
-
-// getCancellationPolicy gets cancellation policy based on check-in date
-func (b *BookingEngine) getCancellationPolicy(checkIn time.Time) *CancellationPolicy {
-	daysUntilCheckIn := int(checkIn.Sub(time.Now()).Hours() / 24)
-	
-	if daysUntilCheckIn >= 14 {
-		return &CancellationPolicy{
-			AllowsCancellation: true,
-			RefundPercentage:  100,
-			Description:       "Full refund for cancellations 14+ days before check-in",
-		}
-	} else if daysUntilCheckIn >= 7 {
-		return &CancellationPolicy{
-			AllowsCancellation: true,
-			RefundPercentage:  50,
-			Description:       "50% refund for cancellations 7-13 days before check-in",
-		}
-	}
-	
-	return &CancellationPolicy{
-		AllowsCancellation: false,
-		RefundPercentage:  0,
-		Description:       "No refund for cancellations less than 7 days before check-in",
-	}
-}
-
-// calculateRefund calculates refund amount based on policy
-func (b *BookingEngine) calculateRefund(booking *models.Booking, policy *CancellationPolicy) float64 {
-	if !policy.AllowsCancellation {
-		return 0
-	}
-	
-	return booking.PaidAmount * (policy.RefundPercentage / 100)
-}
-
-// Supporting types for booking operations
-type BookingRequest struct {
-	PropertyID    string    `json:"property_id"`
-	CheckIn       time.Time `json:"check_in"`
-	CheckOut      time.Time `json:"check_out"`
-	Guests        int       `json:"guests"`
-	PaymentAmount float64   `json:"payment_amount"`
-	TRECCompliant bool      `json:"trec_compliant"`
-	SpecialRequests string  `json:"special_requests"`
+// Supporting types for showing operations
+type ShowingRequest struct {
+	PropertyID      string    `json:"property_id"`
+	ShowingDate     time.Time `json:"showing_date"`
+	ShowingTime     string    `json:"showing_time"`
+	DurationMinutes int       `json:"duration_minutes"` // 15, 30, 45, 60, 90, 120, 180
+	ShowingType     string    `json:"showing_type"`     // in-person, virtual, self-guided
+	AttendeeCount   int       `json:"attendee_count"`   // 1-10 people viewing
+	Notes           string    `json:"notes"`
+	TRECCompliant   bool      `json:"trec_compliant"`
 }
 
 type AvailabilityResponse struct {
 	Available           bool              `json:"available"`
-	Reason             string            `json:"reason,omitempty"`
-	Pricing            *PricingBreakdown `json:"pricing,omitempty"`
-	BlackoutDates      []time.Time       `json:"blackout_dates,omitempty"`
-	ConflictingBookings []string         `json:"conflicting_bookings,omitempty"`
-}
-
-type PricingBreakdown struct {
-	BaseAmount     float64 `json:"base_amount"`
-	CleaningFee    float64 `json:"cleaning_fee"`
-	ServiceFee     float64 `json:"service_fee"`
-	Taxes          float64 `json:"taxes"`
-	TotalAmount    float64 `json:"total_amount"`
-	Currency       string  `json:"currency"`
-	Nights         int     `json:"nights"`
-	AverageNightly float64 `json:"average_nightly"`
-}
-
-type CancellationPolicy struct {
-	AllowsCancellation bool    `json:"allows_cancellation"`
-	RefundPercentage  float64 `json:"refund_percentage"`
-	Description       string  `json:"description"`
+	Reason              string            `json:"reason,omitempty"`
+	BlackoutDates       []time.Time       `json:"blackout_dates,omitempty"`
+	ConflictingShowings []string          `json:"conflicting_showings,omitempty"`
 }
 
 type CancellationResult struct {
-	BookingID    string              `json:"booking_id"`
-	RefundAmount float64            `json:"refund_amount"`
-	RefundMethod string             `json:"refund_method"`
-	ProcessTime  string             `json:"process_time"`
-	Policy       *CancellationPolicy `json:"policy"`
-}
-
-type CheckInData struct {
-	ActualCheckInTime time.Time `json:"actual_check_in_time"`
-	GuestCount       int       `json:"guest_count"`
-	IDVerified       bool      `json:"id_verified"`
-	Notes            string    `json:"notes"`
-}
-
-type CheckOutData struct {
-	ActualCheckOutTime time.Time `json:"actual_check_out_time"`
-	PropertyCondition  string    `json:"property_condition"`
-	DamagesReported    bool      `json:"damages_reported"`
-	AdditionalCharges  float64   `json:"additional_charges"`
-	Notes              string    `json:"notes"`
+	ShowingID       string  `json:"showing_id"`
+	CancellationFee float64 `json:"cancellation_fee"`
+	ProcessTime     string  `json:"process_time"`
 }

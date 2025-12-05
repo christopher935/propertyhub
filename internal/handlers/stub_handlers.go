@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/services"
 	"chrisgross-ctrl-project/internal/utils"
 )

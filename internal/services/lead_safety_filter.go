@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"chrisgross-ctrl-project/internal/models"
 	"gorm.io/gorm"
 )
 

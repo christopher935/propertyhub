@@ -97,7 +97,6 @@ func GetCommunicationHistory(c *gin.Context) {
 
 func GetCommunicationTemplates(c *gin.Context) {
 	db := c.MustGet("db").(*gorm.DB)
-	canspamService := services.NewCANSPAMEmailService(db)
 	
 	// Get CAN-SPAM compliant templates
 	var templates []services.CANSPAMTemplate

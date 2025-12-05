@@ -651,11 +651,6 @@ class PropertyHubCalendar {
                         </div>
                         
                         <div class="form-group">
-                            <label>Minimum Stay (nights)</label>
-                            <input type="number" name="minStay" class="form-control" min="1" value="1">
-                        </div>
-                        
-                        <div class="form-group">
                             <label>Notes (optional)</label>
                             <textarea name="notes" class="form-control" rows="3"></textarea>
                         </div>

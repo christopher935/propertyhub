@@ -1145,27 +1145,38 @@ class PropertyHubFormValidation {
         const formData = new FormData(form);
         const errors = [];
 
-        // Validate booking dates
-        const checkIn = new Date(formData.get('checkInDate'));
-        const checkOut = new Date(formData.get('checkOutDate'));
+        // Validate showing date
+        const showingDate = new Date(formData.get('showingDate'));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        if (checkIn && checkOut) {
-            if (checkIn >= checkOut) {
-                errors.push('Check-out date must be after check-in date');
-            }
-
-            const daysDiff = (checkOut - checkIn) / (1000 * 60 * 60 * 24);
-            if (daysDiff > 365) {
-                errors.push('Booking period cannot exceed 365 days');
-            }
+        if (showingDate && showingDate < today) {
+            errors.push('Showing date must be in the future');
         }
 
-        // Validate guest count vs property capacity
-        const guests = parseInt(formData.get('guests'));
-        const maxOccupancy = parseInt(form.dataset.maxOccupancy);
+        // Validate showing date is not too far in advance (6 months)
+        const sixMonthsFromNow = new Date();
+        sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6);
+        if (showingDate && showingDate > sixMonthsFromNow) {
+            errors.push('Showing date cannot be more than 6 months in the future');
+        }
 
-        if (guests && maxOccupancy && guests > maxOccupancy) {
-            errors.push(`Guest count (${guests}) exceeds property capacity (${maxOccupancy})`);
+        // Validate showing time is provided
+        const showingTime = formData.get('showingTime');
+        if (!showingTime) {
+            errors.push('Showing time is required');
+        }
+
+        // Validate attendee count (1-10 people for showings)
+        const attendeeCount = parseInt(formData.get('attendeeCount'));
+        if (attendeeCount && (attendeeCount < 1 || attendeeCount > 10)) {
+            errors.push('Attendee count must be between 1 and 10');
+        }
+
+        // Validate duration (15-180 minutes)
+        const duration = parseInt(formData.get('durationMinutes'));
+        if (duration && (duration < 15 || duration > 180)) {
+            errors.push('Duration must be between 15 and 180 minutes');
         }
 
         return errors;

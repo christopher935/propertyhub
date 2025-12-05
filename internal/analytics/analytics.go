@@ -2,7 +2,6 @@ package analytics
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -154,10 +153,10 @@ func (a *AnalyticsEngine) TrackEvent(userID, sessionID string, eventType EventTy
 		UserID:     userID,
 		SessionID:  sessionID,
 		EventType:  string(eventType),
-		Properties: utils.ConvertToJSON(properties),
+		Properties: models.JSONB(properties),
 		Timestamp:  time.Now(),
-		IPAddress:  properties["ip_address"].(string),
-		UserAgent:  properties["user_agent"].(string),
+		IPAddress:  getStringProperty(properties, "ip_address"),
+		UserAgent:  getStringProperty(properties, "user_agent"),
 		Referrer:   getStringProperty(properties, "referrer"),
 		Path:       getStringProperty(properties, "path"),
 		CreatedAt:  time.Now(),
