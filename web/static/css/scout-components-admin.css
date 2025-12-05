@@ -219,19 +219,19 @@
 /* ========== STAT CARDS ========== */
 
 .stat-card {
-  background-color: var(--color-white);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  padding: 16px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-6);
   min-height: 180px;
   display: flex;
   flex-direction: column;
-  transition: all var(--transition-fast);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
-  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .stat-card-label {
@@ -243,10 +243,14 @@
 
 .stat-card-value {
   font-family: var(--font-display);
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-gray-900);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  color: var(--navy-primary);
   margin-bottom: var(--space-2);
+}
+
+.stat-card-value.highlight {
+  color: var(--gold-primary);
 }
 
 .stat-card-change {
@@ -737,6 +741,9 @@ select.form-control {
 /* ========== ACTIVITY FEED ========== */
 
 .activity-feed {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   list-style: none;
   padding: 0;
   margin: 0;
@@ -745,8 +752,13 @@ select.form-control {
 .activity-item {
   display: flex;
   gap: var(--space-3);
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--border-color);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--gray-100);
+  transition: background 0.2s ease;
+}
+
+.activity-item:hover {
+  background: var(--gray-50);
 }
 
 .activity-item:last-child {
@@ -755,15 +767,35 @@ select.form-control {
 
 .activity-icon {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-full);
-  background-color: var(--color-gray-100);
-  color: var(--color-gray-600);
+  border-radius: var(--radius-full);
+  background-color: var(--gray-100);
+  color: var(--gray-600);
   font-size: var(--font-size-lg);
+}
+
+.activity-icon.viewed {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--info);
+}
+
+.activity-icon.saved {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+}
+
+.activity-icon.inquiry {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+}
+
+.activity-icon.booking {
+  background: rgba(196, 169, 98, 0.15);
+  color: var(--gold-primary);
 }
 
 .activity-icon svg {
@@ -6180,3 +6212,188 @@ canvas.chart-lg {
   color: var(--navy-primary);
 }
 }
+
+/* ============================================
+   ADMIN SIDEBAR NAVIGATION - DESIGN SYSTEM V2
+   ============================================ */
+
+.nav-item {
+    color: var(--gray-600);
+    padding: var(--space-3) var(--space-4);
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.nav-item:hover {
+    color: var(--navy-primary);
+    background: var(--gray-50);
+}
+
+.nav-item.active,
+.nav-section-header.active {
+    color: var(--navy-primary);
+    font-weight: 600;
+    background: var(--gray-50);
+    border-left-color: var(--gold-primary);
+}
+
+.nav-badge,
+.nav-item-badge,
+.nav-section-badge {
+    background: var(--error);
+    color: var(--white);
+    font-size: var(--text-xs);
+    padding: 2px 6px;
+    border-radius: var(--radius-full);
+    margin-left: auto;
+}
+
+/* ============================================
+   TOAST NOTIFICATIONS - DESIGN SYSTEM V2
+   ============================================ */
+
+.toast-container {
+    position: fixed;
+    top: var(--space-6);
+    right: var(--space-6);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-width: 420px;
+}
+
+.toast {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: var(--space-3) var(--space-4);
+    border-left: 4px solid var(--navy-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    animation: slideInRight 0.3s ease-out;
+}
+
+.toast-success {
+    border-left-color: var(--success);
+}
+
+.toast-error {
+    border-left-color: var(--error);
+}
+
+.toast-warning {
+    border-left-color: var(--warning);
+}
+
+.toast-info {
+    border-left-color: var(--info);
+}
+
+.toast-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: 14px;
+    color: var(--gray-700);
+}
+
+.toast-close {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--gray-500);
+    font-size: 20px;
+    line-height: 1;
+    padding: 0;
+    transition: opacity 0.2s ease;
+}
+
+.toast-close:hover {
+    opacity: 0.7;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   BUTTON LOADING STATES
+   ============================================ */
+
+.btn.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.btn-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+.btn.success {
+    background: var(--success) !important;
+    border-color: var(--success) !important;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   REMOVE FORBIDDEN ANIMATIONS
+   ============================================ */
+
+/* Remove any scale/rotate transforms from heatmap */
+.heatmap-cell:hover {
+    transform: translateY(-2px);
+    z-index: 10;
+}
+
+/* Ensure task cards only use translateY */
+.task-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+

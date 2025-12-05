@@ -31,7 +31,7 @@
         }
         
         .heatmap-cell:hover {
-            transform: scale(1.2);
+            transform: translateY(-2px);
             z-index: 10;
         }
         
@@ -1338,6 +1338,14 @@
     <script>
         function dashboardData() {
             return {
+                chartColors: {
+                    primary: '#1b3559',
+                    secondary: '#c4a962',
+                    success: '#10B981',
+                    warning: '#F59E0B',
+                    error: '#EF4444',
+                    info: '#3B82F6'
+                },
                 liveStats: { active_users: 0, unread_messages: 0, current_showings: 0 },
                 warmStats: { pending_bookings: 0, pending_applications: 0 },
                 dailyStats: { applications_count: 0, conversion_rate: 0, yesterday_applications: 0 },
