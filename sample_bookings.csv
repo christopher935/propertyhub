@@ -1,0 +1,3 @@
+property_address,contact_email,date,time,status,notes
+"123 Main St",john@example.com,2024-12-15,14:00,confirmed,"First showing"
+"456 Oak Ave",jane@example.com,2024-12-16,10:30,scheduled,"Interested in lease"

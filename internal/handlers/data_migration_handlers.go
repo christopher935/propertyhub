@@ -173,10 +173,32 @@ func (dmh *DataMigrationHandlers) ImportBookings(c *gin.Context) {
 		return
 	}
 
-	// Note: ImportBookings method not yet implemented
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error": "Booking import functionality not yet available",
-		"message": "Feature will be added in future update",
+	// Get options
+	skipDuplicates := c.DefaultPostForm("skip_duplicates", "true") == "true"
+
+	// Open file
+	src, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to open CSV file",
+		})
+		return
+	}
+	defer src.Close()
+
+	// Import bookings
+	result, err := dmh.migrationService.ImportBookings(src, skipDuplicates)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": fmt.Sprintf("Import failed: %v", err),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Booking import completed",
+		"result":  result,
 	})
 }
 
