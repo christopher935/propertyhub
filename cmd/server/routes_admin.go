@@ -23,6 +23,9 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 		c.HTML(http.StatusOK, "admin-dashboard.html", gin.H{"Title": "Dashboard"})
 	})
 
+	// 2. Calendar - Showing Management
+	r.GET("/admin/calendar", h.Calendar.CalendarManagementDashboard)
+
 	// 2. Properties & Showings (with tabs: All Properties, Property Performance, Photos, Showing Calendar, Booking Management, HAR Sync, Pre-Listing Manager, Valuations)
 	r.GET("/admin/property-list", func(c *gin.Context) {
 		c.HTML(200, "property-list.html", gin.H{"Title": "Properties & Showings"})
