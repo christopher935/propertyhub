@@ -70,40 +70,109 @@
         </div>
     </header>
     <div class="admin-content">
+        <!-- Lead Statistics -->
         <div class="section">
-            <h2 class="section-title">Your Leads</h2>
-            <p style="color: var(--navy-muted); margin-bottom: var(--space-6);">Manage and track all your leads with behavioral scoring</p>
-            <div class="dashboard-grid" style="gap: var(--space-4);">
+            <h2 class="section-title">Lead Overview</h2>
+            <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Manage and track all your leads with behavioral scoring</p>
+            
+            <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-icon">🔥</span>
-                        <span class="stat-card-label">Hot Leads</span>
-                    </div>
-                    <div class="stat-card-value">0</div>
-                    <span class="badge badge-danger">Score ≥70</span>
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Hot Leads</div>
+                    <span class="score-badge hot">Score ≥70</span>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-icon">⚡</span>
-                        <span class="stat-card-label">Warm Leads</span>
-                    </div>
-                    <div class="stat-card-value">0</div>
-                    <span class="badge badge-warning">Score 40-69</span>
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-value">0</div>
+                    <div class="stat-label">Warm Leads</div>
+                    <span class="score-badge warm">Score 40-69</span>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-icon">❄️</span>
-                        <span class="stat-card-label">Cold Leads</span>
-                    </div>
-                    <div class="stat-card-value">1</div>
-                    <span class="badge badge-info">Score <40</span>
+                    <div class="stat-icon">❄️</div>
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Cold Leads</div>
+                    <span class="score-badge cold">Score <40</span>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-card-header">
-                        <span class="stat-card-icon">👥</span>
-                        <span class="stat-card-label">Total Leads</span>
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Total Leads</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="section">
+            <div class="filters-bar">
+                <input type="search" class="search-input" placeholder="Search leads by name, email, or phone...">
+                
+                <select class="filter-select">
+                    <option value="all">All Leads</option>
+                    <option value="hot">Hot (≥70)</option>
+                    <option value="warm">Warm (40-69)</option>
+                    <option value="cold">Cold (<40)</option>
+                </select>
+                
+                <select class="filter-select">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                </select>
+                
+                <button class="btn btn-primary">
+                    + Add Lead
+                </button>
+            </div>
+        </div>
+
+        <!-- Lead Cards Grid -->
+        <div class="section">
+            <h2 class="section-title">All Leads</h2>
+            
+            <div class="leads-grid">
+                <!-- Sample Lead Card - Replace with dynamic data -->
+                <div class="lead-card">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-3);">
+                        <div>
+                            <div class="lead-name">John Doe</div>
+                            <div class="lead-contact">john.doe@example.com</div>
+                            <div class="lead-contact">+1 (555) 123-4567</div>
+                        </div>
+                        <span class="score-badge cold">35</span>
                     </div>
-                    <div class="stat-card-value">1</div>
+                    
+                    <div style="padding-top: var(--space-3); border-top: 1px solid var(--gray-100);">
+                        <div style="font-size: var(--font-size-sm); color: var(--gray-600); margin-bottom: var(--space-2);">
+                            <strong>Last Activity:</strong> Viewed 2 properties
+                        </div>
+                        <div style="font-size: var(--font-size-sm); color: var(--gray-600); margin-bottom: var(--space-3);">
+                            <strong>Interested in:</strong> Downtown condos
+                        </div>
+                        
+                        <div style="display: flex; gap: var(--space-2);">
+                            <button class="btn btn-primary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
+                                View Details
+                            </button>
+                            <button class="btn btn-secondary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
+                                Contact
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty state message -->
+                <div style="grid-column: 1 / -1; text-align: center; padding: var(--space-12) var(--space-6);">
+                    <div style="font-size: var(--font-size-xl); color: var(--gray-400); margin-bottom: var(--space-3);">
+                        📊
+                    </div>
+                    <div style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--gray-700); margin-bottom: var(--space-2);">
+                        More leads coming soon
+                    </div>
+                    <div style="font-size: var(--font-size-sm); color: var(--gray-500);">
+                        Your leads will appear here as they engage with your properties
+                    </div>
                 </div>
             </div>
         </div>
