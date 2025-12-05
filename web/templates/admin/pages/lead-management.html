@@ -69,7 +69,7 @@
             </div>
         </div>
     </header>
-    <div class="admin-content">
+    <div class="admin-content" x-data="leadManagementData()" x-init="init()">
         <!-- Lead Statistics -->
         <div class="section">
             <h2 class="section-title">Lead Overview</h2>
@@ -78,25 +78,25 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">🔥</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-value" x-text="stats.hot">0</div>
                     <div class="stat-label">Hot Leads</div>
                     <span class="score-badge hot">Score ≥70</span>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">⚡</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-value" x-text="stats.warm">0</div>
                     <div class="stat-label">Warm Leads</div>
                     <span class="score-badge warm">Score 40-69</span>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">❄️</div>
-                    <div class="stat-value">1</div>
+                    <div class="stat-value" x-text="stats.cold">0</div>
                     <div class="stat-label">Cold Leads</div>
                     <span class="score-badge cold">Score <40</span>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">👥</div>
-                    <div class="stat-value">1</div>
+                    <div class="stat-value" x-text="stats.total">0</div>
                     <div class="stat-label">Total Leads</div>
                 </div>
             </div>
@@ -131,44 +131,54 @@
         <div class="section">
             <h2 class="section-title">All Leads</h2>
             
-            <div class="leads-grid">
-                <!-- Sample Lead Card - Replace with dynamic data -->
-                <div class="lead-card">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-3);">
-                        <div>
-                            <div class="lead-name">John Doe</div>
-                            <div class="lead-contact">john.doe@example.com</div>
-                            <div class="lead-contact">+1 (555) 123-4567</div>
-                        </div>
-                        <span class="score-badge cold">35</span>
-                    </div>
-                    
-                    <div style="padding-top: var(--space-3); border-top: 1px solid var(--gray-100);">
-                        <div style="font-size: var(--font-size-sm); color: var(--gray-600); margin-bottom: var(--space-2);">
-                            <strong>Last Activity:</strong> Viewed 2 properties
-                        </div>
-                        <div style="font-size: var(--font-size-sm); color: var(--gray-600); margin-bottom: var(--space-3);">
-                            <strong>Interested in:</strong> Downtown condos
+            <div x-show="loading" class="text-center" style="padding: var(--space-12);">
+                <div class="loading-spinner" style="margin: 0 auto;"></div>
+                <p style="color: var(--gray-500); margin-top: var(--space-4);">Loading leads...</p>
+            </div>
+            
+            <div x-show="!loading" class="leads-grid">
+                <template x-for="lead in leads" :key="lead.id">
+                    <div class="lead-card" :class="getScoreClass(lead.behavioral_score)">
+                        <div class="lead-score-indicator" :class="getScoreClass(lead.behavioral_score)"></div>
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-3);">
+                            <div>
+                                <div class="lead-name" x-text="lead.name"></div>
+                                <div class="lead-contact" x-text="lead.email"></div>
+                                <div class="lead-contact" x-text="lead.phone || 'No phone'"></div>
+                            </div>
+                            <div class="lead-score-badge" :class="getScoreClass(lead.behavioral_score)">
+                                <span class="score-value" x-text="Math.round(lead.behavioral_score || 0)"></span>
+                                <span class="score-label" x-text="getScoreLabel(lead.behavioral_score)"></span>
+                            </div>
                         </div>
                         
-                        <div style="display: flex; gap: var(--space-2);">
-                            <button class="btn btn-primary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
-                                View Details
-                            </button>
-                            <button class="btn btn-secondary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
-                                Contact
-                            </button>
+                        <div style="padding-top: var(--space-3); border-top: 1px solid var(--gray-100);">
+                            <div class="ai-suggestion" x-show="lead.behavioral_score >= 70" style="background: #fef2f2; padding: var(--space-2); border-radius: 8px; margin-bottom: var(--space-3); font-size: var(--font-size-sm); color: #dc2626;">
+                                🔥 <strong>High Priority:</strong> Contact within 24 hours
+                            </div>
+                            <div class="ai-suggestion" x-show="lead.behavioral_score >= 40 && lead.behavioral_score < 70" style="background: #fffbeb; padding: var(--space-2); border-radius: 8px; margin-bottom: var(--space-3); font-size: var(--font-size-sm); color: #d97706;">
+                                💡 <strong>Good Potential:</strong> Follow up this week
+                            </div>
+                            
+                            <div style="display: flex; gap: var(--space-2);">
+                                <button class="btn btn-primary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);" @click="viewLeadDetails(lead.id)">
+                                    View Details
+                                </button>
+                                <button class="btn btn-secondary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);" @click="contactLead(lead)">
+                                    Contact
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </template>
 
                 <!-- Empty state message -->
-                <div style="grid-column: 1 / -1; text-align: center; padding: var(--space-12) var(--space-6);">
+                <div x-show="leads.length === 0 && !loading" style="grid-column: 1 / -1; text-align: center; padding: var(--space-12) var(--space-6);">
                     <div style="font-size: var(--font-size-xl); color: var(--gray-400); margin-bottom: var(--space-3);">
                         📊
                     </div>
                     <div style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--gray-700); margin-bottom: var(--space-2);">
-                        More leads coming soon
+                        No leads yet
                     </div>
                     <div style="font-size: var(--font-size-sm); color: var(--gray-500);">
                         Your leads will appear here as they engage with your properties
@@ -178,5 +188,107 @@
         </div>
     </div>
 </main>
+<script>
+function leadManagementData() {
+return {
+leads: [],
+stats: { total: 0, hot: 0, warm: 0, cold: 0 },
+loading: true,
+async init() {
+await this.fetchLeads();
+},
+async fetchLeads() {
+try {
+const response = await fetch('/api/leads');
+const data = await response.json();
+this.leads = data.leads || [];
+this.stats = data.stats || { total: 0, hot: 0, warm: 0, cold: 0 };
+} catch (error) {
+console.error('Failed to fetch leads:', error);
+} finally {
+this.loading = false;
+}
+},
+getScoreClass(score) {
+if (!score || score < 40) return 'lead-cold';
+if (score >= 70) return 'lead-hot';
+return 'lead-warm';
+},
+getScoreLabel(score) {
+if (!score || score < 40) return 'Cold';
+if (score >= 70) return 'Hot';
+return 'Warm';
+},
+viewLeadDetails(leadId) {
+window.location.href = `/admin/leads/${leadId}`;
+},
+contactLead(lead) {
+window.location.href = `/admin/communication?lead=${lead.id}`;
+}
+}
+}
+</script>
+<style>
+.lead-card {
+position: relative;
+overflow: hidden;
+}
+.lead-score-indicator {
+position: absolute;
+left: 0;
+top: 0;
+bottom: 0;
+width: 4px;
+}
+.lead-score-indicator.lead-hot { background: #ef4444; }
+.lead-score-indicator.lead-warm { background: #f59e0b; }
+.lead-score-indicator.lead-cold { background: #6b7280; }
+.lead-score-badge {
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 8px 12px;
+border-radius: 8px;
+min-width: 60px;
+}
+.lead-score-badge.lead-hot {
+background: #fef2f2;
+color: #dc2626;
+border: 2px solid #ef4444;
+}
+.lead-score-badge.lead-warm {
+background: #fffbeb;
+color: #d97706;
+border: 2px solid #f59e0b;
+}
+.lead-score-badge.lead-cold {
+background: #f3f4f6;
+color: #4b5563;
+border: 2px solid #6b7280;
+}
+.lead-score-badge .score-value {
+font-size: 24px;
+font-weight: bold;
+line-height: 1;
+}
+.lead-score-badge .score-label {
+font-size: 11px;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+margin-top: 4px;
+}
+.loading-spinner {
+width: 40px;
+height: 40px;
+border: 4px solid var(--gray-200);
+border-top-color: var(--navy-primary);
+border-radius: 50%;
+animation: spin 1s linear infinite;
+}
+@keyframes spin {
+to { transform: rotate(360deg); }
+}
+</style>
 </body>
 </html>

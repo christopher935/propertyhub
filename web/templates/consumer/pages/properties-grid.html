@@ -28,6 +28,9 @@
 <path d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
 <path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
 </symbol>
+<symbol fill="none" id="icon-sparkles" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24">
+<path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" stroke-linecap="round" stroke-linejoin="round"></path>
+</symbol>
 </svg>
 <!-- Navigation -->
 <nav class="header">
@@ -154,6 +157,42 @@
 </div>
 </div>
 </section>
+<!-- AI Recommendations Section -->
+<section class="ai-recommendations-section" id="aiRecommendations" style="display: none;" x-data="aiRecommendations()" x-init="load()">
+<div class="properties-container">
+<div class="ai-header">
+<svg class="ai-icon" height="24" width="24"><use href="#icon-sparkles"></use></svg>
+<h2 class="section-title">Recommended For You</h2>
+</div>
+<p class="ai-explanation" x-show="explanation" x-text="explanation"></p>
+<div class="recommendation-carousel" x-show="recommendations.length > 0">
+<template x-for="property in recommendations" :key="property.id">
+<div class="property-card recommendation-card">
+<div class="property-image">
+<img x-show="property.featured_image" :src="property.featured_image" :alt="property.address" loading="lazy">
+<div x-show="!property.featured_image" class="property-placeholder">
+<svg height="120" width="120" style="color: var(--gray-400);"><use href="#icon-home"></use></svg>
+</div>
+<span class="badge badge-ai-pick">AI Pick</span>
+</div>
+<div class="property-details">
+<h3 class="property-title">
+<a :href="'/properties/' + property.id" x-text="property.address"></a>
+</h3>
+<p class="property-location">
+<svg height="16" width="16"><use href="#icon-map-pin"></use></svg>
+<span x-text="property.city + ', TX'"></span>
+</p>
+<div class="property-price" x-text="'$' + property.price.toLocaleString() + '/month'"></div>
+<p class="property-specs" x-text="property.bedrooms + ' bed \u2022 ' + property.bathrooms + ' bath \u2022 ' + property.square_feet.toLocaleString() + ' sq ft'"></p>
+<a class="btn btn-primary" :href="'/book-showing?property=' + property.id">Schedule A Tour</a>
+</div>
+</div>
+</template>
+</div>
+</div>
+</section>
+
 <!-- Results Section -->
 <section class="properties-section">
 <div class="properties-container">
@@ -316,6 +355,47 @@
             emptyState?.classList.remove('hidden');
         }
     });
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+function aiRecommendations() {
+return {
+recommendations: [],
+explanation: '',
+async load() {
+const sessionId = localStorage.getItem('property_session_id') || '';
+try {
+const url = sessionId ? 
+`/api/recommendations?session_id=${sessionId}&limit=6` :
+`/api/recommendations?limit=6`;
+const response = await fetch(url);
+if (!response.ok) return;
+const data = await response.json();
+if (data.recommendations && data.recommendations.length > 0) {
+this.recommendations = data.recommendations.map(rec => ({
+id: rec.property.id,
+address: rec.property.address,
+city: rec.property.city,
+price: rec.property.price,
+bedrooms: rec.property.bedrooms,
+bathrooms: rec.property.bathrooms,
+square_feet: rec.property.square_feet,
+featured_image: rec.property.featured_image
+}));
+if (data.personalized) {
+this.explanation = '\u2728 These properties match your browsing preferences';
+document.getElementById('aiRecommendations').style.display = 'block';
+} else {
+this.explanation = 'Trending properties in your area';
+document.getElementById('aiRecommendations').style.display = 'block';
+}
+}
+} catch (error) {
+console.error('Error loading AI recommendations:', error);
+}
+}
+}
+}
 </script>
 <script src="/static/js/property-search.js"></script>
 </body>
