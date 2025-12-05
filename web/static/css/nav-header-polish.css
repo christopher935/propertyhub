@@ -83,7 +83,7 @@
 .nav-section-toggle {
   font-size: 12px;
   color: var(--color-gray-500, #6b7280);
-  transition: transform 300ms ease, color 200ms ease;
+  transition: color 200ms ease, opacity 200ms ease;
   font-weight: bold;
 }
 
@@ -92,19 +92,18 @@
 }
 
 .nav-section.expanded .nav-section-toggle {
-  transform: rotate(90deg);
   color: var(--color-primary, #1e3a8a);
+  opacity: 1;
 }
 
 /* ========== BADGE TOOLTIP SUPPORT ========== */
 
 .nav-section-badge {
   cursor: help;
-  transition: all 200ms ease;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 .nav-section-badge:hover {
-  transform: scale(1.1);
   background-color: var(--color-primary, #1e3a8a);
   color: var(--color-white, #ffffff);
 }
@@ -162,7 +161,7 @@
   width: 16px;
   height: 16px;
   color: var(--color-gray-500, #6b7280);
-  transition: transform 200ms ease, color 200ms ease;
+  transition: color 200ms ease, opacity 200ms ease;
   flex-shrink: 0;
 }
 
@@ -171,8 +170,8 @@
 }
 
 .admin-user-menu.open .admin-user-menu-chevron {
-  transform: rotate(180deg);
   color: var(--color-primary, #1e3a8a);
+  opacity: 0.7;
 }
 
 .admin-user-dropdown {

@@ -19,10 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     section.classList.remove('active');
                     items.style.maxHeight = '0';
                     if (toggle) toggle.textContent = '▶';
+                    header.setAttribute('aria-expanded', 'false');
                 } else {
                     section.classList.add('active');
                     items.style.maxHeight = items.scrollHeight + 'px';
                     if (toggle) toggle.textContent = '▼';
+                    header.setAttribute('aria-expanded', 'true');
                 }
             });
         }
@@ -43,8 +45,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 parentSection.classList.add('active');
                 const items = parentSection.querySelector('.nav-section-items');
                 const toggle = parentSection.querySelector('.nav-section-toggle');
+                const header = parentSection.querySelector('.nav-section-header');
                 if (items) items.style.maxHeight = items.scrollHeight + 'px';
                 if (toggle) toggle.textContent = '▼';
+                if (header) header.setAttribute('aria-expanded', 'true');
             }
         }
     });
