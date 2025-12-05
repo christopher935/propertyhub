@@ -15,53 +15,56 @@
 </head>
 <body>
 
-<div class="modal-overlay" id="quickViewModal" style="display: none;">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-header">
-            <h2 class="modal-title">Property Quick View</h2>
-            <button class="modal-close" onclick="closeQuickView()">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="modal-body">
-            <div class="property-quick-view-grid">
-                <div class="quick-view-gallery">
-                    <img id="quickViewImage" src="" alt="Property" class="quick-view-image">
-                </div>
-                
-                <div class="quick-view-details">
-                    <h3 id="quickViewAddress" class="property-address"></h3>
-                    <div id="quickViewPrice" class="property-price"></div>
-                    
-                    <div class="property-specs">
-                        <div class="spec-item">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                            </svg>
-                            <span id="quickViewBeds"></span>
-                        </div>
-                        <div class="spec-item">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"></path>
-                            </svg>
-                            <span id="quickViewBaths"></span>
-                        </div>
-                        <div class="spec-item">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"></path>
-                            </svg>
-                            <span id="quickViewSqft"></span>
-                        </div>
+<div class="modal" id="quickViewModal" style="display: none;">
+    <div class="modal-backdrop" onclick="closeQuickView()"></div>
+    <div class="modal-wrapper">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title">Property Quick View</h2>
+                <button class="modal-close" onclick="closeQuickView()" aria-label="Close">
+                    <svg class="modal-close-icon" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-content">
+                <div class="property-quick-view-grid">
+                    <div class="quick-view-gallery">
+                        <img id="quickViewImage" src="" alt="Property" class="quick-view-image">
                     </div>
                     
-                    <div id="quickViewDescription" class="property-description"></div>
-                    
-                    <div class="quick-view-actions">
-                        <a id="quickViewDetailsLink" href="#" class="btn btn-primary-consumer">View Full Details</a>
-                        <a id="quickViewBookingLink" href="#" class="btn btn-outline">Schedule Tour</a>
+                    <div class="quick-view-details">
+                        <h3 id="quickViewAddress" class="property-address"></h3>
+                        <div id="quickViewPrice" class="property-price"></div>
+                        
+                        <div class="property-specs">
+                            <div class="spec-item">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                                </svg>
+                                <span id="quickViewBeds"></span>
+                            </div>
+                            <div class="spec-item">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"></path>
+                                </svg>
+                                <span id="quickViewBaths"></span>
+                            </div>
+                            <div class="spec-item">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"></path>
+                                </svg>
+                                <span id="quickViewSqft"></span>
+                            </div>
+                        </div>
+                        
+                        <div id="quickViewDescription" class="property-description"></div>
+                        
+                        <div class="quick-view-actions">
+                            <a id="quickViewDetailsLink" href="#" class="btn btn-primary-consumer">View Full Details</a>
+                            <a id="quickViewBookingLink" href="#" class="btn btn-outline">Schedule Tour</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -72,19 +75,38 @@
 <script>
 function openQuickView(propertyId) {
     const modal = document.getElementById('quickViewModal');
+    const backdrop = modal.querySelector('.modal-backdrop');
+    const wrapper = modal.querySelector('.modal-wrapper');
+    
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    
+    requestAnimationFrame(() => {
+        if (backdrop) backdrop.classList.add('show');
+        if (wrapper) wrapper.classList.add('show');
+    });
 }
 
 function closeQuickView() {
     const modal = document.getElementById('quickViewModal');
-    modal.style.display = 'none';
-    document.body.style.overflow = '';
+    const backdrop = modal.querySelector('.modal-backdrop');
+    const wrapper = modal.querySelector('.modal-wrapper');
+    
+    if (backdrop) backdrop.classList.remove('show');
+    if (wrapper) wrapper.classList.remove('show');
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 200);
 }
 
-document.getElementById('quickViewModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeQuickView();
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('quickViewModal');
+        if (modal && modal.style.display === 'flex') {
+            closeQuickView();
+        }
     }
 });
 </script>

@@ -329,17 +329,74 @@
 </footer>
 <script>
 function showRescheduleModal() {
-    document.getElementById('reschedule-modal').style.display = 'block';
+    const modal = document.getElementById('reschedule-modal');
+    const backdrop = modal.querySelector('.modal-backdrop');
+    const wrapper = modal.querySelector('.modal-wrapper');
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    requestAnimationFrame(() => {
+        if (backdrop) backdrop.classList.add('show');
+        if (wrapper) wrapper.classList.add('show');
+    });
 }
+
 function closeRescheduleModal() {
-    document.getElementById('reschedule-modal').style.display = 'none';
+    const modal = document.getElementById('reschedule-modal');
+    const backdrop = modal.querySelector('.modal-backdrop');
+    const wrapper = modal.querySelector('.modal-wrapper');
+    
+    if (backdrop) backdrop.classList.remove('show');
+    if (wrapper) wrapper.classList.remove('show');
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 200);
 }
+
 function showCancelModal() {
-    document.getElementById('cancel-modal').style.display = 'block';
+    const modal = document.getElementById('cancel-modal');
+    const backdrop = modal.querySelector('.modal-backdrop');
+    const wrapper = modal.querySelector('.modal-wrapper');
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    requestAnimationFrame(() => {
+        if (backdrop) backdrop.classList.add('show');
+        if (wrapper) wrapper.classList.add('show');
+    });
 }
+
 function closeCancelModal() {
-    document.getElementById('cancel-modal').style.display = 'none';
+    const modal = document.getElementById('cancel-modal');
+    const backdrop = modal.querySelector('.modal-backdrop');
+    const wrapper = modal.querySelector('.modal-wrapper');
+    
+    if (backdrop) backdrop.classList.remove('show');
+    if (wrapper) wrapper.classList.remove('show');
+    
+    setTimeout(() => {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 200);
 }
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const rescheduleModal = document.getElementById('reschedule-modal');
+        const cancelModal = document.getElementById('cancel-modal');
+        
+        if (rescheduleModal && rescheduleModal.style.display === 'flex') {
+            closeRescheduleModal();
+        }
+        if (cancelModal && cancelModal.style.display === 'flex') {
+            closeCancelModal();
+        }
+    }
+});
 
 // Form submissions
 document.getElementById('reschedule-form').addEventListener('submit', async (e) => {

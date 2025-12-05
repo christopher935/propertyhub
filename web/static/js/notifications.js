@@ -524,7 +524,7 @@ class PropertyHubNotifications {
                         <i class="${this.getNotificationIcon(notification.type)}"></i>
                     </div>
                     <h3>${notification.title}</h3>
-                    <button class="notification-modal-close" onclick="this.closest('.notification-modal-overlay').remove()">
+                    <button class="notification-modal-close" onclick="this.closest('.notification-modal-overlay').remove(); document.body.style.overflow = '';">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -550,7 +550,7 @@ class PropertyHubNotifications {
                             ${notification.actionText || 'View Details'}
                         </a>
                     ` : ''}
-                    <button class="btn btn-secondary" onclick="this.closest('.notification-modal-overlay').remove()">
+                    <button class="btn btn-secondary" onclick="this.closest('.notification-modal-overlay').remove(); document.body.style.overflow = '';">
                         Dismiss
                     </button>
                 </div>
@@ -558,15 +558,27 @@ class PropertyHubNotifications {
         `;
 
         document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
 
         // Auto-remove after 30 seconds for non-critical notifications
         if (notification.priority !== this.priorityLevels.CRITICAL) {
             setTimeout(() => {
                 if (modal.parentElement) {
                     modal.remove();
+                    document.body.style.overflow = '';
                 }
             }, 30000);
         }
+        
+        // ESC key to close
+        const escHandler = (e) => {
+            if (e.key === 'Escape' && modal.parentElement) {
+                modal.remove();
+                document.body.style.overflow = '';
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
     }
 
     // Specialized Alert Handlers
