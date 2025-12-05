@@ -213,29 +213,212 @@
                 </div>
                 
                 <div class="tab-content" :class="{ 'active': activeTab === 'all' }">
-                    <h2>All Properties Tab</h2>
-                    <p>Content for all properties goes here</p>
-                    <div x-text="'Properties loaded: ' + properties.length"></div>
+                    <!-- Filters and Search -->
+                    <div class="filters-bar">
+                        <input type="search" class="search-input" placeholder="Search by address, city, or zip code..." x-model="searchQuery" @input.debounce.300ms="performSearch">
+                        
+                        <select class="filter-select">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        
+                        <select class="filter-select">
+                            <option value="all">All Types</option>
+                            <option value="sale">For Sale</option>
+                            <option value="rent">For Rent</option>
+                        </select>
+                        
+                        <div class="view-toggle">
+                            <button class="view-toggle-btn active">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                </svg>
+                                Table
+                            </button>
+                            <button class="view-toggle-btn">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                                </svg>
+                                Grid
+                            </button>
+                        </div>
+                        
+                        <button class="btn btn-primary">
+                            + Add Property
+                        </button>
+                    </div>
+
+                    <!-- Property Table View -->
+                    <div class="table-wrapper">
+                        <table class="property-table">
+                            <thead>
+                                <tr>
+                                    <th>Property</th>
+                                    <th>Address</th>
+                                    <th>Price</th>
+                                    <th>Beds/Baths</th>
+                                    <th>Status</th>
+                                    <th>Listed Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Sample Property Row - Replace with dynamic data -->
+                                <tr>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: var(--space-3);">
+                                            <div style="width: 60px; height: 60px; background: var(--gray-100); border-radius: var(--radius-md); overflow: hidden;">
+                                                <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994" alt="Property" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);">
+                                                    Modern Downtown Condo
+                                                </div>
+                                                <div style="font-size: var(--font-size-xs); color: var(--gray-500);">
+                                                    ID: #12345
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>123 Main Street</div>
+                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500);">San Francisco, CA 94105</div>
+                                    </td>
+                                    <td>
+                                        <span style="font-weight: var(--font-weight-semibold); color: var(--gold-primary);">
+                                            $850,000
+                                        </span>
+                                    </td>
+                                    <td>3 / 2</td>
+                                    <td>
+                                        <span class="status-badge status-active">Active</span>
+                                    </td>
+                                    <td>Jan 15, 2024</td>
+                                    <td>
+                                        <div class="action-dropdown">
+                                            <button class="btn btn-secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm);">
+                                                Actions
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
+                                        <div style="font-size: var(--font-size-lg); margin-bottom: var(--space-2);">
+                                            📦
+                                        </div>
+                                        No additional properties found
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Property Cards Grid View (hidden by default) -->
+                    <div class="property-grid" style="display: none;">
+                        <!-- Sample Property Card -->
+                        <div class="admin-property-card">
+                            <div class="property-image">
+                                <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994" alt="Property">
+                            </div>
+                            <div class="property-info">
+                                <span class="status-badge status-active" style="margin-bottom: var(--space-2);">Active</span>
+                                <div class="property-address">123 Main Street</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-3);">
+                                    San Francisco, CA 94105
+                                </div>
+                                <div class="property-price">$850,000</div>
+                                <div class="property-details">
+                                    <span>3 beds</span>
+                                    <span>•</span>
+                                    <span>2 baths</span>
+                                    <span>•</span>
+                                    <span>1,500 sqft</span>
+                                </div>
+                                <div class="property-actions">
+                                    <button class="btn btn-primary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
+                                        View
+                                    </button>
+                                    <button class="btn btn-secondary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
+                                        Edit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="tab-content" :class="{ 'active': activeTab === 'performance' }">
-                    <h2>Performance Tab</h2>
-                    <p>Performance analytics content</p>
+                    <div class="section">
+                        <h2 class="section-title">Performance Analytics</h2>
+                        <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Track property views, leads generated, and engagement metrics</p>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">👁️</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-label">Total Views</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">📧</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-label">Inquiries</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">📅</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-label">Showings</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⭐</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-label">Favorites</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="tab-content" :class="{ 'active': activeTab === 'calendar' }">
-                    <h2>Calendar Tab</h2>
-                    <p>Calendar content</p>
+                    <div class="section">
+                        <h2 class="section-title">Showing Calendar</h2>
+                        <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Manage property showings and appointments</p>
+                        
+                        <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
+                            <div style="font-size: 3rem; margin-bottom: var(--space-4);">📅</div>
+                            <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">Calendar Coming Soon</h3>
+                            <p style="color: var(--gray-500);">Schedule and manage property showings in one place</p>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="tab-content" :class="{ 'active': activeTab === 'prelisting' }">
-                    <h2>Pre-Listing Tab</h2>
-                    <p>Pre-listing content</p>
+                    <div class="section">
+                        <h2 class="section-title">Pre-Listing Pipeline</h2>
+                        <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Properties in preparation before going live</p>
+                        
+                        <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
+                            <div style="font-size: 3rem; margin-bottom: var(--space-4);">📋</div>
+                            <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">No Pre-Listing Properties</h3>
+                            <p style="color: var(--gray-500); margin-bottom: var(--space-4);">Properties awaiting photos, details, or approval will appear here</p>
+                            <button class="btn btn-primary">+ Add Pre-Listing</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="tab-content" :class="{ 'active': activeTab === 'valuations' }">
-                    <h2>Valuations Tab</h2>
-                    <p>Valuations content</p>
+                    <div class="section">
+                        <h2 class="section-title">Property Valuations</h2>
+                        <p style="color: var(--gray-500); margin-bottom: var(--space-6);">AI-powered property valuations and market analysis</p>
+                        
+                        <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
+                            <div style="font-size: 3rem; margin-bottom: var(--space-4);">💰</div>
+                            <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">Valuations Coming Soon</h3>
+                            <p style="color: var(--gray-500);">Get instant property valuations powered by AI</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
