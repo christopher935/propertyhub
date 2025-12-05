@@ -275,3 +275,17 @@
 .transition { transition: all var(--transition-base) !important; }
 .transition-fast { transition: all var(--transition-fast) !important; }
 .transition-slow { transition: all var(--transition-slow) !important; }
+
+/* ========== SMALL CAPS UTILITY ========== */
+
+.small-caps {
+  font-family: var(--font-family-mono, 'IBM Plex Mono', monospace);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.small-caps--accent { color: var(--accent); }
+.small-caps--muted { color: var(--muted-foreground); }
+.small-caps--navy { color: var(--navy-primary); }
