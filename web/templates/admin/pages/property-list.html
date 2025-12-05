@@ -394,10 +394,80 @@
                         </div>
                         <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Manage property showings and appointments</p>
                         
-                        <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                            <div class="stats-grid" style="flex: 1;">
+                                <div class="stat-card">
+                                    <div class="stat-icon">📅</div>
+                                    <div class="stat-value" x-text="bookingStats.total || 0">0</div>
+                                    <div class="stat-label">Total Bookings</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">✅</div>
+                                    <div class="stat-value" x-text="bookingStats.scheduled || 0">0</div>
+                                    <div class="stat-label">Scheduled</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">⏰</div>
+                                    <div class="stat-value" x-text="bookingStats.pending || 0">0</div>
+                                    <div class="stat-label">Pending</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">📊</div>
+                                    <div class="stat-value" x-text="bookingStats.today || 0">0</div>
+                                    <div class="stat-label">Today</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" style="margin-left: var(--space-4);">
+                                + Schedule Showing
+                            </button>
+                        </div>
+                        
+                        <div x-show="loadingBookings" style="text-align: center; padding: var(--space-8);">
+                            <p style="color: var(--gray-500);">Loading bookings...</p>
+                        </div>
+                        
+                        <div x-show="!loadingBookings && bookings.length === 0" style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
                             <div style="font-size: 3rem; margin-bottom: var(--space-4);">📅</div>
-                            <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">Calendar Coming Soon</h3>
-                            <p style="color: var(--gray-500);">Schedule and manage property showings in one place</p>
+                            <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">No Showings Scheduled</h3>
+                            <p style="color: var(--gray-500); margin-bottom: var(--space-4);">Schedule property showings to see them here</p>
+                            <button class="btn btn-primary">+ Schedule First Showing</button>
+                        </div>
+                        
+                        <div x-show="!loadingBookings && bookings.length > 0">
+                            <div style="margin-bottom: var(--space-4); display: flex; gap: var(--space-2);">
+                                <button class="btn btn-secondary" :class="{ 'active': bookingFilter === 'all' }" @click="bookingFilter = 'all'">All</button>
+                                <button class="btn btn-secondary" :class="{ 'active': bookingFilter === 'today' }" @click="bookingFilter = 'today'">Today</button>
+                                <button class="btn btn-secondary" :class="{ 'active': bookingFilter === 'week' }" @click="bookingFilter = 'week'">This Week</button>
+                                <button class="btn btn-secondary" :class="{ 'active': bookingFilter === 'month' }" @click="bookingFilter = 'month'">This Month</button>
+                            </div>
+                            
+                            <div style="display: grid; gap: var(--space-3);">
+                                <template x-for="booking in filteredBookings()" :key="booking.id">
+                                    <div style="background: var(--white); border-radius: var(--radius-md); padding: var(--space-4); box-shadow: var(--shadow-sm); display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-4); align-items: center;">
+                                        <div style="text-align: center; padding: var(--space-3); background: var(--blue-50); border-radius: var(--radius-md); min-width: 80px;">
+                                            <div style="font-size: var(--font-size-xs); color: var(--blue-600); text-transform: uppercase; font-weight: var(--font-weight-semibold);" x-text="formatBookingMonth(booking.date)">Jan</div>
+                                            <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--navy-primary);" x-text="formatBookingDay(booking.date)">15</div>
+                                        </div>
+                                        <div>
+                                            <strong style="display: block; font-size: var(--font-size-lg); color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="booking.property_address || 'Property'">Property Address</strong>
+                                            <div style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-1);">
+                                                <span x-text="booking.client_name || 'Client'"></span> • 
+                                                <span x-text="booking.client_email || 'No email'"></span>
+                                            </div>
+                                            <div style="font-size: var(--font-size-sm); color: var(--gray-600);">
+                                                <span x-text="formatBookingTime(booking.date)"></span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-end;">
+                                            <span class="status-badge" :class="'status-' + booking.status" x-text="booking.status">Status</span>
+                                            <div style="display: flex; gap: var(--space-2);">
+                                                <button class="btn btn-secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm);">View</button>
+                                                <button class="btn btn-secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm);">Edit</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -623,6 +693,10 @@
                 preListingStats: {},
                 loadingPreListings: false,
                 showAddPreListingModal: false,
+                bookings: [],
+                bookingStats: {},
+                loadingBookings: false,
+                bookingFilter: 'all',
                 
                 async init() {
                     await this.fetchSidebarCounts();
@@ -633,6 +707,8 @@
                             this.fetchValuations();
                         } else if (newTab === 'prelisting' && this.preListings.length === 0) {
                             this.fetchPreListings();
+                        } else if (newTab === 'calendar' && this.bookings.length === 0) {
+                            this.fetchBookings();
                         }
                     });
                 },
@@ -811,6 +887,97 @@
                 formatPrice(value) {
                     if (!value) return '0';
                     return Math.round(value).toLocaleString('en-US');
+                },
+                
+                async fetchBookings() {
+                    this.loadingBookings = true;
+                    try {
+                        const res = await fetch('/api/v1/bookings?status=scheduled,pending&limit=50');
+                        if (res.ok) {
+                            const result = await res.json();
+                            if (result.success && result.data) {
+                                this.bookings = result.data.bookings || [];
+                                this.calculateBookingStats();
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching bookings:', error);
+                    } finally {
+                        this.loadingBookings = false;
+                    }
+                },
+                
+                calculateBookingStats() {
+                    const now = new Date();
+                    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const todayEnd = new Date(todayStart);
+                    todayEnd.setDate(todayEnd.getDate() + 1);
+                    
+                    this.bookingStats = {
+                        total: this.bookings.length,
+                        scheduled: this.bookings.filter(b => b.status === 'scheduled').length,
+                        pending: this.bookings.filter(b => b.status === 'pending').length,
+                        today: this.bookings.filter(b => {
+                            const bookingDate = new Date(b.date);
+                            return bookingDate >= todayStart && bookingDate < todayEnd;
+                        }).length
+                    };
+                },
+                
+                filteredBookings() {
+                    if (this.bookingFilter === 'all') {
+                        return this.bookings;
+                    }
+                    
+                    const now = new Date();
+                    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    
+                    if (this.bookingFilter === 'today') {
+                        const todayEnd = new Date(todayStart);
+                        todayEnd.setDate(todayEnd.getDate() + 1);
+                        return this.bookings.filter(b => {
+                            const bookingDate = new Date(b.date);
+                            return bookingDate >= todayStart && bookingDate < todayEnd;
+                        });
+                    }
+                    
+                    if (this.bookingFilter === 'week') {
+                        const weekEnd = new Date(todayStart);
+                        weekEnd.setDate(weekEnd.getDate() + 7);
+                        return this.bookings.filter(b => {
+                            const bookingDate = new Date(b.date);
+                            return bookingDate >= todayStart && bookingDate < weekEnd;
+                        });
+                    }
+                    
+                    if (this.bookingFilter === 'month') {
+                        const monthEnd = new Date(todayStart);
+                        monthEnd.setMonth(monthEnd.getMonth() + 1);
+                        return this.bookings.filter(b => {
+                            const bookingDate = new Date(b.date);
+                            return bookingDate >= todayStart && bookingDate < monthEnd;
+                        });
+                    }
+                    
+                    return this.bookings;
+                },
+                
+                formatBookingMonth(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                },
+                
+                formatBookingDay(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    return date.getDate();
+                },
+                
+                formatBookingTime(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
                 }
             };
         }
