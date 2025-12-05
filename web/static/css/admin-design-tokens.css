@@ -6,8 +6,8 @@
 /* Core Color Palette - Single source of truth */
 :root {
   /* Primary Colors - Navy & Gold */
-  --navy-primary: #2B4B73;
-  --navy-light: #3d5b8f;
+  --navy-primary: #1b3559;
+  --navy-light: #2B4B73;
   --navy-dark: #1E3A5F;
   --gold-primary: #c4a962;  /* Muted gold - our standard */
   --gold-light: #e6c966;
