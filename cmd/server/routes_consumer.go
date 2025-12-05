@@ -139,22 +139,22 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers) {
 
 	// Authentication routes
 	r.GET("/login", func(c *gin.Context) {
-		c.HTML(200, "consumer/login.html", gin.H{"Title": "Login", "CSRFToken": c.GetString("csrf_token")})
+		c.HTML(200, "consumer/pages/login.html", gin.H{"Title": "Login", "CSRFToken": c.GetString("csrf_token")})
 	})
 	r.GET("/register", func(c *gin.Context) {
-		c.HTML(200, "consumer/register.html", gin.H{"Title": "Create Account", "CSRFToken": c.GetString("csrf_token")})
+		c.HTML(200, "consumer/pages/register.html", gin.H{"Title": "Create Account", "CSRFToken": c.GetString("csrf_token")})
 	})
 	r.GET("/forgot-password", func(c *gin.Context) {
-		c.HTML(200, "forgot-password.html", gin.H{"Title": "Reset Password", "CSRFToken": c.GetString("csrf_token")})
+		c.HTML(200, "auth/pages/forgot-password.html", gin.H{"Title": "Reset Password", "CSRFToken": c.GetString("csrf_token")})
 	})
 	r.GET("/reset-password", func(c *gin.Context) {
-		c.HTML(200, "reset-password.html", gin.H{"Title": "Reset Password", "CSRFToken": c.GetString("csrf_token")})
+		c.HTML(200, "auth/pages/reset-password.html", gin.H{"Title": "Reset Password", "CSRFToken": c.GetString("csrf_token")})
 	})
 	r.GET("/password-reset-success", func(c *gin.Context) {
-		c.HTML(200, "password-reset-success.html", gin.H{"Title": "Password Reset Successful", "CSRFToken": c.GetString("csrf_token")})
+		c.HTML(200, "auth/pages/password-reset-success.html", gin.H{"Title": "Password Reset Successful", "CSRFToken": c.GetString("csrf_token")})
 	})
 	r.GET("/email-verification", func(c *gin.Context) {
-		c.HTML(200, "email-verification.html", gin.H{"Title": "Verify Email", "CSRFToken": c.GetString("csrf_token")})
+		c.HTML(200, "auth/pages/email-verification.html", gin.H{"Title": "Verify Email", "CSRFToken": c.GetString("csrf_token")})
 	})
 
 	// Success pages

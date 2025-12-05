@@ -13,7 +13,7 @@ import (
 func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.SpiderwebAIOrchestrator) {
 	// Admin login
 	r.GET("/admin", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "admin-login.html", gin.H{"Title": "Admin Login"})
+		c.HTML(http.StatusOK, "auth/pages/admin-login.html", gin.H{"Title": "Admin Login"})
 	})
 
 	// ===== SIMPLIFIED ADMIN ROUTES (8 Main Pages) =====
