@@ -199,6 +199,12 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/admin/sessions/active", h.BehavioralSessions.GetActiveSessions)
 	api.GET("/admin/sessions/:id/journey", h.BehavioralSessions.GetSessionJourney)
 
+	// Command Center API - AI-driven actionable insights
+	api.GET("/command-center/items", h.CommandCenter.GetItems)
+	api.POST("/command-center/act", h.CommandCenter.ExecuteAction)
+	api.POST("/command-center/dismiss", h.CommandCenter.DismissItem)
+	api.GET("/command-center/stats", h.CommandCenter.GetStats)
+
 	// Pre-listing API
 	api.GET("/pre-listing/valuation/:id", h.PreListing.GetPropertyValuation)
 

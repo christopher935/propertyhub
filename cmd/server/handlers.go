@@ -25,6 +25,9 @@ type AllHandlers struct {
 	InsightsAPI           *handlers.InsightsAPIHandlers
 	ContextFUB            *handlers.ContextFUBIntegrationHandlers
 
+	// Command Center
+	CommandCenter         *handlers.CommandCenterHandlers
+
 	// Booking
 	Booking               *handlers.BookingHandler
 
