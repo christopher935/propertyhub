@@ -117,12 +117,14 @@
 </nav>
 
 <section class="hero">
-<div class="container">
-<h1 class="text-heading-1 text-navy">Schedule Your Tour</h1>
-<p class="text-body-lg text-gray-600">See your next home in person. Choose a property below and book your personal tour in minutes.</p>
-<div class="flex gap-4">
+<div class="hero-container">
+<div class="hero-content">
+<h1 class="hero-text-heading">Schedule Your Tour</h1>
+<p class="hero-text-text">See your next home in person. Choose a property below and book your personal tour in minutes.</p>
+<div class="hero-actions">
 <a class="btn btn-primary-consumer" href="#properties">View Properties</a>
-<a class="btn btn-secondary" href="/contact">Contact Us</a>
+<a class="btn btn-outline" href="/contact">Contact Us</a>
+</div>
 </div>
 </div>
 </section>
@@ -189,34 +191,34 @@
 </div>
 </section>
 
-<section class="features features-section">
+<section class="features">
 <div class="features-container">
 <div class="features-header">
-<h2>Why Choose Landlords of Texas</h2>
-<p>Professional property management with cutting-edge technology and personalized service</p>
+<h2 class="features-header-heading">Why Choose Landlords of Texas</h2>
+<p class="features-header-text">Professional property management with cutting-edge technology and personalized service</p>
 </div>
 <div class="features-grid">
 <div class="feature-card">
 <div class="feature-icon"><svg height="48" width="48"><use href="#icon-calendar"></use></svg></div>
-<h3 class="text-heading-3 text-navy">Easy Booking</h3>
-<p>Schedule property tours instantly with our streamlined booking system and real-time availability.</p>
+<h3 class="feature-card-heading">Easy Booking</h3>
+<p class="feature-card-text">Schedule property tours instantly with our streamlined booking system and real-time availability.</p>
 </div>
 <div class="feature-card">
 <div class="feature-icon"><svg height="48" width="48"><use href="#icon-star"></use></svg></div>
-<h3 class="text-heading-3 text-navy">Expert Service</h3>
-<p>Licensed professionals with 20+ years of experience in Houston real estate and property management.</p>
+<h3 class="feature-card-heading">Expert Service</h3>
+<p class="feature-card-text">Licensed professionals with 20+ years of experience in Houston real estate and property management.</p>
 </div>
 <div class="feature-card">
 <div class="feature-icon"><svg height="48" width="48"><use href="#icon-shield-check"></use></svg></div>
-<h3 class="text-heading-3 text-navy">Secure Process</h3>
-<p>TREC-compliant operations with secure applications and transparent rental processes.</p>
+<h3 class="feature-card-heading">Secure Process</h3>
+<p class="feature-card-text">TREC-compliant operations with secure applications and transparent rental processes.</p>
 </div>
 </div>
 </div>
 </section>
 
 <!-- Property Quick View Modal -->
-<div id="quick-view-modal" class="modal" style="display: none;">
+<div id="quick-view-modal" style="display: none; position: fixed; inset: 0; z-index: 50; align-items: center; justify-content: center;">
     <div class="modal-backdrop" @click="closeQuickView()"></div>
     <div class="modal-wrapper">
         <div class="modal-container" style="max-width: 70rem;">
