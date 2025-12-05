@@ -8,9 +8,6 @@ import (
 
 // AllHandlers contains all initialized handlers for route registration
 type AllHandlers struct {
-	// API Handlers
-	AnalyticsAPI          *handlers.AnalyticsAPIHandlers
-
 	// Analytics & Business Intelligence
 	BusinessIntelligence  *handlers.BusinessIntelligenceHandlers
 	TieredStats           *handlers.TieredStatsHandlers
