@@ -393,9 +393,9 @@ func (al *AuditLogger) getClientIP(r *http.Request) string {
 func (al *AuditLogger) sanitizeRequestData(r *http.Request) map[string]interface{} {
 	data := make(map[string]interface{})
 
-	// Add query parameters
+	// Add query parameters (sanitized)
 	if len(r.URL.RawQuery) > 0 {
-		data["query"] = r.URL.RawQuery
+		data["query"] = al.SanitizeString(r.URL.RawQuery)
 	}
 
 	// Add headers (sanitized)
@@ -498,4 +498,172 @@ func (al *AuditLogger) GetCallerInfo() string {
 	}
 
 	return fmt.Sprintf("%s:%d %s", file, line, fn.Name())
+}
+
+// Sensitive field patterns that should be redacted in logs
+var sensitiveFields = map[string]bool{
+	"password":           true,
+	"password_hash":      true,
+	"new_password":       true,
+	"old_password":       true,
+	"current_password":   true,
+	"confirm_password":   true,
+	"ssn":                true,
+	"social_security":    true,
+	"credit_card":        true,
+	"card_number":        true,
+	"cvv":                true,
+	"cvc":                true,
+	"bank_account":       true,
+	"routing_number":     true,
+	"account_number":     true,
+	"api_key":            true,
+	"api_secret":         true,
+	"secret":             true,
+	"secret_key":         true,
+	"access_token":       true,
+	"refresh_token":      true,
+	"token":              true,
+	"authorization":      true,
+	"bearer":             true,
+	"jwt":                true,
+	"private_key":        true,
+	"encryption_key":     true,
+	"session_id":         true,
+	"cookie":             true,
+	"auth":               true,
+}
+
+// Sensitive patterns in strings that should be redacted
+var sensitivePatterns = []string{
+	"password=",
+	"token=",
+	"key=",
+	"secret=",
+	"authorization:",
+	"bearer ",
+}
+
+// SanitizeForLog removes or masks sensitive data from any interface{}
+func (al *AuditLogger) SanitizeForLog(data interface{}) interface{} {
+	if data == nil {
+		return nil
+	}
+
+	switch v := data.(type) {
+	case map[string]interface{}:
+		return al.sanitizeMap(v)
+	case []interface{}:
+		return al.sanitizeSlice(v)
+	case string:
+		return al.SanitizeString(v)
+	default:
+		return data
+	}
+}
+
+// sanitizeMap recursively sanitizes a map
+func (al *AuditLogger) sanitizeMap(data map[string]interface{}) map[string]interface{} {
+	sanitized := make(map[string]interface{})
+
+	for key, value := range data {
+		lowerKey := strings.ToLower(key)
+
+		// Check if this field should be redacted
+		if sensitiveFields[lowerKey] {
+			sanitized[key] = "[REDACTED]"
+			continue
+		}
+
+		// Recursively sanitize nested structures
+		switch v := value.(type) {
+		case map[string]interface{}:
+			sanitized[key] = al.sanitizeMap(v)
+		case []interface{}:
+			sanitized[key] = al.sanitizeSlice(v)
+		case string:
+			sanitized[key] = al.SanitizeString(v)
+		default:
+			sanitized[key] = value
+		}
+	}
+
+	return sanitized
+}
+
+// sanitizeSlice recursively sanitizes a slice
+func (al *AuditLogger) sanitizeSlice(data []interface{}) []interface{} {
+	sanitized := make([]interface{}, len(data))
+
+	for i, value := range data {
+		switch v := value.(type) {
+		case map[string]interface{}:
+			sanitized[i] = al.sanitizeMap(v)
+		case []interface{}:
+			sanitized[i] = al.sanitizeSlice(v)
+		case string:
+			sanitized[i] = al.SanitizeString(v)
+		default:
+			sanitized[i] = value
+		}
+	}
+
+	return sanitized
+}
+
+// SanitizeString redacts sensitive patterns from strings
+func (al *AuditLogger) SanitizeString(s string) string {
+	lower := strings.ToLower(s)
+
+	// Check for sensitive patterns
+	for _, pattern := range sensitivePatterns {
+		if strings.Contains(lower, pattern) {
+			// If the string contains sensitive patterns, redact the value part
+			if idx := strings.Index(lower, pattern); idx != -1 {
+				// Keep the key, redact the value
+				return s[:idx+len(pattern)] + "[REDACTED]"
+			}
+		}
+	}
+
+	// Check if the entire string looks like a token/key (long alphanumeric string)
+	if len(s) > 32 && al.looksLikeToken(s) {
+		return s[:8] + "...[REDACTED]..." + s[len(s)-4:]
+	}
+
+	return s
+}
+
+// looksLikeToken detects if a string looks like an API token or key
+func (al *AuditLogger) looksLikeToken(s string) bool {
+	alphanumCount := 0
+	for _, c := range s {
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_' {
+			alphanumCount++
+		}
+	}
+	// If more than 90% alphanumeric, it's likely a token
+	return float64(alphanumCount)/float64(len(s)) > 0.9
+}
+
+// LogActionSanitized logs an action with automatic data sanitization
+func (al *AuditLogger) LogActionSanitized(userID *uint, sessionID, ipAddress, userAgent, action, resource string, resourceID *uint, success bool, errorMsg string, metadata map[string]interface{}) {
+	// Sanitize metadata before logging
+	sanitizedMetadata := al.sanitizeMap(metadata)
+
+	// Sanitize error message
+	sanitizedError := al.SanitizeString(errorMsg)
+
+	al.LogAction(userID, sessionID, ipAddress, userAgent, action, resource, resourceID, success, sanitizedError, sanitizedMetadata)
+}
+
+// LogSecurityEventSanitized logs a security event with automatic data sanitization
+func (al *AuditLogger) LogSecurityEventSanitized(eventType string, userID *uint, ipAddress, userAgent, description string, details map[string]interface{}, riskScore int) {
+	// Sanitize details before logging
+	sanitizedDetails := al.sanitizeMap(details)
+
+	// Sanitize description
+	sanitizedDescription := al.SanitizeString(description)
+
+	al.LogSecurityEvent(eventType, userID, ipAddress, userAgent, sanitizedDescription, sanitizedDetails, riskScore)
 }

@@ -7,15 +7,18 @@ import (
 	"strings"
 	"time"
 
+	"chrisgross-ctrl-project/internal/security"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type AdminAuthHandlers struct {
-	db        *gorm.DB
-	jwtSecret string
+	db                  *gorm.DB
+	jwtSecret           string
+	bruteForceProtection *security.BruteForceProtection
 }
 
 type LoginRequest struct {
@@ -45,8 +48,17 @@ type AdminUser struct {
 
 func NewAdminAuthHandlers(db *gorm.DB, jwtSecret string) *AdminAuthHandlers {
 	return &AdminAuthHandlers{
-		db:        db,
-		jwtSecret: jwtSecret,
+		db:                  db,
+		jwtSecret:           jwtSecret,
+		bruteForceProtection: security.NewBruteForceProtection(db, nil),
+	}
+}
+
+func NewAdminAuthHandlersWithRedis(db *gorm.DB, jwtSecret string, redisClient *redis.Client) *AdminAuthHandlers {
+	return &AdminAuthHandlers{
+		db:                  db,
+		jwtSecret:           jwtSecret,
+		bruteForceProtection: security.NewBruteForceProtection(db, redisClient),
 	}
 }
 
@@ -72,6 +84,39 @@ func (h *AdminAuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	clientIP := r.Header.Get("X-Forwarded-For")
+	if clientIP == "" {
+		if idx := strings.LastIndex(r.RemoteAddr, ":"); idx != -1 {
+			clientIP = r.RemoteAddr[:idx]
+		} else {
+			clientIP = r.RemoteAddr
+		}
+	} else {
+		if idx := strings.Index(clientIP, ","); idx != -1 {
+			clientIP = strings.TrimSpace(clientIP[:idx])
+		}
+	}
+
+	allowed, remaining, retryAfter, err := h.bruteForceProtection.CheckLoginAttempt(req.Username, clientIP)
+	if err != nil {
+		log.Printf("Brute force check error: %v", err)
+	}
+
+	if !allowed {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Retry-After", retryAfter.String())
+		w.WriteHeader(http.StatusTooManyRequests)
+		json.NewEncoder(w).Encode(LoginResponse{
+			Success: false,
+			Message: "Too many failed login attempts. Account temporarily locked. Please try again later.",
+		})
+		return
+	}
+
+	if remaining > 0 && remaining <= 2 {
+		log.Printf("⚠️ Warning: Only %d login attempts remaining for %s", remaining, req.Username)
+	}
+
 	var user AdminUser
 	var query string
 	var searchValue string
@@ -95,9 +140,10 @@ func (h *AdminAuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
-	if err != nil {
-		log.Printf("Failed login attempt for user: %s", user.Email)
+	bcryptErr := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
+	if bcryptErr != nil {
+		h.bruteForceProtection.RecordFailedAttempt(req.Username, clientIP, r.Header.Get("User-Agent"))
+		log.Printf("Failed login attempt for user: %s from IP: %s", user.Email, clientIP)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(LoginResponse{
@@ -133,7 +179,8 @@ func (h *AdminAuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		"updated_at":  now,
 	})
 
-	log.Printf("✅ Successful login for user: %s (Role: %s)", user.Email, user.Role)
+	h.bruteForceProtection.RecordSuccessfulLogin(req.Username)
+	log.Printf("✅ Successful login for user: %s (Role: %s) from IP: %s", user.Email, user.Role, clientIP)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(LoginResponse{

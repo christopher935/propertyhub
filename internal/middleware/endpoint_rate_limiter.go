@@ -9,6 +9,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// RateLimitTier defines different rate limit tiers for different endpoint types
+type RateLimitTier string
+
+const (
+	TierPublic    RateLimitTier = "public"    // Public endpoints (property listings, search)
+	TierAuth      RateLimitTier = "auth"       // Authenticated user endpoints
+	TierSensitive RateLimitTier = "sensitive"  // Login, password reset, MFA
+	TierAdmin     RateLimitTier = "admin"      // Admin operations
+	TierAPI       RateLimitTier = "api"        // External API endpoints
+)
+
+// RateLimitConfig defines tiered rate limiting configuration
+type RateLimitConfig struct {
+	RequestsPerMinute int
+	RequestsPerHour   int
+	BurstSize         int
+	BlockDuration     time.Duration
+}
+
 // EndpointRateLimiter provides per-endpoint rate limiting
 type EndpointRateLimiter struct {
 	clients map[string]*ClientRateLimit
@@ -153,14 +172,78 @@ func (erl *EndpointRateLimiter) cleanup() {
 	}
 }
 
-// Predefined rate limiters for common use cases
+// GetTierConfig returns rate limit configuration for a specific tier
+func GetTierConfig(tier RateLimitTier) RateLimitConfig {
+	switch tier {
+	case TierPublic:
+		// Public endpoints - generous limits for anonymous users
+		return RateLimitConfig{
+			RequestsPerMinute: 100,
+			RequestsPerHour:   1000,
+			BurstSize:         20,
+			BlockDuration:     5 * time.Minute,
+		}
+	case TierAuth:
+		// Authenticated users - higher limits
+		return RateLimitConfig{
+			RequestsPerMinute: 300,
+			RequestsPerHour:   3000,
+			BurstSize:         50,
+			BlockDuration:     5 * time.Minute,
+		}
+	case TierSensitive:
+		// Login, password reset, MFA - very strict
+		return RateLimitConfig{
+			RequestsPerMinute: 5,
+			RequestsPerHour:   20,
+			BurstSize:         2,
+			BlockDuration:     30 * time.Minute,
+		}
+	case TierAdmin:
+		// Admin operations - strict but usable
+		return RateLimitConfig{
+			RequestsPerMinute: 50,
+			RequestsPerHour:   500,
+			BurstSize:         10,
+			BlockDuration:     15 * time.Minute,
+		}
+	case TierAPI:
+		// External API endpoints - moderate limits
+		return RateLimitConfig{
+			RequestsPerMinute: 60,
+			RequestsPerHour:   600,
+			BurstSize:         15,
+			BlockDuration:     10 * time.Minute,
+		}
+	default:
+		// Default to public tier
+		return GetTierConfig(TierPublic)
+	}
+}
+
+// NewEndpointRateLimiterWithTier creates a rate limiter with a specific tier
+func NewEndpointRateLimiterWithTier(tier RateLimitTier) *EndpointRateLimiter {
+	config := GetTierConfig(tier)
+	return NewEndpointRateLimiter(config.RequestsPerMinute, config.RequestsPerHour, config.BlockDuration)
+}
+
+// Predefined rate limiters for common use cases (legacy compatibility)
 var (
 	// For booking and contact form submissions
-	BookingRateLimiter = NewEndpointRateLimiter(5, 20, 15*time.Minute) // 5 per minute, 20 per hour, 15min block
+	BookingRateLimiter = NewEndpointRateLimiterWithTier(TierSensitive)
 
 	// For admin login attempts
-	AdminLoginRateLimiter = NewEndpointRateLimiter(3, 10, 30*time.Minute) // 3 per minute, 10 per hour, 30min block
+	AdminLoginRateLimiter = NewEndpointRateLimiterWithTier(TierSensitive)
 
 	// For public API endpoints
-	PublicAPIRateLimiter = NewEndpointRateLimiter(10, 50, 5*time.Minute) // 10 per minute, 50 per hour, 5min block
+	PublicAPIRateLimiter = NewEndpointRateLimiterWithTier(TierPublic)
+
+	// For authenticated user endpoints
+	AuthenticatedRateLimiter = NewEndpointRateLimiterWithTier(TierAuth)
+
+	// For admin dashboard operations
+	AdminRateLimiter = NewEndpointRateLimiterWithTier(TierAdmin)
+
+	// For external API integrations
+	ExternalAPIRateLimiter = NewEndpointRateLimiterWithTier(TierAPI)
 )
