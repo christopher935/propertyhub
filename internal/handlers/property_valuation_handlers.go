@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/services"
 )
 
@@ -138,38 +141,114 @@ func (h *PropertyValuationHandlers) GetBulkValuations(c *gin.Context) {
 
 // GetPropertyValuationByID returns valuation for a specific property
 func (h *PropertyValuationHandlers) GetPropertyValuationByID(c *gin.Context) {
-	propertyID := c.Param("id")
-	
-	// TODO: Implement actual property lookup and valuation
+	propertyIDStr := c.Param("id")
+	propertyID, err := strconv.ParseUint(propertyIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid property ID",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	// Get latest valuation from history
+	history, err := h.valuationService.GetValuationHistory(uint(propertyID))
+	if err != nil || len(history) == 0 {
+		// No existing valuation, create a new one
+		// First, get property details
+		var property models.Property
+		if err := h.db.First(&property, propertyID).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"success": false,
+				"message": "Property not found",
+			})
+			return
+		}
+
+		// Create valuation request from property data
+		bedroomsVal := 3
+		bathroomsVal := float32(2.0)
+		sqftVal := 2000
+		if property.Bedrooms != nil {
+			bedroomsVal = *property.Bedrooms
+		}
+		if property.Bathrooms != nil {
+			bathroomsVal = *property.Bathrooms
+		}
+		if property.SquareFeet != nil {
+			sqftVal = *property.SquareFeet
+		}
+
+		request := services.PropertyValuationRequest{
+			City:         property.City,
+			ZipCode:      property.ZipCode,
+			SquareFeet:   sqftVal,
+			Bedrooms:     bedroomsVal,
+			Bathrooms:    bathroomsVal,
+			PropertyType: property.PropertyType,
+			YearBuilt:    property.YearBuilt,
+		}
+
+		// Generate new valuation
+		valuation, err := h.valuationService.ValuateProperty(request)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "Failed to calculate valuation",
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		// Save to database
+		propID := uint(propertyID)
+		_, err = h.valuationService.SaveValuation(&propID, valuation, "system")
+		if err != nil {
+			log.Printf("Failed to save valuation: %v", err)
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "Property valuation calculated",
+			"data":    valuation,
+		})
+		return
+	}
+
+	// Return most recent valuation
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Property valuation retrieved",
-		"data": gin.H{
-			"property_id":       propertyID,
-			"estimated_value":   450000,
-			"confidence_score":  0.85,
-			"last_updated":      "2025-08-27T21:30:00Z",
-		},
+		"data":    history[0],
 	})
 }
 
 // GetAreaMarketAnalysis returns market analysis for a zip code area
 func (h *PropertyValuationHandlers) GetAreaMarketAnalysis(c *gin.Context) {
 	zipCode := c.Param("zip_code")
+	propertyType := c.DefaultQuery("property_type", "")
 	
-	// TODO: Implement actual market analysis
+	marketConditions, err := h.valuationService.GetMarketTrendsForArea("", zipCode, propertyType)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to retrieve market analysis",
+			"error":   err.Error(),
+		})
+		return
+	}
+	
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Area market analysis retrieved",
 		"data": gin.H{
 			"zip_code":           zipCode,
-			"median_home_value":  425000,
-			"price_per_sqft":     165.50,
-			"market_trend":       "appreciating",
-			"appreciation_rate":  "5.2%",
-			"days_on_market":     28,
-			"inventory_level":    "low",
-			"market_temperature": "hot",
+			"market_trend":       marketConditions.MarketTrend,
+			"price_change":       marketConditions.PriceChangePercent,
+			"days_on_market":     marketConditions.DaysOnMarket,
+			"inventory_level":    marketConditions.InventoryLevel,
+			"seasonal_adjustment": marketConditions.SeasonalAdjustment,
 		},
 	})
 }
@@ -177,115 +256,141 @@ func (h *PropertyValuationHandlers) GetAreaMarketAnalysis(c *gin.Context) {
 // GetCityMarketAnalysis returns market analysis for a city
 func (h *PropertyValuationHandlers) GetCityMarketAnalysis(c *gin.Context) {
 	city := c.Param("city")
+	propertyType := c.DefaultQuery("property_type", "")
+	
+	marketConditions, err := h.valuationService.GetMarketTrendsForArea(city, "", propertyType)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to retrieve market analysis",
+			"error":   err.Error(),
+		})
+		return
+	}
 	
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "City market analysis retrieved",
 		"data": gin.H{
-			"city":               city,
-			"median_home_value":  385000,
-			"price_per_sqft":     155.75,
-			"market_trend":       "stable",
-			"appreciation_rate":  "3.8%",
-			"days_on_market":     32,
-			"inventory_level":    "balanced",
-			"market_temperature": "warm",
+			"city":                city,
+			"market_trend":        marketConditions.MarketTrend,
+			"price_change":        marketConditions.PriceChangePercent,
+			"days_on_market":      marketConditions.DaysOnMarket,
+			"inventory_level":     marketConditions.InventoryLevel,
+			"seasonal_adjustment": marketConditions.SeasonalAdjustment,
 		},
 	})
 }
 
 // GetMarketTrends returns current market trends
 func (h *PropertyValuationHandlers) GetMarketTrends(c *gin.Context) {
+	city := c.DefaultQuery("city", "Houston")
+	zipCode := c.DefaultQuery("zip_code", "")
+	propertyType := c.DefaultQuery("property_type", "")
+	
+	marketConditions, err := h.valuationService.GetMarketTrendsForArea(city, zipCode, propertyType)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to retrieve market trends",
+			"error":   err.Error(),
+		})
+		return
+	}
+	
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Market trends retrieved",
 		"data": gin.H{
-			"overall_trend":      "appreciating",
-			"price_trend":        "up 4.5% YoY",
-			"inventory_trend":    "decreasing",
-			"demand_level":       "high",
-			"seasonal_factor":    "peak season",
-			"interest_rate_impact": "moderate",
+			"market_trend":        marketConditions.MarketTrend,
+			"price_change":        fmt.Sprintf("%.1f%%", marketConditions.PriceChangePercent),
+			"inventory_level":     marketConditions.InventoryLevel,
+			"days_on_market":      marketConditions.DaysOnMarket,
+			"seasonal_adjustment": fmt.Sprintf("%.1f%%", marketConditions.SeasonalAdjustment*100),
 		},
 	})
 }
 
 // GetComparableProperties returns comparable properties for valuation
 func (h *PropertyValuationHandlers) GetComparableProperties(c *gin.Context) {
-	address := c.Query("address")
+	city := c.Query("city")
 	zipCode := c.Query("zip_code")
-	bedrooms := c.Query("bedrooms")
-	bathrooms := c.Query("bathrooms")
-	sqft := c.Query("sqft")
+	bedrooms, _ := strconv.Atoi(c.DefaultQuery("bedrooms", "3"))
+	bathrooms, _ := strconv.ParseFloat(c.DefaultQuery("bathrooms", "2"), 32)
+	sqft, _ := strconv.Atoi(c.DefaultQuery("sqft", "2000"))
+	propertyType := c.DefaultQuery("property_type", "single_family")
+	yearBuilt, _ := strconv.Atoi(c.DefaultQuery("year_built", "2010"))
+	
+	// Build valuation request
+	request := services.PropertyValuationRequest{
+		City:         city,
+		ZipCode:      zipCode,
+		SquareFeet:   sqft,
+		Bedrooms:     bedrooms,
+		Bathrooms:    float32(bathrooms),
+		PropertyType: propertyType,
+		YearBuilt:    yearBuilt,
+	}
+	
+	// Get comparable properties (use internal service method)
+	valuation, err := h.valuationService.ValuateProperty(request)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to find comparable properties",
+			"error":   err.Error(),
+		})
+		return
+	}
 	
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Comparable properties retrieved",
 		"data": gin.H{
 			"search_criteria": gin.H{
-				"address":   address,
-				"zip_code":  zipCode,
-				"bedrooms":  bedrooms,
-				"bathrooms": bathrooms,
-				"sqft":      sqft,
+				"city":          city,
+				"zip_code":      zipCode,
+				"bedrooms":      bedrooms,
+				"bathrooms":     bathrooms,
+				"sqft":          sqft,
+				"property_type": propertyType,
 			},
-			"comparables": []gin.H{
-				{
-					"address":      "123 Similar St",
-					"sold_price":   445000,
-					"sold_date":    "2025-07-15",
-					"bedrooms":     3,
-					"bathrooms":    2.5,
-					"sqft":         2100,
-					"price_per_sqft": 211.90,
-					"distance":     "0.3 miles",
-					"similarity_score": 0.92,
-				},
-				{
-					"address":      "456 Nearby Ave",
-					"sold_price":   458000,
-					"sold_date":    "2025-06-28",
-					"bedrooms":     3,
-					"bathrooms":    2,
-					"sqft":         2050,
-					"price_per_sqft": 223.41,
-					"distance":     "0.5 miles",
-					"similarity_score": 0.88,
-				},
-			},
+			"comparables": valuation.Comparables,
+			"count":       len(valuation.Comparables),
 		},
 	})
 }
 
 // GetValuationHistory returns valuation history for a property
 func (h *PropertyValuationHandlers) GetValuationHistory(c *gin.Context) {
-	propertyID := c.Param("property_id")
+	propertyIDStr := c.Param("property_id")
+	propertyID, err := strconv.ParseUint(propertyIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid property ID",
+			"error":   err.Error(),
+		})
+		return
+	}
+	
+	history, err := h.valuationService.GetValuationHistory(uint(propertyID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to retrieve valuation history",
+			"error":   err.Error(),
+		})
+		return
+	}
 	
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Valuation history retrieved",
 		"data": gin.H{
 			"property_id": propertyID,
-			"history": []gin.H{
-				{
-					"date":            "2025-08-27",
-					"estimated_value": 450000,
-					"confidence":      0.85,
-					"model_version":   "v2.1",
-				},
-				{
-					"date":            "2025-07-27",
-					"estimated_value": 442000,
-					"confidence":      0.83,
-					"model_version":   "v2.1",
-				},
-				{
-					"date":            "2025-06-27",
-					"estimated_value": 438000,
-					"confidence":      0.81,
-					"model_version":   "v2.0",
-				},
-			},
+			"count":       len(history),
+			"history":     history,
 		},
 	})
 }
@@ -313,14 +418,20 @@ func (h *PropertyValuationHandlers) GetValuationRequests(c *gin.Context) {
 func (h *PropertyValuationHandlers) GetValuationRequest(c *gin.Context) {
 	requestID := c.Param("id")
 	
+	valuation, err := h.valuationService.GetValuationByID(requestID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Valuation not found",
+			"error":   err.Error(),
+		})
+		return
+	}
+	
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Valuation request retrieved",
-		"data": gin.H{
-			"id":     requestID,
-			"status": "completed",
-			// TODO: Implement actual request lookup
-		},
+		"data":    valuation,
 	})
 }
 

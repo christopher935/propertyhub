@@ -27,9 +27,10 @@ type PreListingHandlers struct {
 
 // NewPreListingHandlers creates new pre-listing handlers with all services
 func NewPreListingHandlers(db *gorm.DB, config *config.Config, scraperService *scraper.ScraperService) *PreListingHandlers {
+	harScraper := services.NewHARMarketScraper(db, config.ScraperAPIKey)
 	return &PreListingHandlers{
 		db:                db,
-		valuationService:  services.NewPropertyValuationService(config, scraperService),
+		valuationService:  services.NewPropertyValuationService(config, db, scraperService, harScraper),
 		preListingService: services.NewPreListingService(db),
 		emailProcessor:    services.NewEmailProcessor(db),
 		config:            config,

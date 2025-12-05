@@ -64,11 +64,14 @@ func main() {
 
         // Initialize scraper service (required for valuation)
         var scraperService *scraper.ScraperService
+        var harScraper *services.HARMarketScraper
         var propertyValuationService *services.PropertyValuationService
         if cfg.ScraperAPIKey != "" {
                 scraperService = scraper.NewScraperService(cfg)
-                propertyValuationService = services.NewPropertyValuationService(cfg, scraperService)
+                harScraper = services.NewHARMarketScraper(gormDB, cfg.ScraperAPIKey)
+                propertyValuationService = services.NewPropertyValuationService(cfg, gormDB, scraperService, harScraper)
                 log.Println("🕷️ Enterprise scraper service initialized")
+                log.Println("📊 Enterprise HAR market scraper initialized")
                 log.Println("💰 Enterprise property valuation initialized")
         }
 // ============================================================================
