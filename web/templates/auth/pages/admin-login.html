@@ -27,6 +27,7 @@
 </symbol>
 </svg>
 <div class="login-container">
+<div class="login-card">
 <!-- Header -->
 <div class="login-header">
 <a class="logo" href="/">
@@ -35,11 +36,11 @@
 </span>
 <span>Landlords of Texas</span>
 </a>
-<h2 class="text-heading-2 text-navy">Admin Sign In</h2>
+<h2>Admin Sign In</h2>
 <p>Access your admin dashboard</p>
 </div>
 <!-- Login Form -->
-<form action="/admin/login" class="login-form" method="POST" id="loginForm">
+<form action="/admin/login" class="auth-form login-form" method="POST" id="loginForm">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <!-- Email Field -->
 <div class="form-group">
@@ -69,6 +70,7 @@
 <div class="login-footer">
 <p class="login-footer-text">Need help?</p>
 <a class="forgot-link" href="/contact">Contact Support</a>
+</div>
 </div>
 </div>
 </body>
