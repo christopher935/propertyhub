@@ -27,60 +27,67 @@ type WebSocketMessage struct {
 }
 
 type WebSocketClient struct {
-	conn *websocket.Conn
-	send chan WebSocketMessage
-	hub  *WebSocketHub
+	ID       string
+	Conn     *websocket.Conn
+	Send     chan []byte
+	Hub      *WebSocketHub
+	UserID   string
+	UserRole string
 }
 
 type WebSocketHub struct {
-	clients    map[*WebSocketClient]bool
-	broadcast  chan WebSocketMessage
-	register   chan *WebSocketClient
-	unregister chan *WebSocketClient
-	mu         sync.RWMutex
+	clients      map[*WebSocketClient]bool
+	broadcast    chan []byte
+	register     chan *WebSocketClient
+	unregister   chan *WebSocketClient
+	mu           sync.RWMutex
 	statsService *services.DashboardStatsService
 }
 
 func NewWebSocketHub(statsService *services.DashboardStatsService) *WebSocketHub {
 	hub := &WebSocketHub{
 		clients:      make(map[*WebSocketClient]bool),
-		broadcast:    make(chan WebSocketMessage, 256),
+		broadcast:    make(chan []byte, 256),
 		register:     make(chan *WebSocketClient),
 		unregister:   make(chan *WebSocketClient),
 		statsService: statsService,
 	}
-	go hub.run()
-	go hub.periodicUpdate()
+	go hub.Run()
+	if statsService != nil {
+		go hub.periodicUpdate()
+	}
 	return hub
 }
 
-func (h *WebSocketHub) run() {
+func (h *WebSocketHub) Run() {
 	for {
 		select {
 		case client := <-h.register:
 			h.mu.Lock()
 			h.clients[client] = true
 			h.mu.Unlock()
-			log.Printf("WebSocket client registered. Total clients: %d", len(h.clients))
+			log.Printf("WebSocket client connected: %s (Total: %d)", client.ID, len(h.clients))
 			
-			h.BroadcastVisitorCount()
+			if h.statsService != nil {
+				h.BroadcastVisitorCount()
+			}
 
 		case client := <-h.unregister:
 			h.mu.Lock()
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
-				close(client.send)
+				close(client.Send)
+				log.Printf("WebSocket client disconnected: %s (Total: %d)", client.ID, len(h.clients))
 			}
 			h.mu.Unlock()
-			log.Printf("WebSocket client unregistered. Total clients: %d", len(h.clients))
 
 		case message := <-h.broadcast:
 			h.mu.RLock()
 			for client := range h.clients {
 				select {
-				case client.send <- message:
+				case client.Send <- message:
 				default:
-					close(client.send)
+					close(client.Send)
 					delete(h.clients, client)
 				}
 			}
@@ -99,6 +106,10 @@ func (h *WebSocketHub) periodicUpdate() {
 }
 
 func (h *WebSocketHub) BroadcastVisitorCount() {
+	if h.statsService == nil {
+		return
+	}
+	
 	stats, err := h.statsService.GetLiveStats()
 	if err != nil {
 		log.Printf("Error getting live stats for WebSocket broadcast: %v", err)
@@ -111,81 +122,141 @@ func (h *WebSocketHub) BroadcastVisitorCount() {
 	hotVisitors, _ := stats["hot_visitors"].(int64)
 	returningVisitors, _ := stats["returning_visitors"].(int64)
 	
-	h.Broadcast(WebSocketMessage{
-		Type: "visitor_count",
-		Data: map[string]interface{}{
-			"count":              activeVisitors,
-			"trend":              visitorsTrend,
-			"by_page":            visitorsByPage,
-			"hot_count":          hotVisitors,
-			"returning_count":    returningVisitors,
-			"timestamp":          time.Now().Unix(),
+	message := map[string]interface{}{
+		"type": "visitor_count",
+		"data": map[string]interface{}{
+			"count":           activeVisitors,
+			"trend":           visitorsTrend,
+			"by_page":         visitorsByPage,
+			"hot_count":       hotVisitors,
+			"returning_count": returningVisitors,
+			"timestamp":       time.Now().Unix(),
 		},
-	})
+	}
+	
+	jsonData, err := json.Marshal(message)
+	if err != nil {
+		log.Printf("Error marshaling visitor count: %v", err)
+		return
+	}
+	
+	h.broadcast <- jsonData
 }
 
-func (h *WebSocketHub) Broadcast(message WebSocketMessage) {
-	h.broadcast <- message
+func (h *WebSocketHub) BroadcastToAdmins(messageType string, data interface{}) error {
+	message := map[string]interface{}{
+		"type":      messageType,
+		"data":      data,
+		"timestamp": time.Now().Unix(),
+	}
+
+	jsonData, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
+
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	for client := range h.clients {
+		if client.UserRole == "admin" || client.UserRole == "super_admin" {
+			select {
+			case client.Send <- jsonData:
+			default:
+				log.Printf("Failed to send to client %s", client.ID)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (h *WebSocketHub) GetConnectedAdminCount() int {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	count := 0
+	for client := range h.clients {
+		if client.UserRole == "admin" || client.UserRole == "super_admin" {
+			count++
+		}
+	}
+	return count
 }
 
 func (c *WebSocketClient) readPump() {
 	defer func() {
-		c.hub.unregister <- c
-		c.conn.Close()
+		c.Hub.unregister <- c
+		c.Conn.Close()
 	}()
-	
-	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-	c.conn.SetPongHandler(func(string) error {
-		c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+
+	c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	c.Conn.SetPongHandler(func(string) error {
+		c.Conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 		return nil
 	})
-	
+
 	for {
-		_, _, err := c.conn.ReadMessage()
+		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("WebSocket error: %v", err)
 			}
 			break
 		}
+
+		var msg map[string]interface{}
+		if err := json.Unmarshal(message, &msg); err != nil {
+			log.Printf("Failed to unmarshal message: %v", err)
+			continue
+		}
+
+		if msgType, ok := msg["type"].(string); ok {
+			switch msgType {
+			case "ping":
+				c.Send <- []byte(`{"type":"pong"}`)
+			case "mark_read":
+				log.Printf("Client %s marked notification as read", c.ID)
+			}
+		}
 	}
 }
 
 func (c *WebSocketClient) writePump() {
-	ticker := time.NewTicker(54 * time.Second)
+	ticker := time.NewTicker(30 * time.Second)
 	defer func() {
 		ticker.Stop()
-		c.conn.Close()
+		c.Conn.Close()
 	}()
-	
+
 	for {
 		select {
-		case message, ok := <-c.send:
-			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+		case message, ok := <-c.Send:
+			c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 			if !ok {
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			
-			w, err := c.conn.NextWriter(websocket.TextMessage)
+
+			w, err := c.Conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
 			}
-			
-			data, err := json.Marshal(message)
-			if err != nil {
-				log.Printf("Error marshaling WebSocket message: %v", err)
-				return
+			w.Write(message)
+
+			n := len(c.Send)
+			for i := 0; i < n; i++ {
+				w.Write([]byte{'\n'})
+				w.Write(<-c.Send)
 			}
-			w.Write(data)
-			
+
 			if err := w.Close(); err != nil {
 				return
 			}
-			
+
 		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
-			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			c.Conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
 		}
@@ -201,25 +272,50 @@ func NewWebSocketHandler(db *gorm.DB, statsService *services.DashboardStatsServi
 	return &WebSocketHandler{hub: hub}
 }
 
-func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
+func (wsh *WebSocketHandler) HandleConnection(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Printf("WebSocket upgrade error: %v", err)
+		log.Printf("WebSocket upgrade failed: %v", err)
 		return
 	}
-	
-	client := &WebSocketClient{
-		conn: conn,
-		send: make(chan WebSocketMessage, 256),
-		hub:  h.hub,
+
+	userRole := "guest"
+	userID := "anonymous"
+
+	if role, exists := c.Get("user_role"); exists {
+		if roleStr, ok := role.(string); ok {
+			userRole = roleStr
+		}
 	}
-	
-	client.hub.register <- client
-	
+
+	if id, exists := c.Get("user_id"); exists {
+		if idStr, ok := id.(string); ok {
+			userID = idStr
+		}
+	}
+
+	client := &WebSocketClient{
+		ID:       userID + "_" + time.Now().Format("20060102150405"),
+		Conn:     conn,
+		Send:     make(chan []byte, 256),
+		Hub:      wsh.hub,
+		UserID:   userID,
+		UserRole: userRole,
+	}
+
+	wsh.hub.register <- client
+
 	go client.writePump()
 	go client.readPump()
 }
 
-func (h *WebSocketHandler) GetHub() *WebSocketHub {
-	return h.hub
+func (wsh *WebSocketHandler) GetHub() *WebSocketHub {
+	return wsh.hub
+}
+
+func (wsh *WebSocketHandler) GetStats(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"connected_admins": wsh.hub.GetConnectedAdminCount(),
+		"total_clients":    len(wsh.hub.clients),
+	})
 }

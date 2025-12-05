@@ -14,9 +14,10 @@ import (
 
 // ApplicationWorkflowHandlers handles Christopher's specific application workflow
 type ApplicationWorkflowHandlers struct {
-	db                *gorm.DB
-	service           *services.ApplicationWorkflowService
-	behavioralService *services.BehavioralEventService  // ADDED: Behavioral tracking
+	db                  *gorm.DB
+	service             *services.ApplicationWorkflowService
+	behavioralService   *services.BehavioralEventService
+	notificationService *services.AdminNotificationService
 }
 
 // NewApplicationWorkflowHandlers creates new application workflow handlers
@@ -24,8 +25,12 @@ func NewApplicationWorkflowHandlers(db *gorm.DB) *ApplicationWorkflowHandlers {
 	return &ApplicationWorkflowHandlers{
 		db:                db,
 		service:           services.NewApplicationWorkflowService(db),
-		behavioralService: services.NewBehavioralEventService(db),  // ADDED: Initialize tracking
+		behavioralService: services.NewBehavioralEventService(db),
 	}
+}
+
+func (awh *ApplicationWorkflowHandlers) SetNotificationService(service *services.AdminNotificationService) {
+	awh.notificationService = service
 }
 
 // GetApplicationWorkflow returns the application workflow view
@@ -90,6 +95,11 @@ func (awh *ApplicationWorkflowHandlers) CreateApplicationNumber(c *gin.Context) 
 			"error": "Failed to create application number",
 		})
 		return
+	}
+
+	// Trigger notification for new application
+	if awh.notificationService != nil {
+		go awh.notificationService.OnApplicationSubmitted(int64(appNumber.ID))
 	}
 
 	// ============ ADDED: BEHAVIORAL TRACKING ============

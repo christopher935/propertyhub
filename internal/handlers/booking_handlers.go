@@ -26,6 +26,7 @@ type BookingHandler struct {
 	encryptionManager   *security.EncryptionManager
 	fubBatchService     *services.FUBBatchService
 	availabilityService *services.AvailabilityService
+	notificationService *services.AdminNotificationService
 }
 
 func NewBookingHandler(db *gorm.DB, repos *repositories.Repositories, em *security.EncryptionManager) *BookingHandler {
@@ -36,6 +37,10 @@ func NewBookingHandler(db *gorm.DB, repos *repositories.Repositories, em *securi
 		fubBatchService:     nil,
 		availabilityService: services.NewAvailabilityService(db),
 	}
+}
+
+func (h *BookingHandler) SetNotificationService(service *services.AdminNotificationService) {
+	h.notificationService = service
 }
 
 func (h *BookingHandler) CreateBooking(c *gin.Context) {
@@ -151,6 +156,10 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	if err := h.repos.Booking.Create(ctx, booking); err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to save booking", err)
 		return
+	}
+
+	if h.notificationService != nil {
+		go h.notificationService.OnBookingCreated(int64(booking.ID))
 	}
 
 	utils.SuccessResponse(c, gin.H{

@@ -15,11 +15,42 @@
         </div>
 
         <!-- Notifications -->
-        <div class="admin-notifications">
-            <button class="admin-notification-button" id="notificationButton" title="Notifications">
+        <div class="admin-notifications" x-data="notificationBell()" x-init="init()">
+            <button class="admin-notification-button" id="notificationButton" title="Notifications" @click="toggleDropdown()">
                 <span class="notification-icon">🔔</span>
-                <span class="notification-badge" id="notificationBadge">3</span>
+                <span class="notification-badge" id="notificationBadge" x-show="unreadCount > 0" x-text="unreadCount"></span>
             </button>
+            
+            <!-- Notification Dropdown -->
+            <div class="notification-dropdown" x-show="isOpen" x-transition @click.away="isOpen = false">
+                <div class="notification-dropdown-header">
+                    <h3>Notifications</h3>
+                    <button @click="dismissAll()" class="btn-text-sm">Dismiss All</button>
+                </div>
+                <div class="notification-dropdown-body">
+                    <template x-for="notif in notifications" :key="notif.id">
+                        <div class="notification-item" :class="{'unread': !notif.is_read}" @click="markAsRead(notif.id)">
+                            <div class="notification-item-icon" x-text="notif.icon"></div>
+                            <div class="notification-item-content">
+                                <div class="notification-item-title" x-text="notif.title"></div>
+                                <div class="notification-item-message" x-text="notif.message"></div>
+                                <div class="notification-item-time" x-text="formatTimeAgo(notif.created_at)"></div>
+                            </div>
+                            <div class="notification-item-actions">
+                                <a :href="notif.action_url" class="btn-notification-action" x-text="notif.action_label"></a>
+                                <button @click.stop="dismiss(notif.id)" class="btn-notification-dismiss">✕</button>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="notifications.length === 0" class="notification-empty">
+                        <div class="notification-empty-icon">✓</div>
+                        <div class="notification-empty-text">No new notifications</div>
+                    </div>
+                </div>
+                <div class="notification-dropdown-footer">
+                    <a href="/admin/notifications" class="btn-view-all">View All Notifications →</a>
+                </div>
+            </div>
         </div>
 
         <!-- User Menu with Dropdown -->
@@ -54,3 +85,129 @@
         </div>
     </div>
 </div>
+
+<script>
+function notificationBell() {
+    return {
+        isOpen: false,
+        notifications: [],
+        unreadCount: 0,
+        
+        async init() {
+            await this.fetchNotifications();
+            await this.fetchUnreadCount();
+            this.connectWebSocket();
+            
+            setInterval(() => {
+                this.fetchUnreadCount();
+            }, 30000);
+        },
+        
+        toggleDropdown() {
+            this.isOpen = !this.isOpen;
+            if (this.isOpen) {
+                this.fetchNotifications();
+            }
+        },
+        
+        async fetchNotifications() {
+            try {
+                const response = await fetch('/api/admin/notifications?limit=10');
+                const data = await response.json();
+                if (data.success) {
+                    this.notifications = data.notifications || [];
+                }
+            } catch (error) {
+                console.error('Failed to fetch notifications:', error);
+            }
+        },
+        
+        async fetchUnreadCount() {
+            try {
+                const response = await fetch('/api/admin/notifications/unread-count');
+                const data = await response.json();
+                if (data.success) {
+                    this.unreadCount = data.unread_count || 0;
+                }
+            } catch (error) {
+                console.error('Failed to fetch unread count:', error);
+            }
+        },
+        
+        async markAsRead(notificationId) {
+            try {
+                await fetch(`/api/admin/notifications/${notificationId}/read`, {
+                    method: 'POST'
+                });
+                await this.fetchNotifications();
+                await this.fetchUnreadCount();
+            } catch (error) {
+                console.error('Failed to mark as read:', error);
+            }
+        },
+        
+        async dismiss(notificationId) {
+            try {
+                await fetch(`/api/admin/notifications/${notificationId}/dismiss`, {
+                    method: 'POST'
+                });
+                await this.fetchNotifications();
+                await this.fetchUnreadCount();
+            } catch (error) {
+                console.error('Failed to dismiss notification:', error);
+            }
+        },
+        
+        async dismissAll() {
+            try {
+                await fetch('/api/admin/notifications/dismiss-all', {
+                    method: 'POST'
+                });
+                this.notifications = [];
+                this.unreadCount = 0;
+            } catch (error) {
+                console.error('Failed to dismiss all:', error);
+            }
+        },
+        
+        connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const ws = new WebSocket(`${protocol}//${window.location.host}/ws/admin`);
+            
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                if (message.type === 'notification') {
+                    this.unreadCount++;
+                    if (this.isOpen) {
+                        this.fetchNotifications();
+                    }
+                    
+                    window.dispatchEvent(new CustomEvent('notification-received', {
+                        detail: message.data
+                    }));
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket closed, reconnecting in 5s...');
+                setTimeout(() => this.connectWebSocket(), 5000);
+            };
+        },
+        
+        formatTimeAgo(timestamp) {
+            const now = new Date();
+            const past = new Date(timestamp);
+            const diffInSeconds = Math.floor((now - past) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return Math.floor(diffInSeconds / 60) + 'm ago';
+            if (diffInSeconds < 86400) return Math.floor(diffInSeconds / 3600) + 'h ago';
+            return Math.floor(diffInSeconds / 86400) + 'd ago';
+        }
+    };
+}
+</script>

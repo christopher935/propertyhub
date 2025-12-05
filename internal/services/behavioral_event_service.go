@@ -11,8 +11,9 @@ import (
 
 // BehavioralEventService handles behavioral event tracking
 type BehavioralEventService struct {
-	db            *gorm.DB
-	scoringEngine *BehavioralScoringEngine
+	db                  *gorm.DB
+	scoringEngine       *BehavioralScoringEngine
+	notificationService *AdminNotificationService
 }
 
 // NewBehavioralEventService creates a new behavioral event service
@@ -21,6 +22,11 @@ func NewBehavioralEventService(db *gorm.DB) *BehavioralEventService {
 		db:            db,
 		scoringEngine: NewBehavioralScoringEngine(db),
 	}
+}
+
+// SetNotificationService sets the notification service (for avoiding circular dependency)
+func (s *BehavioralEventService) SetNotificationService(notificationService *AdminNotificationService) {
+	s.notificationService = notificationService
 }
 
 // ============================================================================
@@ -46,10 +52,45 @@ func (s *BehavioralEventService) TrackEvent(leadID int64, eventType string, even
 
 	log.Printf("✅ Tracked event: %s for lead %d", eventType, leadID)
 
-	// Trigger score recalculation asynchronously
+	// Get previous score for comparison
+	previousScore, _ := s.scoringEngine.GetScore(leadID)
+	previousCompositeScore := 0
+	if previousScore != nil {
+		previousCompositeScore = previousScore.CompositeScore
+	}
+
+	// Trigger score recalculation and notifications asynchronously
 	go func() {
-		if _, err := s.scoringEngine.CalculateScore(leadID); err != nil {
+		newScore, err := s.scoringEngine.CalculateScore(leadID)
+		if err != nil {
 			log.Printf("⚠️  Failed to recalculate score for lead %d: %v", leadID, err)
+			return
+		}
+
+		if s.notificationService == nil {
+			return
+		}
+
+		// Check for hot lead
+		if newScore.CompositeScore >= 70 && previousCompositeScore < 70 {
+			s.notificationService.OnHotLeadActive(leadID, sessionID)
+		}
+
+		// Check for engagement spike
+		scoreDelta := newScore.CompositeScore - previousCompositeScore
+		if scoreDelta >= 20 {
+			s.notificationService.OnEngagementSpike(leadID, scoreDelta, newScore.CompositeScore)
+		}
+
+		// Check for multiple property views in session
+		if eventType == "viewed" && sessionID != "" {
+			var viewCount int64
+			s.db.Model(&models.BehavioralEvent{}).
+				Where("lead_id = ? AND session_id = ? AND event_type = ?", leadID, sessionID, "viewed").
+				Count(&viewCount)
+			if viewCount >= 5 {
+				s.notificationService.OnMultiplePropertiesViewed(leadID, int(viewCount), sessionID)
+			}
 		}
 	}()
 
@@ -71,7 +112,11 @@ func (s *BehavioralEventService) TrackPropertySave(leadID int64, propertyID int6
 		"property_id": propertyID,
 		"action":      "save",
 	}
-	return s.TrackEvent(leadID, "saved", eventData, &propertyID, sessionID, ipAddress, userAgent)
+	err := s.TrackEvent(leadID, "saved", eventData, &propertyID, sessionID, ipAddress, userAgent)
+	if err == nil && s.notificationService != nil {
+		go s.notificationService.OnPropertySaved(leadID, propertyID)
+	}
+	return err
 }
 
 // TrackInquiry logs an inquiry/contact form submission
@@ -83,7 +128,11 @@ func (s *BehavioralEventService) TrackInquiry(leadID int64, propertyID *int64, i
 	if propertyID != nil {
 		eventData["property_id"] = *propertyID
 	}
-	return s.TrackEvent(leadID, "inquired", eventData, propertyID, sessionID, ipAddress, userAgent)
+	err := s.TrackEvent(leadID, "inquired", eventData, propertyID, sessionID, ipAddress, userAgent)
+	if err == nil && s.notificationService != nil {
+		go s.notificationService.OnInquirySent(leadID, propertyID)
+	}
+	return err
 }
 
 // TrackApplication logs an application submission
