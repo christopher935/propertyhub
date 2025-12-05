@@ -54,6 +54,12 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/behavioral/insights", h.InsightsAPI.GetPredictiveInsights)
 	api.GET("/behavioral/houston-market", h.Behavioral.GetHoustonMarketIntelligence)
 
+	// Booking API
+	api.POST("/v1/bookings", h.Booking.CreateBooking)
+	api.GET("/v1/bookings/:id", h.Booking.GetBooking)
+	api.POST("/v1/bookings/:id/cancel", h.Booking.CancelBooking)
+	api.GET("/v1/bookings", h.Booking.ListBookings)
+
 	// Calendar Management API
 	api.GET("/calendar/stats", h.Calendar.GetCalendarStats)
 	api.GET("/calendar/today", h.Calendar.GetTodayEvents)

@@ -25,6 +25,9 @@ type AllHandlers struct {
 	InsightsAPI           *handlers.InsightsAPIHandlers
 	ContextFUB            *handlers.ContextFUBIntegrationHandlers
 
+	// Booking
+	Booking               *handlers.BookingHandler
+
 	// Calendar & Scheduling
 	Calendar              *handlers.CalendarHandlers
 
