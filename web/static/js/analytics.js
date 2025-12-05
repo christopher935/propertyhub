@@ -136,10 +136,10 @@ class PropertyHubAnalytics {
     trackBookingInitiated(propertyId, bookingData) {
         this.trackEvent('booking_initiated', {
             propertyId: propertyId,
-            checkInDate: bookingData.checkInDate,
-            checkOutDate: bookingData.checkOutDate,
-            guests: bookingData.guests,
-            estimatedValue: bookingData.estimatedValue
+            showingDate: bookingData.showingDate,
+            showingTime: bookingData.showingTime,
+            showingType: bookingData.showingType,
+            attendeeCount: bookingData.attendeeCount
         }, { immediate: true });
     }
 

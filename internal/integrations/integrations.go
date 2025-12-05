@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"chrisgross-ctrl-project/internal/models"
-	"chrisgross-ctrl-project/internal/utils"
+	"chrisgross-ctrl-project/internal/security"
 )
 
 // IntegrationManager manages all external integrations
@@ -554,61 +554,42 @@ func (im *IntegrationManager) CreateFUBTask(contactID, title, description string
 // processHARListing processes a HAR listing and converts to internal model
 func (im *IntegrationManager) processHARListing(listing HARListing) error {
 	// Convert HAR listing to internal Property model
+	bedroomsPtr := &listing.Bedrooms
+	bathroomsFloat32 := float32(listing.Bathrooms)
+	bathroomsPtr := &bathroomsFloat32
+	sqFtPtr := &listing.SquareFeet
+	
 	property := &models.Property{
-		ID:              utils.GenerateID(),
-		ExternalID:      listing.MLSID,
+		MLSId:           listing.MLSID,
 		Source:          "HAR",
-		Title:           fmt.Sprintf("%s, %s", listing.Address, listing.City),
 		Description:     listing.Description,
-		Address:         listing.Address,
+		Address:         security.EncryptedString(listing.Address),
 		City:            listing.City,
 		State:           listing.State,
 		ZipCode:         listing.ZipCode,
-		Country:         "USA",
-		Latitude:        listing.Latitude,
-		Longitude:       listing.Longitude,
 		PropertyType:    listing.PropertyType,
-		Bedrooms:        listing.Bedrooms,
-		Bathrooms:       listing.Bathrooms,
-		MaxGuests:       listing.Bedrooms * 2, // Estimate
-		BasePrice:       listing.ListPrice * 0.003, // Estimate daily rate
-		CleaningFee:     75.0,
-		SquareFeet:      listing.SquareFeet,
-		LotSize:         listing.LotSize,
+		Bedrooms:        bedroomsPtr,
+		Bathrooms:       bathroomsPtr,
+		SquareFeet:      sqFtPtr,
 		YearBuilt:       listing.YearBuilt,
-		Features:        strings.Join(listing.Features, ","),
+		PropertyFeatures: strings.Join(listing.Features, ","),
 		Status:          "active",
+		Price:           listing.ListPrice,
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
 	}
 	
 	// This would typically save to database via repository
-	log.Printf("Processed HAR listing: %s", property.Title)
+	log.Printf("Processed HAR listing: %s (MLS: %s)", property.City, property.MLSId)
 	
 	return nil
 }
 
 // processFUBContact processes a FUB contact and converts to internal model
 func (im *IntegrationManager) processFUBContact(contact FUBContact) error {
-	// Convert FUB contact to internal User model
-	user := &models.User{
-		ID:              utils.GenerateID(),
-		ExternalID:      contact.ID,
-		FirstName:       contact.FirstName,
-		LastName:        contact.LastName,
-		Email:           contact.Email,
-		Phone:           contact.Phone,
-		Source:          "FUB",
-		Role:            "user",
-		Status:          "active",
-		EmailVerified:   true,
-		CreatedAt:       contact.CreatedDate,
-		UpdatedAt:       time.Now(),
-		LastLoginAt:     contact.LastActivity,
-	}
-	
-	// This would typically save to database via repository
-	log.Printf("Processed FUB contact: %s %s", user.FirstName, user.LastName)
+	// This would typically convert FUB contact to internal model and save to database
+	// For now, just log the contact information
+	log.Printf("Processed FUB contact: %s %s (%s)", contact.FirstName, contact.LastName, contact.Email)
 	
 	return nil
 }
