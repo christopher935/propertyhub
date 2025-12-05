@@ -118,6 +118,10 @@ log.Println("🧠 Behavioral intelligence handlers initialized")
 calendarHandler := handlers.NewCalendarHandlers(gormDB)
 log.Println("📅 Calendar handlers initialized")
 
+// Dashboard
+dashboardHandler := handlers.NewDashboardHandlers(gormDB)
+log.Println("📊 Dashboard handlers initialized")
+
 // Data Migration & Import
 dataMigrationHandler := handlers.NewDataMigrationHandlers(gormDB)
 log.Println("📥 Data migration handlers initialized")
@@ -242,6 +246,7 @@ log.Println("🔗 Webhook handlers initialized")
 		ContextFUB:            contextFUBHandler,
 		Booking:               bookingHandler,
 		Calendar:              calendarHandler,
+		Dashboard:             dashboardHandler,
 		DataMigration:         dataMigrationHandler,
 		EmailSender:           emailSenderHandler,
 		Unsubscribe:           unsubscribeHandler,

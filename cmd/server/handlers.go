@@ -31,6 +31,9 @@ type AllHandlers struct {
 	// Calendar & Scheduling
 	Calendar              *handlers.CalendarHandlers
 
+	// Dashboard
+	Dashboard             *handlers.DashboardHandlers
+
 	// Data Migration
 	DataMigration         *handlers.DataMigrationHandlers
 
