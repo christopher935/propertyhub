@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"net/http"
+	"gorm.io/gorm"
 )
 
 // RegisterSafetyRoutes registers all safety-related routes
-func RegisterSafetyRoutes(mux *http.ServeMux) {
-	safetyHandlers := NewSafetyHandlers()
+func RegisterSafetyRoutes(mux *http.ServeMux, db *gorm.DB) {
+	safetyHandlers := NewSafetyHandlers(db)
 
 	// Safety configuration routes
 	mux.HandleFunc("/api/v1/safety/config", safetyHandlers.GetSafetyConfig)

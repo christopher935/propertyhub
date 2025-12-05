@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"gorm.io/gorm"
+	"strconv"
 )
 
 // EmailService handles email communications
@@ -33,7 +35,7 @@ type PropertyService struct {
 
 // BehavioralLeadScoringService handles lead scoring based on behavior
 type BehavioralLeadScoringService struct {
-	// Configuration fields can be added here
+	db *gorm.DB
 }
 
 // NewEmailService creates a new email service
@@ -203,16 +205,71 @@ func (ps *PropertyService) GetPropertyByID(propertyID string) (map[string]interf
 // ScoreLead calculates a behavioral score for a lead
 func (blss *BehavioralLeadScoringService) ScoreLead(leadID string, behaviorData map[string]interface{}) (float64, error) {
 	log.Printf("📊 SCORE LEAD: ID=%s", leadID)
-	// TODO: Implement actual behavioral scoring logic
-	// For now, return a mock score
-	return 75.5, nil
+	
+	if blss.db == nil {
+		return 0, fmt.Errorf("database not initialized")
+	}
+	
+	// Convert leadID to int
+	leadIDInt, err := strconv.Atoi(leadID)
+	if err != nil {
+		return 0, fmt.Errorf("invalid lead ID: %w", err)
+	}
+	
+	// Query actual behavioral score from database
+	var compositeScore int
+	err = blss.db.Table("behavioral_scores").
+		Select("composite_score").
+		Where("lead_id = ?", leadIDInt).
+		Order("last_calculated DESC").
+		Limit(1).
+		Scan(&compositeScore).Error
+	
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return 0, fmt.Errorf("failed to query behavioral score: %w", err)
+	}
+	
+	// If no score exists, return 0
+	if err == gorm.ErrRecordNotFound {
+		return 0.0, nil
+	}
+	
+	return float64(compositeScore), nil
 }
 
 // GetLeadScore retrieves the current score for a lead
 func (blss *BehavioralLeadScoringService) GetLeadScore(leadID string) (float64, error) {
 	log.Printf("📊 GET LEAD SCORE: ID=%s", leadID)
-	// TODO: Implement actual score retrieval logic
-	return 75.5, nil
+	
+	if blss.db == nil {
+		return 0, fmt.Errorf("database not initialized")
+	}
+	
+	// Convert leadID to int
+	leadIDInt, err := strconv.Atoi(leadID)
+	if err != nil {
+		return 0, fmt.Errorf("invalid lead ID: %w", err)
+	}
+	
+	// Query actual behavioral score from database
+	var compositeScore int
+	err = blss.db.Table("behavioral_scores").
+		Select("composite_score").
+		Where("lead_id = ?", leadIDInt).
+		Order("last_calculated DESC").
+		Limit(1).
+		Scan(&compositeScore).Error
+	
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return 0, fmt.Errorf("failed to query behavioral score: %w", err)
+	}
+	
+	// If no score exists, return 0
+	if err == gorm.ErrRecordNotFound {
+		return 0.0, nil
+	}
+	
+	return float64(compositeScore), nil
 }
 
 // UpdateLeadScore updates the behavioral score for a lead

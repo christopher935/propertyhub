@@ -905,38 +905,18 @@ type FunnelStep struct {
 }
 
 func (s *PerformanceOptimizationService) calculateFunnelSteps(experimentID, variantID string) []FunnelStep {
-	// This would analyze user events to build conversion funnel
-	// For now, returning mock data
-	return []FunnelStep{
-		{Step: "Landing", Users: 1000, Conversions: 800, Rate: 0.8},
-		{Step: "Form Start", Users: 800, Conversions: 400, Rate: 0.5},
-		{Step: "Form Complete", Users: 400, Conversions: 320, Rate: 0.8},
-		{Step: "Booking", Users: 320, Conversions: 256, Rate: 0.8},
-	}
+	// Return empty funnel steps - requires behavioral_events table integration
+	// TODO: Query behavioral_events table to build actual conversion funnel
+	return []FunnelStep{}
 }
 
 func (s *PerformanceOptimizationService) GetSegmentedResults(experimentID string, segmentBy string) (map[string]*ExperimentResults, error) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	// This would segment results by different criteria (device, location, source, etc.)
-	// For now, returning mock segmented data
-	segments := map[string]*ExperimentResults{
-		"desktop": {
-			TotalParticipants: 500,
-			VariantResults: map[string]*VariantResults{
-				"control":   {ConversionRate: 0.12, Participants: 250, Conversions: 30},
-				"variant_a": {ConversionRate: 0.16, Participants: 250, Conversions: 40},
-			},
-		},
-		"mobile": {
-			TotalParticipants: 300,
-			VariantResults: map[string]*VariantResults{
-				"control":   {ConversionRate: 0.08, Participants: 150, Conversions: 12},
-				"variant_a": {ConversionRate: 0.14, Participants: 150, Conversions: 21},
-			},
-		},
-	}
+	// Return empty segmented results - requires behavioral_events and contacts tables integration
+	// TODO: Query behavioral_events and segment by device_type, source, or other criteria from contacts
+	segments := map[string]*ExperimentResults{}
 
 	return segments, nil
 }

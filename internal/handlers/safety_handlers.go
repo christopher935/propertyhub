@@ -8,22 +8,25 @@ import (
 	"time"
 
 	"chrisgross-ctrl-project/internal/safety"
+	"gorm.io/gorm"
 )
 
 // SafetyHandlers handles safety-related API endpoints
 type SafetyHandlers struct {
+	db              *gorm.DB
 	configManager   *safety.SafetyConfigManager
 	modeManager     *safety.SafetyModeManager
 	overrideManager *safety.OverrideManager
 }
 
 // NewSafetyHandlers creates new safety handlers
-func NewSafetyHandlers() *SafetyHandlers {
+func NewSafetyHandlers(db *gorm.DB) *SafetyHandlers {
 	configManager := safety.NewSafetyConfigManager()
 	modeManager := safety.NewSafetyModeManager(configManager)
 	overrideManager := safety.NewOverrideManager(configManager)
 
 	return &SafetyHandlers{
+		db:              db,
 		configManager:   configManager,
 		modeManager:     modeManager,
 		overrideManager: overrideManager,
@@ -86,18 +89,56 @@ func (h *SafetyHandlers) GetModeRecommendation(w http.ResponseWriter, r *http.Re
 	w.Header().Set("Content-Type", "application/json")
 	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
 
-	// Mock performance metrics for demonstration
+	// Query real performance metrics from database
+	var totalCampaigns, successfulCampaigns, failedCampaigns int64
+	h.db.Table("campaign_execution_logs").Count(&totalCampaigns)
+	h.db.Table("campaign_execution_logs").Where("status = ?", "success").Count(&successfulCampaigns)
+	h.db.Table("campaign_execution_logs").Where("status = ?", "failed").Count(&failedCampaigns)
+	
+	var complaintCount, unsubscribeCount int64
+	h.db.Table("email_complaints").Count(&complaintCount)
+	h.db.Table("unsubscribes").Count(&unsubscribeCount)
+	
+	// Calculate rates
+	successRate := 0.0
+	if totalCampaigns > 0 {
+		successRate = float64(successfulCampaigns) / float64(totalCampaigns)
+	}
+	
+	complaintRate := 0.0
+	unsubscribeRate := 0.0
+	var totalEmails int64
+	h.db.Table("email_campaigns").Select("COALESCE(SUM(sent_count), 0)").Scan(&totalEmails)
+	if totalEmails > 0 {
+		complaintRate = float64(complaintCount) / float64(totalEmails)
+		unsubscribeRate = float64(unsubscribeCount) / float64(totalEmails)
+	}
+	
+	// Calculate average engagement rate from campaigns
+	var avgEngagementRate float64
+	h.db.Table("email_campaigns").
+		Select("COALESCE(AVG((opened_count::float + clicked_count::float) / NULLIF(sent_count, 0)), 0)").
+		Where("sent_count > 0").
+		Scan(&avgEngagementRate)
+	
+	// Get days in current mode from config
+	config := h.configManager.GetConfig()
+	daysInCurrentMode := 0
+	if !config.LastModified.IsZero() {
+		daysInCurrentMode = int(time.Since(config.LastModified).Hours() / 24)
+	}
+	
 	metrics := safety.SafetyMetrics{
-		TotalCampaigns:        12,
-		SuccessfulCampaigns:   11,
-		FailedCampaigns:       1,
-		ComplaintCount:        0,
-		UnsubscribeCount:      2,
-		SuccessRate:           0.965,
-		ComplaintRate:         0.002,
-		UnsubscribeRate:       0.015,
-		AverageEngagementRate: 0.18,
-		DaysInCurrentMode:     18,
+		TotalCampaigns:        int(totalCampaigns),
+		SuccessfulCampaigns:   int(successfulCampaigns),
+		FailedCampaigns:       int(failedCampaigns),
+		ComplaintCount:        int(complaintCount),
+		UnsubscribeCount:      int(unsubscribeCount),
+		SuccessRate:           successRate,
+		ComplaintRate:         complaintRate,
+		UnsubscribeRate:       unsubscribeRate,
+		AverageEngagementRate: avgEngagementRate,
+		DaysInCurrentMode:     daysInCurrentMode,
 	}
 
 	recommendation := h.modeManager.GetModeRecommendation(metrics)

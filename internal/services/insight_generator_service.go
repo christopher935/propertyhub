@@ -369,11 +369,31 @@ func (s *InsightGeneratorService) getDashboardMetrics() (map[string]interface{},
 		Count(&totalActiveLeads)
 	metrics["total_active_leads"] = totalActiveLeads
 
-	// Average response time (mock for now)
-	metrics["avg_response_time_minutes"] = 18
+	// Average response time - calculate from contact creation to first response
+	var avgResponseMinutes float64
+	s.db.Raw(`
+		SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/60), 0)
+		FROM contacts
+		WHERE status != 'new'
+		AND updated_at > created_at
+		AND created_at > NOW() - INTERVAL '30 days'
+	`).Scan(&avgResponseMinutes)
+	metrics["avg_response_time_minutes"] = int(avgResponseMinutes)
 
-	// Conversion rate (mock for now)
-	metrics["conversion_rate_percent"] = 23.5
+	// Conversion rate - calculate from leads to bookings
+	var totalLeadsLast30Days, totalBookingsLast30Days int64
+	s.db.Table("contacts").
+		Where("created_at >= ?", time.Now().AddDate(0, 0, -30)).
+		Count(&totalLeadsLast30Days)
+	s.db.Table("bookings").
+		Where("created_at >= ?", time.Now().AddDate(0, 0, -30)).
+		Count(&totalBookingsLast30Days)
+	
+	conversionRate := 0.0
+	if totalLeadsLast30Days > 0 {
+		conversionRate = (float64(totalBookingsLast30Days) / float64(totalLeadsLast30Days)) * 100
+	}
+	metrics["conversion_rate_percent"] = conversionRate
 
 	return metrics, nil
 }
