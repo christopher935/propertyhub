@@ -248,9 +248,6 @@ func (h *CommandCenterHandlers) generateShowingRequestItems() ([]CommandCenterIt
 	}
 
 	for _, booking := range bookings {
-		minutesAgo := int(time.Since(booking.CreatedAt).Minutes())
-		timeAgo := formatTimeAgo(minutesAgo)
-
 		// Get lead score if available
 		var score int = 50
 		h.db.Raw(`

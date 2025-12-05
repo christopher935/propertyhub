@@ -70,43 +70,7 @@ func (h *LiveActivityHandler) GetLiveActivity(c *gin.Context) {
 	})
 }
 
-func (h *LiveActivityHandler) GetActiveSessions(c *gin.Context) {
-	cutoff := time.Now().Add(-30 * time.Minute)
-	
-	var sessions []models.BehavioralSession
-	h.db.Where("start_time >= ? AND (end_time IS NULL OR end_time >= ?)", cutoff, cutoff).
-		Order("start_time DESC").
-		Find(&sessions)
-	
-	activeSessions := make([]map[string]interface{}, 0, len(sessions))
-	for _, session := range sessions {
-		var eventsCount int64
-		h.db.Model(&models.BehavioralEvent{}).Where("session_id = ?", session.ID).Count(&eventsCount)
-		
-		var propertiesViewed int64
-		h.db.Model(&models.BehavioralEvent{}).
-			Where("session_id = ? AND event_type IN (?)", session.ID, []string{"viewed", "property_viewed"}).
-			Count(&propertiesViewed)
-		
-		activeSessions = append(activeSessions, map[string]interface{}{
-			"session_id": session.ID,
-			"start_time": session.StartTime,
-			"duration_seconds": session.DurationSeconds,
-			"page_views": session.PageViews,
-			"interactions": session.Interactions,
-			"properties_viewed": propertiesViewed,
-			"events_count": eventsCount,
-			"device_type": session.DeviceType,
-			"is_active": session.EndTime == nil,
-		})
-	}
-	
-	c.JSON(http.StatusOK, gin.H{
-		"active_sessions": activeSessions,
-		"count": len(activeSessions),
-		"timestamp": time.Now(),
-	})
-}
+
 
 func (h *LiveActivityHandler) GetSessionDetails(c *gin.Context) {
 	sessionID := c.Param("id")
