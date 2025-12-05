@@ -19,7 +19,7 @@ class ApplicationWorkflow {
     async loadData() {
         try {
             // Load properties with their application numbers
-            const propertiesResponse = await fetch('/api/v1/application-workflow/properties');
+            const propertiesResponse = await fetch('/api/properties-with-applications');
             const propertiesData = await propertiesResponse.json();
             
             if (propertiesData.success) {
@@ -27,7 +27,7 @@ class ApplicationWorkflow {
             }
 
             // Load unassigned applicants
-            const applicantsResponse = await fetch('/api/v1/application-workflow/unassigned-applicants');
+            const applicantsResponse = await fetch('/api/applicants-without-application');
             const applicantsData = await applicantsResponse.json();
             
             if (applicantsData.success) {
@@ -335,7 +335,7 @@ class ApplicationWorkflow {
 
     async moveApplicantToApplication(applicantId, applicationId) {
         try {
-            const response = await fetch('/api/v1/application-workflow/move-applicant', {
+            const response = await fetch('/api/application-workflow/move-applicant', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -368,7 +368,7 @@ class ApplicationWorkflow {
         const agentEmail = document.getElementById('agentEmail').value;
 
         try {
-            const response = await fetch('/api/v1/application-workflow/assign-agent', {
+            const response = await fetch('/api/application-workflow/assign-agent', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -417,12 +417,13 @@ class ApplicationWorkflow {
 
 async function addApplicationNumber(propertyId, propertyAddress) {
     try {
-        const response = await fetch(`/api/v1/application-workflow/properties/${propertyId}/applications`, {
+        const response = await fetch('/api/application-workflow/application-number', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                property_id: parseInt(propertyId),
                 property_address: propertyAddress
             })
         });
@@ -460,13 +461,12 @@ function closeAgentModal() {
 
 async function updateApplicationStatus(applicationId, newStatus) {
     try {
-        const response = await fetch('/api/v1/application-workflow/update-status', {
-            method: 'POST',
+        const response = await fetch(`/api/application-workflow/${applicationId}/status`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                application_number_id: applicationId,
                 status: newStatus,
                 updated_by: 'Admin',
                 reason: 'Manual status update'
