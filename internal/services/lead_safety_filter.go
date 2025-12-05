@@ -238,9 +238,17 @@ func (lsf *LeadSafetyFilter) detectLeadStage(leadID string) string {
 
 // getFUBStage queries FUB API for lead stage
 func (lsf *LeadSafetyFilter) getFUBStage(leadID string) string {
-	// TODO: Implement FUB API query
-	// For now, return empty (will be implemented in Phase 5)
-	return ""
+	if lsf.db == nil {
+		return ""
+	}
+
+	var fubLead models.FUBLead
+	if err := lsf.db.Where("fub_lead_id = ?", leadID).First(&fubLead).Error; err != nil {
+		log.Printf("Warning: Could not find FUB lead %s: %v", leadID, err)
+		return ""
+	}
+
+	return fubLead.Stage
 }
 
 // normalizeFUBStage converts FUB stage names to PropertyHub stage names
