@@ -100,9 +100,9 @@ function renderSavedProperties(savedProperties) {
         return `
             <div class="saved-property-card" data-property-id="${prop.id}">
                 <div class="saved-property-image">
-                    ${prop.featured_image ? 
-                        `<img src="${prop.featured_image}" alt="${prop.address}" style="width:100%;height:100%;object-fit:cover;">` : 
-                        `<svg width="60" height="60" fill="currentColor"><use href="#icon-home-modern"></use></svg>`
+                    ${prop.featured_image || (prop.images && prop.images.length > 0) ? 
+                        `<img src="${prop.featured_image || prop.images[0]}" alt="${prop.address}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='<svg width=60 height=60 fill=currentColor><use href=#icon-home-modern></use></svg>'">` : 
+                        `<svg width="60" height="60" fill="currentColor" style="color:var(--gray-400);"><use href="#icon-home-modern"></use></svg>`
                     }
                 </div>
                 <div class="saved-property-details">

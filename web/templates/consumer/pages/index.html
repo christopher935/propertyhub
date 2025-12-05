@@ -154,8 +154,13 @@
 </span>
 </div>
 <div class="property-image property-image-clickable" @click="openQuickView(property.id)">
-<div class="text-center">
-<svg class="property-placeholder-icon" height="120" width="120"><use href="#icon-home"></use></svg>
+<template x-if="property.featured_image || (property.images && property.images.length > 0)">
+<img :src="property.featured_image || property.images[0]" 
+:alt="'Property at ' + formatAddress(property.address)"
+onerror="this.style.display='none'; this.parentElement.querySelector('.property-placeholder').style.display='flex'">
+</template>
+<div class="property-placeholder" :style="(property.featured_image || (property.images && property.images.length > 0)) ? 'display: none;' : 'display: flex;'">
+<svg height="120" width="120" style="color: var(--gray-400);"><use href="#icon-home"></use></svg>
 </div>
 </div>
 <div class="property-details">
@@ -247,8 +252,9 @@
                             </button>
                             <div class="gallery-counter" id="qv-image-counter">1 / 1</div>
                         </div>
-                        <div style="text-align: center; padding: var(--space-12);" x-show="!selectedProperty || !selectedProperty.images || selectedProperty.images.length === 0">
+                        <div class="property-placeholder" style="text-align: center; padding: var(--space-12); height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center;" x-show="!selectedProperty || (!selectedProperty.featured_image && (!selectedProperty.images || selectedProperty.images.length === 0))">
                             <svg style="color: var(--gray-400); margin: 0 auto;" height="120" width="120"><use href="#icon-home"></use></svg>
+                            <p style="color: var(--gray-500); margin-top: var(--space-4); font-size: var(--font-size-sm);">No images available</p>
                         </div>
                         <div id="qv-thumbnails" class="gallery-thumbnails"></div>
                     </div>
