@@ -6397,3 +6397,244 @@ canvas.chart-lg {
     transform: translateY(-2px);
 }
 
+
+/* ============================================
+   ADMIN UX ENHANCEMENTS
+   ============================================ */
+
+/* Daily Progress Widget */
+.daily-progress-widget {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.daily-progress-widget h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--navy-primary);
+    margin-bottom: 20px;
+}
+
+.progress-ring {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    background: conic-gradient(
+        var(--gold-primary) 0%,
+        var(--gold-primary) var(--progress),
+        var(--gray-200) var(--progress),
+        var(--gray-200) 100%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-ring::before {
+    content: '';
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    background: white;
+    border-radius: 50%;
+}
+
+.progress-value {
+    position: relative;
+    z-index: 1;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--navy-primary);
+}
+
+.progress-tasks {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.progress-tasks li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--gray-50);
+    transition: background 0.2s;
+}
+
+.progress-tasks li.completed {
+    background: #d1fae5;
+}
+
+.task-check {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 2px solid var(--gray-300);
+    border-radius: 50%;
+    color: transparent;
+    transition: all 0.2s;
+}
+
+.progress-tasks li.completed .task-check {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+}
+
+/* Deal Closed Celebration Modal */
+.celebration-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.celebration-content {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 500px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: celebrationPop 0.5s ease-out;
+}
+
+@keyframes celebrationPop {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.celebration-emoji {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: bounce 1s ease-in-out;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.celebration-content h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--navy-primary);
+    margin-bottom: 16px;
+}
+
+.celebration-details {
+    font-size: 1.125rem;
+    color: var(--gray-700);
+    margin: 20px 0;
+}
+
+.celebration-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 30px 0;
+    gap: 20px;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--navy-primary);
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+/* Admin Lead Hot Indicators */
+.lead-card.lead-hot {
+    position: relative;
+    border-left: 4px solid #ef4444;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.02) 100%);
+}
+
+.lead-card.lead-hot::before {
+    content: "🔥";
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 20px;
+    animation: bounce 1s infinite;
+}
+
+/* Attention Indicator in Header */
+.attention-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #fee2e2;
+    border-radius: 8px;
+}
+
+.attention-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    background: #ef4444;
+    color: white;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.75rem;
+}
+
+.attention-label {
+    color: #991b1b;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .celebration-content {
+        padding: 24px;
+        margin: 20px;
+    }
+    
+    .celebration-stats {
+        flex-direction: column;
+    }
+    
+    .progress-ring {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .progress-ring::before {
+        width: 75px;
+        height: 75px;
+    }
+}
