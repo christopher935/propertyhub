@@ -125,9 +125,16 @@
 <div class="text-sm text-gray-600">per month</div>
 </div>
 </div>
+<nav class="property-nav">
+<a href="#gallery" class="nav-link">Gallery</a>
+<a href="#details" class="nav-link active">Details</a>
+<a href="#amenities" class="nav-link">Amenities</a>
+<a href="#location" class="nav-link">Location</a>
+<a href="#similar" class="nav-link">Similar Properties</a>
+</nav>
 <div class="property-layout">
 <div class="property-main">
-<div class="property-gallery mb-8">
+<div id="gallery" class="property-gallery mb-8">
 <div class="image-placeholder">
 <div class="placeholder-icon"><svg height="80" width="80"><use href="#icon-home-modern"></use></svg></div>
 <p class="text-heading-4 text-gray-500 mb-2">Professional photos coming soon</p>
@@ -140,14 +147,14 @@
 <button class="btn btn-outline btn-sm"><svg class="inline-icon" height="16" width="16"><use href="#icon-sparkles"></use></svg> Yard</button>
 </div>
 </div>
-<section class="property-section mb-8">
+<section id="details" class="property-section mb-8">
 <h2 class="text-heading-2 text-navy mb-4">Property Description</h2>
 <div class="property-description text-body text-gray-700">
 <p class="mb-4">Beautiful single-family home in a quiet residential neighborhood. This property features spacious rooms, modern amenities, and a well-maintained yard. Perfect for families looking for comfort and convenience in the Houston area.</p>
 <p>The home includes updated kitchen appliances, hardwood floors throughout, and a two-car garage. Located within walking distance of parks and schools, with easy access to major highways for commuting.</p>
 </div>
 </section>
-<section class="property-section mb-8">
+<section id="location" class="property-section mb-8">
 <h2 class="text-heading-2 text-navy mb-4">Neighborhood Insights</h2>
 <p class="text-body text-gray-600 mb-6">Discover what makes this location special</p>
 <div class="neighborhood-grid">
@@ -168,7 +175,7 @@
 </div>
 </div>
 </section>
-<section class="property-section">
+<section id="similar" class="property-section">
 <h2 class="text-heading-2 text-navy mb-4">Similar Properties</h2>
 <p class="text-body text-gray-600 mb-6">Other properties you might be interested in</p>
 <div class="similar-properties-grid">
@@ -280,5 +287,6 @@
             </p>
 </div>
 </footer>
+<script src="/static/js/property-details.js"></script>
 </body>
 </html>

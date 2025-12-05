@@ -70,8 +70,19 @@ function homepageProperties() {
                     this.selectedProperty = Array.isArray(data.data) ? data.data[0] : (data.data.property || data.data);
                     this.currentImageIndex = 0;
                     this.showModal = true;
-                    document.getElementById('quick-view-modal').style.display = 'block';
+                    
+                    const modal = document.getElementById('quick-view-modal');
+                    const backdrop = modal.querySelector('.modal-backdrop');
+                    const wrapper = modal.querySelector('.modal-wrapper');
+                    
+                    modal.style.display = 'flex';
                     document.body.style.overflow = 'hidden';
+                    
+                    // Trigger animation
+                    requestAnimationFrame(() => {
+                        if (backdrop) backdrop.classList.add('show');
+                        if (wrapper) wrapper.classList.add('show');
+                    });
                     
                     // Update modal content
                     this.updateModalContent();
@@ -157,10 +168,19 @@ function homepageProperties() {
         },
         
         closeQuickView() {
-            this.showModal = false;
-            this.selectedProperty = null;
-            document.getElementById('quick-view-modal').style.display = 'none';
-            document.body.style.overflow = '';
+            const modal = document.getElementById('quick-view-modal');
+            const backdrop = modal ? modal.querySelector('.modal-backdrop') : null;
+            const wrapper = modal ? modal.querySelector('.modal-wrapper') : null;
+            
+            if (backdrop) backdrop.classList.remove('show');
+            if (wrapper) wrapper.classList.remove('show');
+            
+            setTimeout(() => {
+                this.showModal = false;
+                this.selectedProperty = null;
+                if (modal) modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }, 300);
         },
         
         formatPrice(price) {

@@ -75,6 +75,8 @@
 <button class="filter-pill" data-filter="single-story">Single Story</button>
 <button class="filter-pill" data-filter="available">Available Now</button>
 </div>
+<!-- Active Filters Display -->
+<div class="active-filters" id="activeFilters" style="display: none;"></div>
 <!-- Advanced Filters -->
 <div class="properties-advanced-filters">
 <div class="filter-group">
@@ -136,27 +138,27 @@
 <!-- Loading Skeleton (shown while loading) -->
 <div aria-hidden="true" class="properties-grid loading-skeleton hidden" id="loadingSkeleton">
 <div class="property-card loading">
-<div class="property-image"></div>
+<div class="skeleton skeleton-image"></div>
 <div class="property-details">
-<div class="skeleton-line"></div>
-<div class="skeleton-line"></div>
-<div class="skeleton-line"></div>
+<div class="skeleton skeleton-text"></div>
+<div class="skeleton skeleton-text short"></div>
+<div class="skeleton skeleton-text"></div>
 </div>
 </div>
 <div class="property-card loading">
-<div class="property-image"></div>
+<div class="skeleton skeleton-image"></div>
 <div class="property-details">
-<div class="skeleton-line"></div>
-<div class="skeleton-line"></div>
-<div class="skeleton-line"></div>
+<div class="skeleton skeleton-text"></div>
+<div class="skeleton skeleton-text short"></div>
+<div class="skeleton skeleton-text"></div>
 </div>
 </div>
 <div class="property-card loading">
-<div class="property-image"></div>
+<div class="skeleton skeleton-image"></div>
 <div class="property-details">
-<div class="skeleton-line"></div>
-<div class="skeleton-line"></div>
-<div class="skeleton-line"></div>
+<div class="skeleton skeleton-text"></div>
+<div class="skeleton skeleton-text short"></div>
+<div class="skeleton skeleton-text"></div>
 </div>
 </div>
 </div>
@@ -271,5 +273,6 @@
         }
     });
 </script>
+<script src="/static/js/property-search.js"></script>
 </body>
 </html>
