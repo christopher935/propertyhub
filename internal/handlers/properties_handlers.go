@@ -8,19 +8,19 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
-	"github.com/gin-gonic/gin"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/repositories"
 	"chrisgross-ctrl-project/internal/security"
 	"chrisgross-ctrl-project/internal/services"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type PropertiesHandler struct {
 	db                *gorm.DB
 	repos             *repositories.Repositories
 	encryptionManager *security.EncryptionManager
-	behavioralService *services.BehavioralEventService  // ADDED: Behavioral tracking
+	behavioralService *services.BehavioralEventService // ADDED: Behavioral tracking
 }
 
 func NewPropertiesHandler(db *gorm.DB, repos *repositories.Repositories, encryptionManager *security.EncryptionManager) *PropertiesHandler {
@@ -28,15 +28,15 @@ func NewPropertiesHandler(db *gorm.DB, repos *repositories.Repositories, encrypt
 		db:                db,
 		repos:             repos,
 		encryptionManager: encryptionManager,
-		behavioralService: services.NewBehavioralEventService(db),  // ADDED: Initialize tracking service
+		behavioralService: services.NewBehavioralEventService(db), // ADDED: Initialize tracking service
 	}
 }
 
 type PropertyStatsResponse struct {
-	TotalProperties    int64   `json:"total_properties"`
-	ActiveProperties   int64   `json:"active_properties"`
-	PendingProperties  int64   `json:"pending_properties"`
-	SoldProperties     int64   `json:"sold_properties"`
+	TotalProperties   int64   `json:"total_properties"`
+	ActiveProperties  int64   `json:"active_properties"`
+	PendingProperties int64   `json:"pending_properties"`
+	SoldProperties    int64   `json:"sold_properties"`
 	AveragePrice      float64 `json:"average_price"`
 	TotalValue        float64 `json:"total_value"`
 	ViewsLast30Days   int     `json:"views_last_30_days"`
@@ -87,11 +87,14 @@ func (h *PropertiesHandler) GetProperties(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Convert to response format with decrypted addresses
+	propertyResponses := models.ToResponseList(properties, h.encryptionManager)
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"data": map[string]interface{}{
-			"properties":  properties,
+			"properties":  propertyResponses,
 			"total":       total,
 			"page":        page,
 			"limit":       limit,
@@ -143,7 +146,7 @@ func (h *PropertiesHandler) GetConsumerProperties(w http.ResponseWriter, r *http
 		sessionID := extractSessionID(r)
 		ipAddress := extractIPAddress(r)
 		userAgent := r.UserAgent()
-		
+
 		eventData := map[string]interface{}{
 			"action":       "browse_properties",
 			"page":         page,
@@ -151,7 +154,7 @@ func (h *PropertiesHandler) GetConsumerProperties(w http.ResponseWriter, r *http
 			"search_term":  search,
 			"result_count": len(properties),
 		}
-		
+
 		// Track the browsing event (non-blocking)
 		go h.behavioralService.TrackEvent(leadID, "browsed", eventData, nil, sessionID, ipAddress, userAgent)
 	}
@@ -163,7 +166,7 @@ func (h *PropertiesHandler) GetConsumerProperties(w http.ResponseWriter, r *http
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
-		"data": propertyResponses,
+		"data":    propertyResponses,
 		"pagination": map[string]interface{}{
 			"current_page": page,
 			"total_pages":  int((totalCount + int64(limit) - 1) / int64(limit)),
@@ -211,12 +214,15 @@ func (h *PropertiesHandler) GetFeaturedProperties(w http.ResponseWriter, r *http
 		return
 	}
 
+	// Convert to response format with decrypted addresses
+	propertyResponses := models.ToResponseList(properties, h.encryptionManager)
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"data": map[string]interface{}{
-			"properties": properties,
-			"count":      len(properties),
+			"properties": propertyResponses,
+			"count":      len(propertyResponses),
 		},
 	})
 }
@@ -242,8 +248,8 @@ func (h *PropertiesHandler) UploadPropertyPhoto(w http.ResponseWriter, r *http.R
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"message": "Photo upload endpoint working",
+		"success":     true,
+		"message":     "Photo upload endpoint working",
 		"property_id": propertyID,
 	})
 }
@@ -290,14 +296,14 @@ func (h *PropertiesHandler) UpdatePropertyStatus(w http.ResponseWriter, r *http.
 	pathParts := strings.Split(r.URL.Path, "/")
 	var propertyID uint64
 	var err error
-	
+
 	for i, part := range pathParts {
 		if part == "properties" && i+1 < len(pathParts) {
 			propertyID, err = strconv.ParseUint(pathParts[i+1], 10, 32)
 			break
 		}
 	}
-	
+
 	if err != nil || propertyID == 0 {
 		http.Error(w, "Invalid property ID", http.StatusBadRequest)
 		return
@@ -306,7 +312,7 @@ func (h *PropertiesHandler) UpdatePropertyStatus(w http.ResponseWriter, r *http.
 	var req struct {
 		Status string `json:"status"`
 	}
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -416,7 +422,7 @@ func RegisterPropertiesRoutes(mux *http.ServeMux, db *gorm.DB, repos *repositori
 	mux.HandleFunc("/api/v1/admin/properties", handler.GetProperties)
 	mux.HandleFunc("/api/v1/admin/properties/stats", handler.GetPropertyStats)
 	mux.HandleFunc("/api/v1/admin/properties/featured", handler.GetFeaturedProperties)
-	
+
 	mux.HandleFunc("/api/v1/admin/properties/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/status") {
 			handler.UpdatePropertyStatus(w, r)
@@ -814,7 +820,7 @@ func (h *PropertiesHandler) GetPropertiesGin(c *gin.Context) {
 	}
 
 	if search != "" {
-		query = query.Where("address ILIKE ? OR description ILIKE ? OR city ILIKE ?", 
+		query = query.Where("address ILIKE ? OR description ILIKE ? OR city ILIKE ?",
 			"%"+search+"%", "%"+search+"%", "%"+search+"%")
 	}
 
@@ -852,10 +858,13 @@ func (h *PropertiesHandler) GetPropertiesGin(c *gin.Context) {
 		}
 	}
 
+	// Convert to response format with decrypted addresses
+	propertyResponses := models.ToResponseList(properties, h.encryptionManager)
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"properties":  properties,
+			"properties":  propertyResponses,
 			"total":       total,
 			"page":        page,
 			"limit":       limit,
@@ -877,21 +886,21 @@ func (h *PropertiesHandler) SearchPropertiesPost(c *gin.Context) {
 		Page         int      `json:"page"`
 		Limit        int      `json:"limit"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&searchReq); err != nil {
 		searchReq.Page = 1
 		searchReq.Limit = 20
 	}
-	
+
 	if searchReq.Page < 1 {
 		searchReq.Page = 1
 	}
 	if searchReq.Limit < 1 || searchReq.Limit > 100 {
 		searchReq.Limit = 20
 	}
-	
+
 	query := h.db.Model(&models.Property{}).Where("status = ?", "active")
-	
+
 	if searchReq.City != "" {
 		query = query.Where("city ILIKE ?", "%"+searchReq.City+"%")
 	}
@@ -911,21 +920,24 @@ func (h *PropertiesHandler) SearchPropertiesPost(c *gin.Context) {
 		query = query.Where("property_type = ?", searchReq.PropertyType)
 	}
 	if searchReq.Search != "" {
-		searchTerm := "%"+searchReq.Search+"%"
-		query = query.Where("address ILIKE ? OR description ILIKE ? OR city ILIKE ?", 
+		searchTerm := "%" + searchReq.Search + "%"
+		query = query.Where("address ILIKE ? OR description ILIKE ? OR city ILIKE ?",
 			searchTerm, searchTerm, searchTerm)
 	}
-	
+
 	var total int64
 	query.Count(&total)
-	
+
 	var properties []models.Property
 	offset := (searchReq.Page - 1) * searchReq.Limit
 	query.Order("created_at DESC").Limit(searchReq.Limit).Offset(offset).Find(&properties)
-	
+
+	// Convert to response format with decrypted addresses
+	propertyResponses := models.ToResponseList(properties, h.encryptionManager)
+
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"properties": properties,
+		"success":    true,
+		"properties": propertyResponses,
 		"pagination": gin.H{
 			"current_page": searchReq.Page,
 			"total_pages":  (total + int64(searchReq.Limit) - 1) / int64(searchReq.Limit),
