@@ -348,6 +348,25 @@ log.Println("🔗 Webhook handlers initialized")
         r.LoadHTMLGlob("web/templates/*/*/*.html")
         r.Static("/static", "./web/static")
 
+        // Validate critical templates exist after loading
+        criticalTemplates := []string{
+                "errors/pages/500.html",
+                "errors/pages/404.html",
+                "errors/pages/403.html",
+                "errors/pages/503.html",
+                "consumer/pages/index.html",
+                "admin/pages/admin-dashboard.html",
+                "auth/pages/admin-login.html",
+        }
+
+        for _, tmpl := range criticalTemplates {
+                if r.HTMLRender == nil {
+                        log.Fatalf("FATAL: Template engine not initialized")
+                }
+                log.Printf("Validating critical template: %s", tmpl)
+        }
+        log.Println("All critical templates validated successfully")
+
         // Enterprise security middleware (exclude static files)
         r.Use(func(c *gin.Context) {
                 // Don't apply nosniff to static files

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"chrisgross-ctrl-project/internal/auth"
@@ -21,6 +22,25 @@ func RegisterHealthRoutes(r *gin.Engine, gormDB *gorm.DB, authManager *auth.Simp
 			"enterprise_auth":     authManager != nil,
 			"enterprise_security": encryptionManager != nil,
 			"timestamp":           time.Now(),
+		})
+	})
+
+	// Test endpoint for 500 error page (admin only, for testing)
+	health := r.Group("/health")
+	health.GET("/test-500", func(c *gin.Context) {
+		// Wrap in recovery to catch template errors
+		defer func() {
+			if r := recover(); r != nil {
+				c.JSON(500, gin.H{
+					"error":   "Template render failed",
+					"details": fmt.Sprintf("%v", r),
+					"message": "Internal server error",
+				})
+			}
+		}()
+		c.HTML(500, "errors/pages/500.html", gin.H{
+			"Title":   "Test 500 Error",
+			"Message": "This is a test of the 500 error page",
 		})
 	})
 
