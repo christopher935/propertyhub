@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics - PropertyHub</title>
+    <title>Booking Confirmed - Landlords of Texas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="/static/css/scout-utilities.min.css">
     <link rel="stylesheet" href="/static/css/scout-layouts.min.css">
     <link rel="stylesheet" href="/static/css/scout-components.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="/static/js/booking-calendar.js"></script>
 </head>
 <body class="admin-analytics-page">
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -293,23 +295,46 @@
 </div>
 
 
-            <div class="admin-content">
+            <div class="admin-content" x-data="bookingConfirmation()" x-init="init()">
 
 <div class="container" style="max-width: 600px; margin: 100px auto; text-align: center;">
-    <div style="font-size: 80px; color: var(--color-success); margin-bottom: 20px;">✓</div>
-    <h1 style="font-size: 32px; margin: 20px 0;">Showing Confirmed</h1>
-    <p style="font-size: 18px; color: var(--color-charcoal-60); margin-bottom: 40px;">
-        Your property showing has been scheduled. You'll receive a calendar invitation and reminder.
-    </p>
-    <div class="card" style="max-width: 400px; margin: 0 auto 40px; text-align: left;">
-        <div class="card-body">
-            <p><strong>Property:</strong> 123 Main St, Houston, TX</p>
-            <p><strong>Date:</strong> November 5, 2025</p>
-            <p><strong>Time:</strong> 2:00 PM - 2:30 PM</p>
-            <p><strong>Agent:</strong> John Smith</p>
+    <div x-show="loading" style="display: none;">
+        <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+        <h1 style="font-size: 32px; margin: 20px 0;">Loading...</h1>
+    </div>
+    
+    <div x-show="error && !loading" style="display: none;">
+        <div style="font-size: 80px; color: var(--color-error); margin-bottom: 20px;">✗</div>
+        <h1 style="font-size: 32px; margin: 20px 0;">Booking Not Found</h1>
+        <p style="font-size: 18px; color: var(--color-charcoal-60); margin-bottom: 40px;" x-text="error"></p>
+        <a href="/" class="btn btn-primary">Return to Home</a>
+    </div>
+    
+    <div x-show="booking && !loading" style="display: none;">
+        <div style="font-size: 80px; color: var(--color-success); margin-bottom: 20px;">✓</div>
+        <h1 style="font-size: 32px; margin: 20px 0;">Tour Confirmed!</h1>
+        <p style="font-size: 18px; color: var(--color-charcoal-60); margin-bottom: 40px;">
+            Your property tour has been scheduled. You'll receive a confirmation email and calendar invitation shortly.
+        </p>
+        <div class="card" style="max-width: 500px; margin: 0 auto 40px; text-align: left;">
+            <div class="card-body">
+                <p><strong>Reference Number:</strong> <span x-text="booking?.reference_number"></span></p>
+                <p><strong>Property:</strong> <span x-text="booking?.property?.address || 'Property Address'"></span></p>
+                <p><strong>Date:</strong> <span x-text="booking ? formatDate(booking.showing_date) : ''"></span></p>
+                <p><strong>Time:</strong> <span x-text="booking ? formatTime(booking.showing_time) : ''"></span></p>
+                <p><strong>Type:</strong> <span x-text="booking?.showing_type || 'In-Person'"></span></p>
+                <p><strong>Contact:</strong> <span x-text="booking?.email"></span></p>
+                <p><strong>Phone:</strong> <span x-text="booking?.phone"></span></p>
+                <template x-if="booking?.notes">
+                    <p><strong>Notes:</strong> <span x-text="booking.notes"></span></p>
+                </template>
+            </div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <a href="/" class="btn btn-primary">Return to Home</a>
+            <a href="/properties" class="btn btn-secondary" style="margin-left: 10px;">View More Properties</a>
         </div>
     </div>
-    <a href="/" class="btn btn-primary">Return to Home</a>
 </div>
 
 

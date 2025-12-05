@@ -12,6 +12,8 @@
 <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
 <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
 <link href="/static/css/scout-components.css" rel="stylesheet"/>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="/static/js/booking-calendar.js"></script>
 <script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITE_KEY"></script>
 </head>
 <body class="scout-consumer-layout page-booking">
@@ -118,32 +120,38 @@
 </nav>
 </header>
 <!-- Booking Wizard -->
-<main class="booking-wizard">
+<main class="booking-wizard" x-data="bookingForm()">
 <div class="container-narrow pt-8 pb-4">
+<!-- Error Display -->
+<div x-show="error" x-transition class="alert alert-error mb-4" style="display: none;">
+<svg height="20" width="20"><use href="#icon-warning"></use></svg>
+<span x-text="error"></span>
+</div>
+
 <!-- Step Indicator -->
 <div class="step-indicator">
-<div class="step active" data-step="1">
+<div class="step" :class="{ 'active': step === 1, 'completed': step > 1 }" data-step="1">
 <div class="step-circle">1</div>
 <div class="step-label">
 <div class="text-body-sm font-semibold">Pre-Qualification</div>
 </div>
 </div>
 <div class="step-line"></div>
-<div class="step" data-step="2">
+<div class="step" :class="{ 'active': step === 2, 'completed': step > 2 }" data-step="2">
 <div class="step-circle">2</div>
 <div class="step-label">
 <div class="text-body-sm font-semibold">Date &amp; Time</div>
 </div>
 </div>
 <div class="step-line"></div>
-<div class="step" data-step="3">
+<div class="step" :class="{ 'active': step === 3, 'completed': step > 3 }" data-step="3">
 <div class="step-circle">3</div>
 <div class="step-label">
 <div class="text-body-sm font-semibold">Contact Info</div>
 </div>
 </div>
 <div class="step-line"></div>
-<div class="step" data-step="4">
+<div class="step" :class="{ 'active': step === 4, 'completed': step > 4 }" data-step="4">
 <div class="step-circle">4</div>
 <div class="step-label">
 <div class="text-body-sm font-semibold">Confirmation</div>
@@ -151,7 +159,7 @@
 </div>
 </div>
 <!-- Step 1: Pre-Qualification -->
-<div class="wizard-step active" id="step-1">
+<div class="wizard-step" :class="{ 'active': step === 1 }" id="step-1" x-show="step === 1">
 <div class="step-content">
 <h1 class="text-heading-1 font-serif text-navy text-center mb-2">Rental Requirements</h1>
 <p class="text-body text-gray-600 text-center mb-6">To ensure a smooth application process, please confirm you meet these requirements</p>
@@ -166,7 +174,7 @@
 </div>
 <div class="flex flex-col gap-4 mb-5">
 <div class="requirement-item" data-requirement="income">
-<input class="requirement-checkbox" id="req-income" type="checkbox"/>
+<input class="requirement-checkbox" id="req-income" type="checkbox" x-model="requirementsChecked.income"/>
 <div class="requirement-checkmark">
 <svg class="icon-gold" height="20" width="20"><use href="#icon-check"></use></svg>
 </div>
@@ -177,7 +185,7 @@
 </div>
 </div>
 <div class="requirement-item" data-requirement="felony">
-<input class="requirement-checkbox" id="req-felony" type="checkbox"/>
+<input class="requirement-checkbox" id="req-felony" type="checkbox" x-model="requirementsChecked.felony"/>
 <div class="requirement-checkmark">
 <svg class="icon-gold" height="20" width="20"><use href="#icon-check"></use></svg>
 </div>
@@ -188,7 +196,7 @@
 </div>
 </div>
 <div class="requirement-item" data-requirement="eviction">
-<input class="requirement-checkbox" id="req-eviction" type="checkbox"/>
+<input class="requirement-checkbox" id="req-eviction" type="checkbox" x-model="requirementsChecked.eviction"/>
 <div class="requirement-checkmark">
 <svg class="icon-gold" height="20" width="20"><use href="#icon-check"></use></svg>
 </div>
@@ -199,7 +207,7 @@
 </div>
 </div>
 <div class="requirement-item" data-requirement="credit">
-<input class="requirement-checkbox" id="req-credit" type="checkbox"/>
+<input class="requirement-checkbox" id="req-credit" type="checkbox" x-model="requirementsChecked.credit"/>
 <div class="requirement-checkmark">
 <svg class="icon-gold" height="20" width="20"><use href="#icon-check"></use></svg>
 </div>
@@ -217,12 +225,12 @@
 </div>
 </div>
 <div class="step-actions">
-<button class="btn btn-primary" disabled="" id="step1-next" type="button">Next Step</button>
+<button class="btn btn-primary" :disabled="!canProceedToStep2" id="step1-next" type="button" @click="nextStep()">Next Step</button>
 </div>
 </div>
 </div>
 <!-- Step 2: Date & Time -->
-<div class="wizard-step" id="step-2">
+<div class="wizard-step" :class="{ 'active': step === 2 }" id="step-2" x-show="step === 2">
 <div class="step-content">
 <h1 class="text-heading-1 font-serif text-navy text-center mb-6">Select Date &amp; Time</h1>
 <div class="datetime-selector">
@@ -294,33 +302,39 @@
 </div>
 </div>
 <div class="step-actions">
-<button class="btn btn-secondary" id="step2-back" type="button">Back</button>
-<button class="btn btn-primary" disabled="" id="step2-next" type="button">Next Step</button>
+<button class="btn btn-secondary" id="step2-back" type="button" @click="prevStep()">Back</button>
+<button class="btn btn-primary" :disabled="!canProceedToStep3" id="step2-next" type="button" @click="nextStep()" x-bind:class="{ 'loading': loading }">Next Step</button>
 </div>
 </div>
 </div>
 <!-- Step 3: Contact Information -->
-<div class="wizard-step" id="step-3">
+<div class="wizard-step" :class="{ 'active': step === 3 }" id="step-3" x-show="step === 3">
 <div class="step-content">
 <h1 class="text-heading-1 font-serif text-navy text-center mb-2">Contact Information</h1>
 <p class="text-body text-gray-600 text-center mb-6">Please provide your details for the tour confirmation</p>
 <form class="booking-form" id="contact-form">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <div class="form-group">
-<label class="form-label" for="full-name">Full Name</label>
-<input class="form-input" id="full-name" name="full_name" required="" type="text"/>
+<label class="form-label" for="full-name">First Name</label>
+<input class="form-input" id="first-name" name="first_name" required="" type="text" x-model="form.firstName"/>
+</div>
+<div class="form-group">
+<label class="form-label" for="last-name">Last Name</label>
+<input class="form-input" id="last-name" name="last_name" required="" type="text" x-model="form.lastName"/>
 </div>
 <div class="form-group">
 <label class="form-label" for="email">Email</label>
-<input class="form-input" id="email" name="email" required="" type="email"/>
+<input class="form-input" id="email" name="email" required="" type="email" x-model="form.email"/>
+<span x-show="errors.email" class="text-error text-sm" x-text="errors.email" style="display: none;"></span>
 </div>
 <div class="form-group">
 <label class="form-label" for="phone">Phone Number</label>
-<input class="form-input" id="phone" name="phone" required="" type="tel"/>
+<input class="form-input" id="phone" name="phone" required="" type="tel" x-model="form.phone"/>
+<span x-show="errors.phone" class="text-error text-sm" x-text="errors.phone" style="display: none;"></span>
 </div>
 <div class="form-group">
 <label class="form-label" for="special-requests">Special Requests (Optional)</label>
-<textarea class="form-textarea" id="special-requests" name="special_requests" rows="4"></textarea>
+<textarea class="form-textarea" id="special-requests" name="special_requests" rows="4" x-model="form.notes"></textarea>
 </div>
 <div class="communication-notice">
 <div class="notice-icon">
@@ -333,25 +347,29 @@
 </div>
 <div class="form-group">
 <label class="checkbox-label">
-<input checked="" class="checkbox-label-input" id="marketing-opt-in" type="checkbox"/>
+<input class="checkbox-label-input" id="marketing-opt-in" type="checkbox" x-model="form.marketingOptIn"/>
 <span class="checkbox-label-label">Also send me emails about new available properties</span>
 </label>
 </div>
 <div class="form-group">
 <label class="checkbox-label">
-<input class="checkbox-label-input" id="terms-consent" required="" type="checkbox"/>
+<input class="checkbox-label-input" id="terms-consent" required="" type="checkbox" x-model="form.consentGiven"/>
 <span class="checkbox-label-label">I agree to the <a class="checkbox-label-link" href="/terms-of-service" target="_blank">Terms of Service</a> and <a class="checkbox-label-link" href="/privacy-policy" target="_blank">Privacy Policy</a>. I consent to be contacted about this tour. *</span>
 </label>
+<span x-show="errors.consentGiven" class="text-error text-sm" x-text="errors.consentGiven" style="display: none;"></span>
 </div>
 </form>
 <div class="step-actions">
-<button class="btn btn-secondary" id="step3-back" type="button">Back</button>
-<button class="btn btn-primary" id="step3-submit" type="button">Confirm Tour</button>
+<button class="btn btn-secondary" id="step3-back" type="button" @click="prevStep()">Back</button>
+<button class="btn btn-primary" id="step3-submit" type="button" @click="submitBooking()" :disabled="loading" x-bind:class="{ 'loading': loading }">
+<span x-show="!loading">Confirm Tour</span>
+<span x-show="loading" style="display: none;">Submitting...</span>
+</button>
 </div>
 </div>
 </div>
 <!-- Step 4: Confirmation -->
-<div class="wizard-step" id="step-4">
+<div class="wizard-step" :class="{ 'active': step === 4 }" id="step-4" x-show="step === 4">
 <div class="step-content">
 <div class="confirmation-success">
 <div class="success-icon">✓</div>
@@ -399,32 +417,7 @@
             contactInfo: {}
         };
 
-        // Step navigation
-        function goToStep(stepNumber) {
-            // Hide all steps
-            document.querySelectorAll('.wizard-step').forEach(step => {
-                step.classList.remove('active');
-            });
-
-            // Show target step
-            document.getElementById(`step-${stepNumber}`).classList.add('active');
-
-            // Update step indicator
-            document.querySelectorAll('.step-indicator .step').forEach((step, index) => {
-                if (index + 1 < stepNumber) {
-                    step.classList.add('completed');
-                    step.classList.remove('active');
-                } else if (index + 1 === stepNumber) {
-                    step.classList.add('active');
-                    step.classList.remove('completed');
-                } else {
-                    step.classList.remove('active', 'completed');
-                }
-            });
-
-            bookingState.currentStep = stepNumber;
-            window.scrollTo(0, 0);
-        }
+        // Step navigation handled by Alpine.js
 
         // Step 1: Pre-Qualification
         const requirementCheckboxes = document.querySelectorAll('.requirement-checkbox');
@@ -462,9 +455,7 @@
             });
         });
 
-        document.getElementById('step1-next').addEventListener('click', () => {
-            goToStep(2);
-        });
+        // Step 1 navigation handled by Alpine.js
 
         // Step 2: Calendar
         function generateCalendar(year, month) {
@@ -501,8 +492,10 @@
                     dateCell.addEventListener('click', function() {
                         document.querySelectorAll('.calendar-date').forEach(d => d.classList.remove('selected'));
                         this.classList.add('selected');
-                        bookingState.selectedDate = `${month + 1}/${day}/${year}`;
-                        checkStep2Complete();
+                        const alpineComponent = Alpine.$data(document.querySelector('[x-data]'));
+                        if (alpineComponent) {
+                            alpineComponent.form.showingDate = `${month + 1}/${day}/${year}`;
+                        }
                     });
                 }
 
@@ -546,82 +539,24 @@
             slot.addEventListener('click', function() {
                 document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
                 this.classList.add('selected');
-                bookingState.selectedTime = this.dataset.time;
-                checkStep2Complete();
+                const alpineComponent = Alpine.$data(document.querySelector('[x-data]'));
+                if (alpineComponent) {
+                    alpineComponent.form.showingTime = this.dataset.time;
+                }
             });
         });
 
         function checkStep2Complete() {
-            const nextBtn = document.getElementById('step2-next');
-            nextBtn.disabled = !(bookingState.selectedDate && bookingState.selectedTime);
+            // No longer needed - Alpine.js handles this
         }
 
-        document.getElementById('step2-back').addEventListener('click', () => goToStep(1));
-        document.getElementById('step2-next').addEventListener('click', () => {
-            if (bookingState.selectedDate && bookingState.selectedTime) {
-                goToStep(3);
-            }
-        });
+        // Step navigation handled by Alpine.js
 
-        // Step 3: Contact Form
-        document.getElementById('step3-back').addEventListener('click', () => goToStep(2));
+        // Step 3: Contact Form - handled by Alpine.js
         
-        // Submit button with reCAPTCHA v3
-        document.getElementById('step3-submit').addEventListener('click', async () => {
-            const form = document.getElementById('contact-form');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-            
-            try {
-                // Execute reCAPTCHA v3
-                const token = await grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY', { action: 'book_tour' });
-                
-                // Collect booking data
-                bookingState.contactInfo = {
-                    fullName: document.getElementById('full-name').value,
-                    email: document.getElementById('email').value,
-                    phone: document.getElementById('phone').value,
-                    specialRequests: document.getElementById('special-requests').value
-                };
-                
-                // Prepare submission data
-                const bookingData = {
-                    ...bookingState,
-                    recaptcha_token: token
-                };
-                
-                // Submit to backend
-                const response = await fetch('/api/book-tour', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(bookingData)
-                });
-                
-                if (response.ok) {
-                    // Update confirmation details
-                    document.getElementById('confirm-property').textContent = bookingState.propertyAddress;
-                    document.getElementById('confirm-date').textContent = bookingState.selectedDate;
-                    document.getElementById('confirm-time').textContent = bookingState.selectedTime;
-                    document.getElementById('confirm-contact').textContent = bookingState.contactInfo.email;
-                    
-                    // Generate confirmation ID
-                    const confirmId = `#TB-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
-                    document.getElementById('confirm-id').textContent = confirmId;
-                    
-                    goToStep(4);
-                } else {
-                    const error = await response.json();
-                    alert(error.message || 'Booking failed. Please try again.');
-                }
-            } catch (error) {
-                console.error('Booking error:', error);
-                alert('An error occurred. Please try again or contact us for assistance.');
-            }
-        });
+        // Submit button handled by Alpine.js submitBooking() method
 
-        // Slider code removed - using standard submit button with reCAPTCHA v3
+        // All form interactions now handled by Alpine.js
     </script>
 <!-- Footer -->
 <footer class="trec-footer">
