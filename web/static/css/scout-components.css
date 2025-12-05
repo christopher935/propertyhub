@@ -10504,3 +10504,469 @@ html {
   color: var(--gray-300);
   margin: 0 var(--space-2);
 }
+
+/* ========================================================================
+   AUTHENTICATION PAGES - Neutral Styling (Serves Both Consumer & Admin)
+   Color Pattern: Navy Headings, Gold Accents, White/Gray Backgrounds
+   ======================================================================== */
+
+/* 1. Login Card Container */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--gray-50);
+  padding: var(--space-6);
+}
+
+.login-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-10);
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.login-header .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: var(--navy-primary);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--space-6);
+}
+
+.login-header .logo-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-primary);
+}
+
+.login-header h2 {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--navy-primary);
+  margin-bottom: var(--space-2);
+}
+
+.login-header p {
+  font-size: var(--font-size-base);
+  color: var(--gray-500);
+}
+
+.login-title {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--navy-primary);
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+.login-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--gray-500);
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+/* 2. Auth Form Styles */
+.auth-form .form-group,
+.login-form .form-group {
+  margin-bottom: var(--space-5);
+}
+
+.auth-form .form-label,
+.login-form .form-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--gray-700);
+  margin-bottom: var(--space-2);
+}
+
+.auth-form .form-input,
+.login-form .form-input {
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-form .form-input:focus,
+.login-form .form-input:focus {
+  outline: none;
+  border-color: var(--navy-primary);
+  box-shadow: 0 0 0 3px rgba(27, 53, 89, 0.1);
+}
+
+.auth-form .form-input.error,
+.login-form .form-input.error {
+  border-color: var(--error);
+}
+
+.auth-form .form-input.error:focus,
+.login-form .form-input.error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.error-message {
+  font-size: var(--font-size-sm);
+  color: var(--error);
+  margin-top: var(--space-1);
+}
+
+.form-help-text {
+  font-size: var(--font-size-xs);
+  color: var(--gray-500);
+  margin-top: var(--space-1);
+}
+
+/* 3. Auth Buttons - Navy for Security Actions */
+.auth-form .btn-primary,
+.login-form .btn-primary,
+.page-login .btn-primary {
+  width: 100%;
+  background: var(--navy-primary);
+  color: var(--white);
+  border: none;
+  padding: var(--space-4);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-form .btn-primary:hover:not(:disabled),
+.login-form .btn-primary:hover:not(:disabled),
+.page-login .btn-primary:hover:not(:disabled) {
+  background: var(--navy-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.auth-form .btn-primary:active,
+.login-form .btn-primary:active,
+.page-login .btn-primary:active {
+  transform: translateY(0);
+}
+
+.auth-form .btn-primary:disabled,
+.login-form .btn-primary:disabled,
+.page-login .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading state */
+.auth-form .btn-primary.loading,
+.login-form .btn-primary.loading {
+  color: transparent;
+  position: relative;
+}
+
+.auth-form .btn-primary.loading::after,
+.login-form .btn-primary.loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  top: 50%;
+  left: 50%;
+  margin: -10px 0 0 -10px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 4. Links & Secondary Actions */
+.auth-link,
+.forgot-link {
+  color: var(--gold-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: color 0.2s ease;
+}
+
+.auth-link:hover,
+.forgot-link:hover {
+  color: var(--gold-dark);
+  text-decoration: underline;
+}
+
+.forgot-password-link {
+  display: block;
+  text-align: right;
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-6);
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--gray-200);
+}
+
+.login-footer:first-of-type {
+  border-top: 1px solid var(--gray-200);
+}
+
+.login-footer-text {
+  font-size: var(--font-size-sm);
+  color: var(--gray-500);
+  margin-bottom: var(--space-2);
+}
+
+.login-footer .button-container {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* 5. Remember Me Checkbox */
+.form-checkbox-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--gray-600);
+  cursor: pointer;
+}
+
+.checkbox-label-input,
+.form-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--navy-primary);
+  cursor: pointer;
+}
+
+.checkbox-box {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.checkbox-check {
+  display: none;
+  color: var(--white);
+  font-size: var(--font-size-xs);
+}
+
+.checkbox-label-input:checked + .checkbox-box {
+  background: var(--navy-primary);
+  border-color: var(--navy-primary);
+}
+
+.checkbox-label-input:checked + .checkbox-box .checkbox-check {
+  display: block;
+}
+
+.checkbox-label-label {
+  user-select: none;
+}
+
+.checkbox-label-link {
+  color: var(--gold-primary);
+  text-decoration: none;
+}
+
+.checkbox-label-link:hover {
+  text-decoration: underline;
+}
+
+/* 6. MFA Setup Page */
+.mfa-container {
+  background: var(--gray-50);
+  min-height: 100vh;
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.mfa-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-8);
+  max-width: 500px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.qr-code-container {
+  text-align: center;
+  padding: var(--space-6);
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-6);
+}
+
+.secret-key {
+  font-family: monospace;
+  font-size: var(--font-size-lg);
+  background: var(--gray-100);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  letter-spacing: 0.1em;
+  color: var(--navy-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.verification-input {
+  font-size: var(--font-size-2xl);
+  text-align: center;
+  letter-spacing: 0.5em;
+  padding: var(--space-4);
+  font-family: monospace;
+}
+
+.backup-codes-warning {
+  background: var(--warning-light);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.backup-codes-warning-title {
+  color: var(--warning-dark);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-2);
+}
+
+/* 7. Password Reset Flow */
+.reset-success {
+  text-align: center;
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--success-light);
+  color: var(--success);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-6);
+  font-size: var(--font-size-3xl);
+}
+
+.password-requirements {
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.requirement-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--gray-500);
+  margin-bottom: var(--space-2);
+}
+
+.requirement-item.met {
+  color: var(--success);
+}
+
+.requirement-item:last-child {
+  margin-bottom: 0;
+}
+
+/* 8. Registration Wizard (Consumer) */
+.register-wizard {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-8);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Registration uses GOLD primary button since it's consumer-facing */
+.page-booking .register-wizard .btn-primary,
+.page-booking .wizard-step .btn-primary {
+  background: var(--gold-primary);
+  color: var(--navy-dark);
+  border: 2px solid var(--gold-primary);
+}
+
+.page-booking .register-wizard .btn-primary:hover,
+.page-booking .wizard-step .btn-primary:hover {
+  background: var(--gold-dark);
+  border-color: var(--gold-dark);
+  color: var(--navy-dark);
+  transform: translateY(-2px);
+}
+
+/* 9. Responsive Design */
+@media (max-width: 768px) {
+  .login-container {
+    padding: var(--space-4);
+  }
+  
+  .login-card,
+  .mfa-card {
+    padding: var(--space-6);
+  }
+  
+  .login-header h2,
+  .login-title {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .form-checkbox-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+}
