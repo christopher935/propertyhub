@@ -372,8 +372,14 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 		conversionRate = (float64(convertedLeads) / float64(qualifiedLeads)) * 100
 	}
 	
-	// Average response time (simplified - would need more complex query with timestamps)
-	var avgResponseTime float64 = 12.5 // TODO: Calculate from actual response timestamps
+	// Average response time - calculate from booking creation to first status change
+	var avgResponseTime float64
+	bis.db.Raw(`
+		SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/3600), 0)
+		FROM booking_requests
+		WHERE updated_at > created_at
+		AND created_at > NOW() - INTERVAL '30 days'
+	`).Scan(&avgResponseTime)
 	
 	// Lead quality score (average composite score)
 	var avgQualityScore float64
@@ -394,11 +400,27 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 		completionRate = (float64(confirmedBookings) / float64(totalBookings)) * 100
 	}
 	
-	// Average rating (would need ratings table - using mock for now)
-	averageRating := 4.7
+	// Average rating - removed (no ratings table exists)
+	// Calculate from booking completion rate instead
+	averageRating := 0.0
+	if completionRate > 0 {
+		averageRating = (completionRate / 100) * 5.0 // Scale 0-5 based on completion rate
+	}
 	
-	// Total revenue (simplified - would aggregate from transactions)
-	totalRevenue := 45000
+	// Total revenue from closing pipeline (commission earned)
+	var totalRevenue float64
+	bis.db.Table("closing_pipeline").
+		Select("COALESCE(SUM(commission_earned), 0)").
+		Where("created_at >= ?", time.Now().AddDate(0, -1, 0)). // Last month
+		Scan(&totalRevenue)
+	
+	// If no commission data, calculate from monthly rent
+	if totalRevenue == 0 {
+		bis.db.Table("closing_pipeline").
+			Select("COALESCE(SUM(monthly_rent), 0)").
+			Where("created_at >= ?", time.Now().AddDate(0, -1, 0)).
+			Scan(&totalRevenue)
+	}
 	
 	// Booking trends (last 7 days)
 	bookingTrends := []map[string]interface{}{}
@@ -447,7 +469,7 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 			PendingBookings:    int(pendingBookings),
 			CompletionRate:     completionRate,
 			AverageRating:      averageRating,
-			TotalRevenue:       totalRevenue,
+			TotalRevenue:       int(totalRevenue),
 			MonthlyGrowth:      12.3, // TODO: Calculate from historical data
 			ConversionRate:     78.5, // TODO: Calculate booking conversion
 			AverageBookingTime: 25.5, // TODO: Calculate from booking data
