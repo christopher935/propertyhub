@@ -16,6 +16,17 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/stats/warm", h.TieredStats.GetWarmStats)
 	api.GET("/stats/daily", h.TieredStats.GetDailyStats)
 
+	// Dashboard API - Real-time dashboard widgets
+	api.GET("/dashboard/properties", h.Dashboard.GetPropertySummary)
+	api.GET("/dashboard/bookings", h.Dashboard.GetBookingSummary)
+	api.GET("/dashboard/revenue", h.Dashboard.GetRevenueSummary)
+	api.GET("/dashboard/market-data", h.Dashboard.GetMarketData)
+	api.GET("/dashboard/recent-activity", h.Dashboard.GetRecentActivity)
+	api.GET("/dashboard/alerts", h.Dashboard.GetAlerts)
+	api.GET("/dashboard/maintenance", h.Dashboard.GetMaintenanceRequests)
+	api.GET("/dashboard/leads", h.Dashboard.GetLeadSummary)
+	api.GET("/dashboard/upcoming-tasks", h.Dashboard.GetUpcomingTasks)
+
 	// Analytics API
 	api.GET("/analytics/bookings", h.AnalyticsAPI.GetBookingAnalytics)
 	api.GET("/analytics/properties", h.AnalyticsAPI.GetPropertyAnalytics)
