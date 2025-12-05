@@ -98,7 +98,6 @@ if cfg.RedisURL != "" {
 log.Println("🔧 Initializing enterprise handlers...")
 
 // Analytics & Business Intelligence
-analyticsAPIHandler := handlers.NewAnalyticsAPIHandlers(gormDB)
 biService := services.NewBusinessIntelligenceService(gormDB)
 	businessIntelligenceHandler := handlers.NewBusinessIntelligenceHandlers(gormDB)
 	log.Println("📊 Analytics handlers initialized")
@@ -254,7 +253,6 @@ log.Println("🔗 Webhook handlers initialized")
 
 	// Create handlers struct for route registration
 	allHandlers := &AllHandlers{
-		AnalyticsAPI:          analyticsAPIHandler,
 		BusinessIntelligence:  businessIntelligenceHandler,
 		TieredStats:           tieredStatsHandler,
 		Approvals:             approvalsHandler,
