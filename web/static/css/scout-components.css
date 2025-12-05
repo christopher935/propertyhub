@@ -2964,57 +2964,441 @@ body.page-analytics {
     opacity: 0.9;
 }
 
-/* Time Slots - Calendly Style (Single Column) */
-.time-slots {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    margin-top: var(--space-6);
-    max-width: 400px;
+/* ============================================================================
+   BOOKING WIZARD COMPONENTS - Design System v2 Compliant
+   ============================================================================ */
+
+/* 1. Booking Wizard Container */
+.booking-wizard {
+    background: var(--white);
+    max-width: 700px;
+    margin: 0 auto;
+    padding: var(--space-8);
 }
 
-.time-slot {
-    background: white;
-    border: 2px solid var(--gray-300);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4) var(--space-5);
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: 72px;
+/* 2. Step Indicator */
+.step-indicator {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: var(--font-semibold);
+    border: 2px solid var(--gray-300);
+    color: var(--gray-400);
+    background: var(--white);
+    transition: all 0.2s ease;
 }
 
-.time-slot:hover:not(:disabled) {
-    border-color: var(--navy-primary);
-    transform: translateX(4px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.step-circle.active {
+    border-color: var(--gold-primary);
+    background: var(--gold-primary);
+    color: var(--navy-dark);
 }
 
-.time-slot.selected {
-    background: linear-gradient(135deg, rgba(59, 82, 115, 0.05) 0%, rgba(255, 255, 255, 1) 100%);
-    border-color: var(--navy-primary);
-    border-width: 3px;
+.step-circle.completed {
+    border-color: var(--success);
+    background: var(--success);
+    color: var(--white);
 }
 
-.time-slot:disabled {
-    opacity: 0.5;
+.step-line {
+    width: 60px;
+    height: 2px;
+    background: var(--gray-300);
+    align-self: center;
+}
+
+.step-line.completed {
+    background: var(--success);
+}
+
+/* 3. Calendar Component */
+.calendar {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-4);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--gray-200);
+    margin-bottom: var(--space-4);
+}
+
+.calendar-nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--navy-primary);
+    padding: var(--space-2);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    font-size: var(--font-size-xl);
+}
+
+.calendar-nav-btn:hover {
+    color: var(--gold-primary);
+}
+
+.calendar-month {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-semibold);
+    color: var(--navy-primary);
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.weekday {
+    text-align: center;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-semibold);
+    color: var(--gray-500);
+    padding: var(--space-2);
+}
+
+.calendar-dates {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--space-2);
+}
+
+.calendar-date {
+    padding: var(--space-2);
+    text-align: center;
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-size: var(--font-size-base);
+    color: var(--gray-700);
+    border: 1px solid transparent;
+}
+
+.calendar-date:hover:not(.disabled):not(.empty) {
+    background: var(--gray-100);
+}
+
+.calendar-date.selected {
+    background: var(--gold-primary);
+    color: var(--navy-dark);
+    font-weight: var(--font-semibold);
+}
+
+.calendar-date.disabled {
+    color: var(--gray-300);
     cursor: not-allowed;
 }
 
-.time-slot-time {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
-    color: var(--navy-primary);
-    margin-bottom: var(--space-1);
+.calendar-date.empty {
+    cursor: default;
 }
 
-.time-slot-availability {
-    font-size: var(--font-size-sm);
+/* 4. Time Slot Selection */
+.time-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-3);
+}
+
+.time-slot {
+    padding: var(--space-3);
+    text-align: center;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--white);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-medium);
+    color: var(--gray-700);
+}
+
+.time-slot:hover:not(.unavailable) {
+    border-color: var(--navy-primary);
+}
+
+.time-slot.selected {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--navy-dark);
+    font-weight: var(--font-semibold);
+}
+
+.time-slot.unavailable {
+    background: var(--gray-50);
+    color: var(--gray-400);
+    cursor: not-allowed;
+}
+
+/* 5. Form Fields */
+.form-group {
+    margin-bottom: var(--space-5);
+}
+
+.form-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--gray-700);
+    margin-bottom: var(--space-2);
+}
+
+.form-input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    font-size: var(--text-base);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--navy-primary);
+    box-shadow: 0 0 0 3px rgba(27, 53, 89, 0.1);
+}
+
+.form-textarea {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    font-size: var(--text-base);
+    font-family: inherit;
+    resize: vertical;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--navy-primary);
+    box-shadow: 0 0 0 3px rgba(27, 53, 89, 0.1);
+}
+
+/* 6. Consumer Booking Buttons (GOLD) */
+.booking-wizard .btn-primary {
+    background: var(--gold-primary);
+    color: var(--navy-dark);
+    border: 2px solid var(--gold-primary);
+    padding: var(--space-3) var(--space-6);
+    font-weight: var(--font-semibold);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: var(--font-size-base);
+}
+
+.booking-wizard .btn-primary:hover {
+    background: var(--gold-dark);
+    border-color: var(--gold-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.booking-wizard .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.booking-wizard .btn-secondary {
+    background: transparent;
+    color: var(--navy-primary);
+    border: 2px solid var(--navy-primary);
+    padding: var(--space-3) var(--space-6);
+    font-weight: var(--font-semibold);
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: var(--font-size-base);
+}
+
+.booking-wizard .btn-secondary:hover {
+    background: var(--navy-primary);
+    color: var(--white);
+    transform: translateY(-2px);
+}
+
+/* 7. Confirmation Page */
+.confirmation-success {
+    text-align: center;
+    padding: var(--space-8);
+}
+
+.success-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--success-light);
+    color: var(--success);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-6);
+    font-size: var(--text-3xl);
+    font-weight: var(--font-bold);
+}
+
+.confirmation-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-6);
+    text-align: left;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.confirmation-detail {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.confirmation-detail:last-child {
+    border-bottom: none;
+}
+
+.confirmation-label {
     color: var(--gray-500);
+    font-size: var(--font-size-sm);
+}
+
+.confirmation-value {
+    color: var(--navy-primary);
+    font-weight: var(--font-medium);
+    font-size: var(--font-size-base);
+}
+
+/* 8. Pre-Qualification Checkboxes */
+.requirement-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-3);
+    transition: border-color 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+}
+
+.requirement-item:hover {
+    border-color: var(--gray-300);
+}
+
+.requirement-item.checked {
+    border-color: var(--success);
+    background: var(--success-light);
+}
+
+.requirement-checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.requirement-item.checked .requirement-checkbox {
+    background: var(--success);
+    border-color: var(--success);
+    color: var(--white);
+}
+
+.requirement-checkmark {
+    display: none;
+}
+
+.requirement-item.checked .requirement-checkmark {
+    display: block;
+    color: var(--white);
+}
+
+/* 9. Step Actions */
+.step-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--gray-200);
+}
+
+/* 10. Datetime Selector Layout */
+.datetime-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-8);
+    margin: var(--space-6) 0;
+}
+
+.calendar-section,
+.time-section {
+    background: var(--white);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .booking-wizard {
+        padding: var(--space-4);
+    }
+
+    .step-indicator {
+        gap: var(--space-2);
+    }
+
+    .step-circle {
+        width: 32px;
+        height: 32px;
+        font-size: var(--font-size-sm);
+    }
+
+    .step-line {
+        width: 30px;
+    }
+
+    .datetime-selector {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+    }
+
+    .time-slots {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .step-actions {
+        flex-direction: column-reverse;
+    }
+
+    .step-actions .btn-primary,
+    .step-actions .btn-secondary {
+        width: 100%;
+    }
 }
 
 @media (max-width: 768px) {
