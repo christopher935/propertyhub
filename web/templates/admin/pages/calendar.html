@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Showing Calendar - PropertyHub Admin</title>
+    
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div class="admin-layout" x-data="calendarData()" x-init="init()">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="/admin/dashboard" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">PH</div>
+                    <span>PropertyHub</span>
+                </a>
+            </div>
+            
+            <nav class="admin-sidebar-nav">
+                <div class="nav-section">
+                    <a href="/admin/dashboard" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Leads</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.total_leads || 0"></span>
+                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/lead-management" class="nav-item">All Leads <span class="nav-item-badge" x-text="sidebarCounts.total_leads || 0"></span></a></li>
+                        <li><a href="/admin/lead-management?segment=hot" class="nav-item">Hot Leads <span class="nav-item-badge" x-text="sidebarCounts.hot_leads || 0"></span></a></li>
+                        <li><a href="/admin/lead-management?segment=warm" class="nav-item">Warm Leads <span class="nav-item-badge" x-text="sidebarCounts.warm_leads || 0"></span></a></li>
+                        <li><a href="/admin/communication-center" class="nav-item">Communication Center</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Properties</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.active_properties || 0"></span>
+                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/property-list" class="nav-item">All Properties</a></li>
+                        <li><a href="/admin/property-list?status=active" class="nav-item">Active Listings</a></li>
+                        <li><a href="/admin/property-list?status=pending_images" class="nav-item">Pending Images <span class="nav-item-badge" x-text="sidebarCounts.pending_images || 0"></span></a></li>
+                        <li><a href="/admin/pre-listing" class="nav-item">Pre-Listing Pipeline</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section">
+                    <a href="/admin/application-workflow" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Applications</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.pending_applications || 0"></span>
+                    </a>
+                </div>
+                
+                <div class="nav-section expanded">
+                    <a href="/admin/calendar" class="nav-section-header active">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Calendar</span>
+                        <span class="nav-section-badge" x-text="stats.today_events || 0"></span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <a href="/admin/closing-pipeline" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Closing Pipeline</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.closing_pipeline || 0"></span>
+                    </a>
+                </div>
+                
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Intelligence</span>
+                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/business-intelligence" class="nav-item">Business Intelligence</a></li>
+                        <li><a href="/admin/behavioral-intelligence" class="nav-item">Behavioral Analytics</a></li>
+                        <li><a href="/admin/market-intelligence" class="nav-item">Market Intelligence</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">System</span>
+                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/settings" class="nav-item">Settings</a></li>
+                        <li><a href="/admin/rbac" class="nav-item">Roles & Permissions</a></li>
+                        <li><a href="/admin/integrations/webhooks" class="nav-item">Integrations</a></li>
+                        <li><a href="/admin/security" class="nav-item">Security Monitoring</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-content">
+                    <h1 class="admin-header-title">Showing Calendar</h1>
+                    
+                    <div class="admin-header-actions">
+                        <div class="admin-search">
+                            <input type="search" placeholder="Search events..." x-model="searchQuery" @input.debounce.300ms="performSearch">
+                            <svg class="admin-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        
+                        <div class="admin-user-menu">
+                            <div class="admin-user-avatar" x-text="userProfile.initials"></div>
+                            <div class="admin-user-info">
+                                <div class="admin-user-name" x-text="userProfile.username"></div>
+                                <div class="admin-user-role" x-text="userProfile.role"></div>
+                            </div>
+                        </div>
+                        
+                        <a href="/admin/logout" class="btn-logout">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="admin-content">
+                <div class="calendar-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); gap: var(--space-4);">
+                    <div style="display: flex; align-items: center; gap: var(--space-4);">
+                        <button @click="previousMonth" class="btn btn-secondary" style="padding: var(--space-2) var(--space-3);">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <h2 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin: 0;" x-text="currentMonthYear"></h2>
+                        <button @click="nextMonth" class="btn btn-secondary" style="padding: var(--space-2) var(--space-3);">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                        <button @click="goToToday" class="btn btn-secondary" style="margin-left: var(--space-2);">
+                            Today
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: var(--space-3);">
+                        <button @click="syncCalendar" class="btn btn-secondary" :disabled="syncing">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" :class="{ 'animate-spin': syncing }">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span x-text="syncing ? 'Syncing...' : 'Sync'"></span>
+                        </button>
+                        <button @click="openNewShowingModal" class="btn btn-primary">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            New Showing
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 400px; gap: var(--space-6);">
+                    <div class="calendar-grid-wrapper">
+                        <div class="stats-mini-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-6);">
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-icon">📅</div>
+                                <div class="stat-mini-value" x-text="stats.today_events || 0"></div>
+                                <div class="stat-mini-label">Today</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-icon">📆</div>
+                                <div class="stat-mini-value" x-text="stats.upcoming_events || 0"></div>
+                                <div class="stat-mini-label">Upcoming</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-icon">✅</div>
+                                <div class="stat-mini-value" x-text="stats.completed_events || 0"></div>
+                                <div class="stat-mini-label">Completed</div>
+                            </div>
+                            <div class="stat-mini-card">
+                                <div class="stat-mini-icon">📊</div>
+                                <div class="stat-mini-value" x-text="Math.round(stats.completion_rate || 0) + '%'"></div>
+                                <div class="stat-mini-label">Completion Rate</div>
+                            </div>
+                        </div>
+                        
+                        <div class="calendar-grid" style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
+                            <div class="calendar-weekdays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-2); margin-bottom: var(--space-4); text-align: center;">
+                                <div style="font-weight: var(--font-weight-semibold); color: var(--gray-600); font-size: var(--font-size-sm); padding: var(--space-2);">Sun</div>
+                                <div style="font-weight: var(--font-weight-semibold); color: var(--gray-600); font-size: var(--font-size-sm); padding: var(--space-2);">Mon</div>
+                                <div style="font-weight: var(--font-weight-semibold); color: var(--gray-600); font-size: var(--font-size-sm); padding: var(--space-2);">Tue</div>
+                                <div style="font-weight: var(--font-weight-semibold); color: var(--gray-600); font-size: var(--font-size-sm); padding: var(--space-2);">Wed</div>
+                                <div style="font-weight: var(--font-weight-semibold); color: var(--gray-600); font-size: var(--font-size-sm); padding: var(--space-2);">Thu</div>
+                                <div style="font-weight: var(--font-weight-semibold); color: var(--gray-600); font-size: var(--font-size-sm); padding: var(--space-2);">Fri</div>
+                                <div style="font-weight: var(--font-weight-semibold); color: var(--gray-600); font-size: var(--font-size-sm); padding: var(--space-2);">Sat</div>
+                            </div>
+                            
+                            <div class="calendar-days" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-2);">
+                                <template x-for="day in calendarDays" :key="day.date">
+                                    <div 
+                                        @click="selectDay(day)" 
+                                        class="calendar-day" 
+                                        :class="{ 
+                                            'other-month': !day.isCurrentMonth, 
+                                            'today': day.isToday, 
+                                            'selected': day.date === selectedDate,
+                                            'has-events': day.events.length > 0
+                                        }"
+                                        style="min-height: 100px; padding: var(--space-2); border: 1px solid var(--gray-200); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; position: relative;"
+                                        :style="day.isToday ? 'border-color: var(--gold-primary); background: var(--gold-light);' : ''"
+                                    >
+                                        <div style="font-weight: var(--font-weight-semibold); margin-bottom: var(--space-1);" :style="!day.isCurrentMonth ? 'color: var(--gray-400);' : 'color: var(--navy-primary);'" x-text="day.dayNumber"></div>
+                                        <div style="display: flex; flex-direction: column; gap: var(--space-1);">
+                                            <template x-for="event in day.events.slice(0, 2)" :key="event.id">
+                                                <div 
+                                                    @click.stop="viewEvent(event)" 
+                                                    class="calendar-event-pill" 
+                                                    :class="'status-' + event.status"
+                                                    style="font-size: var(--font-size-xs); padding: 2px 6px; border-radius: var(--radius-sm); background: var(--gold-light); color: var(--navy-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer;"
+                                                    x-text="formatEventTime(event.start_time) + ' ' + event.title.replace('Property Showing - ', '')"
+                                                ></div>
+                                            </template>
+                                            <div x-show="day.events.length > 2" style="font-size: var(--font-size-xs); color: var(--gray-500); text-align: center;" x-text="'+' + (day.events.length - 2) + ' more'"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="event-list-panel" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                        <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-5); box-shadow: var(--shadow-sm);">
+                            <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">
+                                <span x-text="selectedDateFormatted || 'Today\'s Events'"></span>
+                            </h3>
+                            
+                            <div x-show="loading" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
+                                <div class="loading"></div>
+                            </div>
+                            
+                            <div x-show="!loading && filteredEvents.length === 0" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
+                                <div style="font-size: 3rem; margin-bottom: var(--space-3);">📭</div>
+                                <div>No events scheduled</div>
+                            </div>
+                            
+                            <div x-show="!loading && filteredEvents.length > 0" style="display: flex; flex-direction: column; gap: var(--space-3); max-height: 600px; overflow-y: auto;">
+                                <template x-for="event in filteredEvents" :key="event.id">
+                                    <div class="event-card" style="border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: var(--space-4); cursor: pointer; transition: all 0.2s;" @click="viewEvent(event)">
+                                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-2);">
+                                            <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary); flex: 1;" x-text="event.title"></div>
+                                            <span class="status-badge" :class="'status-' + event.status" x-text="event.status"></span>
+                                        </div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--gray-600); margin-bottom: var(--space-2);">
+                                            <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1);">
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <span x-text="formatEventDateTime(event.start_time)"></span>
+                                            </div>
+                                            <div x-show="event.location" style="display: flex; align-items: center; gap: var(--space-2);">
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                </svg>
+                                                <span x-text="event.location"></span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; gap: var(--space-2); margin-top: var(--space-3);">
+                                            <button @click.stop="updateEventStatus(event.id, 'confirmed')" x-show="event.status === 'scheduled'" class="btn btn-sm btn-primary" style="flex: 1; font-size: var(--font-size-xs); padding: var(--space-1) var(--space-2);">
+                                                Confirm
+                                            </button>
+                                            <button @click.stop="updateEventStatus(event.id, 'completed')" x-show="event.status === 'confirmed' || event.status === 'scheduled'" class="btn btn-sm btn-secondary" style="flex: 1; font-size: var(--font-size-xs); padding: var(--space-1) var(--space-2);">
+                                                Complete
+                                            </button>
+                                            <button @click.stop="updateEventStatus(event.id, 'cancelled')" x-show="event.status !== 'completed' && event.status !== 'cancelled'" class="btn btn-sm btn-secondary" style="flex: 1; font-size: var(--font-size-xs); padding: var(--space-1) var(--space-2);">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <div x-show="showNewShowingModal" class="modal-overlay" @click="showNewShowingModal = false" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+            <div @click.stop class="modal-content" style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                    <h2 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin: 0;">Schedule New Showing</h2>
+                    <button @click="showNewShowingModal = false" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                </div>
+                
+                <form @submit.prevent="createShowing" style="display: flex; flex-direction: column; gap: var(--space-4);">
+                    <div>
+                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">Property Address</label>
+                        <input type="text" x-model="newShowing.property_address" required style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">Date & Time</label>
+                        <input type="datetime-local" x-model="newShowing.showing_time" required style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">Contact Name</label>
+                        <input type="text" x-model="newShowing.contact_name" required style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">Contact Phone</label>
+                        <input type="tel" x-model="newShowing.contact_phone" required style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">Contact Email</label>
+                        <input type="email" x-model="newShowing.contact_email" required style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+                    </div>
+                    
+                    <div>
+                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">Special Requests</label>
+                        <textarea x-model="newShowing.special_requests" rows="3" style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);"></textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: var(--space-3); justify-content: flex-end;">
+                        <button type="button" @click="showNewShowingModal = false" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" class="btn btn-primary" :disabled="creatingShowing">
+                            <span x-text="creatingShowing ? 'Creating...' : 'Create Showing'"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .calendar-day:hover {
+            background-color: var(--gray-50);
+            border-color: var(--navy-primary) !important;
+        }
+        
+        .calendar-day.selected {
+            background-color: var(--gold-light);
+            border-color: var(--gold-primary) !important;
+        }
+        
+        .event-card:hover {
+            border-color: var(--navy-primary);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .status-badge {
+            font-size: var(--font-size-xs);
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            font-weight: var(--font-weight-semibold);
+            text-transform: capitalize;
+        }
+        
+        .status-scheduled {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        
+        .status-confirmed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-completed {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .stat-mini-card {
+            background: var(--white);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .stat-mini-icon {
+            font-size: 2rem;
+            margin-bottom: var(--space-2);
+        }
+        
+        .stat-mini-value {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--navy-primary);
+            margin-bottom: var(--space-1);
+        }
+        
+        .stat-mini-label {
+            font-size: var(--font-size-sm);
+            color: var(--gray-600);
+        }
+        
+        .loading {
+            border: 3px solid var(--gray-200);
+            border-top: 3px solid var(--gold-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+    
+    <script>
+        function calendarData() {
+            return {
+                currentDate: new Date(),
+                selectedDate: null,
+                events: [],
+                stats: {
+                    today_events: 0,
+                    upcoming_events: 0,
+                    completed_events: 0,
+                    total_events: 0,
+                    completion_rate: 0
+                },
+                loading: false,
+                syncing: false,
+                creatingShowing: false,
+                showNewShowingModal: false,
+                searchQuery: '',
+                userProfile: {
+                    username: 'Christopher Gross',
+                    email: 'chris@propertyhub.com',
+                    role: 'Administrator',
+                    initials: 'CG'
+                },
+                sidebarCounts: {
+                    total_leads: 0,
+                    hot_leads: 0,
+                    warm_leads: 0,
+                    active_properties: 0,
+                    pending_images: 0,
+                    pending_applications: 0,
+                    confirmed_bookings: 0,
+                    closing_pipeline: 0
+                },
+                newShowing: {
+                    property_address: '',
+                    showing_time: '',
+                    contact_name: '',
+                    contact_phone: '',
+                    contact_email: '',
+                    special_requests: ''
+                },
+                
+                async init() {
+                    await Promise.all([
+                        this.fetchEvents(),
+                        this.fetchStats(),
+                        this.fetchSidebarCounts()
+                    ]);
+                    this.selectDay({ date: this.formatDate(new Date()) });
+                },
+                
+                async fetchSidebarCounts() {
+                    try {
+                        const res = await fetch('/api/stats/warm');
+                        if (res.ok) {
+                            const result = await res.json();
+                            this.sidebarCounts = {
+                                total_leads: result.total_leads || 0,
+                                hot_leads: result.hot_leads || 0,
+                                warm_leads: result.warm_leads || 0,
+                                active_properties: result.active_properties || 0,
+                                pending_images: result.pending_images || 0,
+                                pending_applications: result.pending_applications || 0,
+                                confirmed_bookings: result.confirmed_bookings || 0,
+                                closing_pipeline: result.closing_pipeline || 0
+                            };
+                        }
+                    } catch (error) {
+                        console.error('Error fetching sidebar counts:', error);
+                    }
+                },
+                
+                async fetchEvents() {
+                    this.loading = true;
+                    try {
+                        const res = await fetch('/api/v1/calendar/upcoming?days=30');
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.events = data.data?.events || data.events || [];
+                        }
+                    } catch (error) {
+                        console.error('Error fetching events:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async fetchStats() {
+                    try {
+                        const res = await fetch('/api/v1/calendar/stats');
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.stats = data.data?.stats || data.stats || this.stats;
+                        }
+                    } catch (error) {
+                        console.error('Error fetching stats:', error);
+                    }
+                },
+                
+                async syncCalendar() {
+                    this.syncing = true;
+                    try {
+                        const res = await fetch('/api/v1/calendar/sync', { method: 'POST' });
+                        if (res.ok) {
+                            await this.fetchEvents();
+                            await this.fetchStats();
+                        }
+                    } catch (error) {
+                        console.error('Error syncing calendar:', error);
+                    } finally {
+                        this.syncing = false;
+                    }
+                },
+                
+                async createShowing() {
+                    this.creatingShowing = true;
+                    try {
+                        const showingData = {
+                            ...this.newShowing,
+                            showing_time: new Date(this.newShowing.showing_time).toISOString()
+                        };
+                        
+                        const res = await fetch('/api/v1/calendar/showing', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(showingData)
+                        });
+                        
+                        if (res.ok) {
+                            this.showNewShowingModal = false;
+                            this.newShowing = {
+                                property_address: '',
+                                showing_time: '',
+                                contact_name: '',
+                                contact_phone: '',
+                                contact_email: '',
+                                special_requests: ''
+                            };
+                            await this.fetchEvents();
+                            await this.fetchStats();
+                        }
+                    } catch (error) {
+                        console.error('Error creating showing:', error);
+                    } finally {
+                        this.creatingShowing = false;
+                    }
+                },
+                
+                async updateEventStatus(eventId, status) {
+                    try {
+                        const res = await fetch(`/api/v1/calendar/events/${eventId}/status`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status })
+                        });
+                        
+                        if (res.ok) {
+                            await this.fetchEvents();
+                            await this.fetchStats();
+                        }
+                    } catch (error) {
+                        console.error('Error updating event status:', error);
+                    }
+                },
+                
+                openNewShowingModal() {
+                    this.showNewShowingModal = true;
+                },
+                
+                selectDay(day) {
+                    this.selectedDate = day.date;
+                },
+                
+                viewEvent(event) {
+                    console.log('View event:', event);
+                },
+                
+                previousMonth() {
+                    this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
+                },
+                
+                nextMonth() {
+                    this.currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
+                },
+                
+                goToToday() {
+                    this.currentDate = new Date();
+                    this.selectedDate = this.formatDate(new Date());
+                },
+                
+                get currentMonthYear() {
+                    return this.currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                },
+                
+                get selectedDateFormatted() {
+                    if (!this.selectedDate) return null;
+                    return new Date(this.selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+                },
+                
+                get calendarDays() {
+                    const year = this.currentDate.getFullYear();
+                    const month = this.currentDate.getMonth();
+                    const firstDay = new Date(year, month, 1);
+                    const lastDay = new Date(year, month + 1, 0);
+                    const startDate = new Date(firstDay);
+                    startDate.setDate(startDate.getDate() - startDate.getDay());
+                    
+                    const days = [];
+                    const currentDate = new Date(startDate);
+                    
+                    for (let i = 0; i < 42; i++) {
+                        const dateStr = this.formatDate(currentDate);
+                        const dayEvents = this.events.filter(e => this.formatDate(new Date(e.start_time)) === dateStr);
+                        const today = this.formatDate(new Date());
+                        
+                        days.push({
+                            date: dateStr,
+                            dayNumber: currentDate.getDate(),
+                            isCurrentMonth: currentDate.getMonth() === month,
+                            isToday: dateStr === today,
+                            events: dayEvents
+                        });
+                        
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                    
+                    return days;
+                },
+                
+                get filteredEvents() {
+                    if (!this.selectedDate) {
+                        return this.events.filter(e => this.formatDate(new Date(e.start_time)) === this.formatDate(new Date()));
+                    }
+                    return this.events.filter(e => this.formatDate(new Date(e.start_time)) === this.selectedDate);
+                },
+                
+                formatDate(date) {
+                    const d = new Date(date);
+                    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                },
+                
+                formatEventTime(dateTime) {
+                    return new Date(dateTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                },
+                
+                formatEventDateTime(dateTime) {
+                    return new Date(dateTime).toLocaleString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric', 
+                        hour: 'numeric', 
+                        minute: '2-digit' 
+                    });
+                },
+                
+                performSearch() {
+                    console.log('Search:', this.searchQuery);
+                }
+            };
+        }
+    </script>
+</body>
+</html>

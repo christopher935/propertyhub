@@ -344,7 +344,7 @@ func (h *CalendarHandlers) CalendarManagementDashboard(c *gin.Context) {
 		"StatsEndpoint":   "/api/v1/calendar/stats",
 	}
 
-	c.HTML(http.StatusOK, "calendar-management.html", data)
+	c.HTML(http.StatusOK, "calendar.html", data)
 }
 
 // RegisterCalendarRoutes registers all calendar-related routes
