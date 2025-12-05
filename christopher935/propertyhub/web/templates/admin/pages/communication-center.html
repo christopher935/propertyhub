@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <title>Communications - PropertyHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="admin-layout">
+<aside class="admin-sidebar">
+    <div class="sidebar-header">
+        <a href="/" class="sidebar-logo">
+            <div class="sidebar-logo-icon">PH</div>
+            <span>PropertyHub</span>
+        </a>
+    </div>
+    <nav class="admin-sidebar-nav">
+        <div class="nav-section">
+            <a href="/admin/dashboard" class="nav-section-header">
+                <span class="nav-section-icon">OV</span>
+                <span class="nav-section-title">Overview</span>
+            </a>
+        </div>
+        <div class="nav-section">
+            <a href="/admin/property-list" class="nav-section-header">
+                <span class="nav-section-icon">PR</span>
+                <span class="nav-section-title">Properties</span>
+            </a>
+        </div>
+        <div class="nav-section">
+            <a href="/admin/lead-management" class="nav-section-header">
+                <span class="nav-section-icon">LD</span>
+                <span class="nav-section-title">Leads</span>
+            </a>
+        </div>
+        <div class="nav-section">
+            <a href="/admin/application-workflow" class="nav-section-header">
+                <span class="nav-section-icon">WF</span>
+                <span class="nav-section-title">Workflow</span>
+            </a>
+        </div>
+        <div class="nav-section">
+            <a href="/admin/communication-center" class="nav-section-header active">
+                <span class="nav-section-icon">CM</span>
+                <span class="nav-section-title">Communications</span>
+            </a>
+        </div>
+    </nav>
+</aside>
+<main class="admin-main">
+    <header class="admin-header">
+        <div class="admin-header-content">
+            <h1 class="admin-header-title">Communications Center</h1>
+            <div class="admin-header-actions">
+                <button class="btn btn-logout" onclick="location.href='/admin/logout'">Logout</button>
+            </div>
+        </div>
+    </header>
+    <div class="admin-content">
+        <div class="section">
+            <h2 class="section-title">Email Campaign Management</h2>
+            <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Track and manage your email campaigns and templates</p>
+            
+            <div class="comm-stats">
+                <div class="comm-stat-card">
+                    <div class="comm-stat-icon">📧</div>
+                    <div class="comm-stat-value">1,247</div>
+                    <div class="comm-stat-label">Total Sent</div>
+                </div>
+                <div class="comm-stat-card">
+                    <div class="comm-stat-icon">📬</div>
+                    <div class="comm-stat-value">68%</div>
+                    <div class="comm-stat-label">Open Rate</div>
+                </div>
+                <div class="comm-stat-card">
+                    <div class="comm-stat-icon">👆</div>
+                    <div class="comm-stat-value">24%</div>
+                    <div class="comm-stat-label">Click Rate</div>
+                </div>
+                <div class="comm-stat-card">
+                    <div class="comm-stat-icon">🎯</div>
+                    <div class="comm-stat-value">5</div>
+                    <div class="comm-stat-label">Active Campaigns</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">Recent Email Activity</h2>
+            <div class="email-list">
+                <div class="email-item">
+                    <span class="email-subject">Welcome to PropertyHub</span>
+                    <span class="email-recipient">john.smith@example.com</span>
+                    <span class="email-date">Nov 13, 2025</span>
+                    <span class="email-status sent">Sent</span>
+                </div>
+                <div class="email-item">
+                    <span class="email-subject">New Property Listing Alert</span>
+                    <span class="email-recipient">sarah.jones@example.com</span>
+                    <span class="email-date">Nov 12, 2025</span>
+                    <span class="email-status sent">Sent</span>
+                </div>
+                <div class="email-item">
+                    <span class="email-subject">Showing Confirmation</span>
+                    <span class="email-recipient">mike.wilson@example.com</span>
+                    <span class="email-date">Nov 12, 2025</span>
+                    <span class="email-status pending">Pending</span>
+                </div>
+                <div class="email-item">
+                    <span class="email-subject">Application Update</span>
+                    <span class="email-recipient">invalid@email</span>
+                    <span class="email-date">Nov 11, 2025</span>
+                    <span class="email-status failed">Failed</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

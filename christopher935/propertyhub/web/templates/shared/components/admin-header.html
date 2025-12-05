@@ -1,0 +1,56 @@
+<!-- CANONICAL ADMIN TOP BAR - COMPLETE WITH USER DROPDOWN -->
+<!-- From Production Dashboard - https://llotschedule.online/admin/dashboard -->
+<!-- WHEN COPYING: Change "Overview" below to your page title -->
+
+<div class="admin-top-bar">
+    <div class="admin-page-header">
+        <h1 class="admin-page-title">Overview</h1>
+    </div>
+    
+    <div class="admin-top-bar-right">
+        <!-- Search -->
+        <div class="admin-search">
+            <input type="text" class="form-input" placeholder="Search leads, properties..." id="globalSearch">
+            <span class="admin-search-icon">🔍</span>
+        </div>
+
+        <!-- Notifications -->
+        <div class="admin-notifications">
+            <button class="admin-notification-button" id="notificationButton" title="Notifications">
+                <span class="notification-icon">🔔</span>
+                <span class="notification-badge" id="notificationBadge">3</span>
+            </button>
+        </div>
+
+        <!-- User Menu with Dropdown -->
+        <div class="admin-user-dropdown">
+            <button class="admin-user-button" id="userMenuButton">
+                <div class="admin-user-avatar">CG</div>
+                <div class="admin-user-info">
+                    <div class="admin-user-name">Christopher Gross</div>
+                    <div class="admin-user-role">Administrator</div>
+                </div>
+                <span class="admin-user-chevron">▼</span>
+            </button>
+            <div class="admin-user-menu" id="userMenu">
+                <a href="/admin/profile" class="admin-user-menu-item">
+                    <span class="menu-icon">👤</span>
+                    <span>Profile</span>
+                </a>
+                <a href="/admin/settings" class="admin-user-menu-item">
+                    <span class="menu-icon">⚙️</span>
+                    <span>Settings</span>
+                </a>
+                <a href="/help" class="admin-user-menu-item">
+                    <span class="menu-icon">❓</span>
+                    <span>Help & Support</span>
+                </a>
+                <div class="admin-user-menu-divider"></div>
+                <a href="/admin/logout" class="admin-user-menu-item admin-user-menu-logout" onclick="handleLogout(event)">
+                    <span class="menu-icon">🚪</span>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

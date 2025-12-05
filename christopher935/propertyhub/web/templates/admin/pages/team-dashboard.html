@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <title>Team Management - PropertyHub Admin</title>
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+</head>
+<body class="admin-layout">
+    
+    <aside class="admin-sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <div class="sidebar-logo-icon">PH</div>
+                <span>PropertyHub</span>
+            </a>
+        </div>
+
+        <nav class="admin-sidebar-nav">
+            <div class="nav-section">
+                <a href="/admin/dashboard" class="nav-section-header">
+                    <span class="nav-section-icon">DB</span>
+                    <span class="nav-section-title">Dashboard</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <a href="/admin/properties" class="nav-section-header">
+                    <span class="nav-section-icon">PR</span>
+                    <span class="nav-section-title">Properties</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <a href="/admin/leads" class="nav-section-header">
+                    <span class="nav-section-icon">LD</span>
+                    <span class="nav-section-title">Leads</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <a href="/admin/communications" class="nav-section-header">
+                    <span class="nav-section-icon">CM</span>
+                    <span class="nav-section-title">Communications</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <a href="/admin/team" class="nav-section-header active">
+                    <span class="nav-section-icon">TM</span>
+                    <span class="nav-section-title">Team</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <a href="/admin/system" class="nav-section-header">
+                    <span class="nav-section-icon">SY</span>
+                    <span class="nav-section-title">System</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    
+    <div class="admin-main">
+        
+        <header class="admin-header">
+            <div class="admin-header-content">
+                <h1 class="admin-header-title">Team Management</h1>
+                
+                <div class="admin-header-actions">
+                    <div class="admin-search">
+                        <input type="text" placeholder="Search team members...">
+                    </div>
+                    
+                    <button class="admin-user-menu">
+                        <div class="admin-user-avatar">CG</div>
+                        <div class="admin-user-info">
+                            <div class="admin-user-name">Christopher Gross</div>
+                            <div class="admin-user-role">Administrator</div>
+                        </div>
+                    </button>
+                    
+                    <a href="/logout" class="btn-logout">Logout</a>
+                </div>
+            </div>
+        </header>
+
+        
+        <div class="admin-content">
+            
+            <div class="tab-nav">
+                <button class="tab-button active" data-tab="tab1">Team Overview</button>
+                <button class="tab-button" data-tab="tab2">Agent Performance</button>
+                <button class="tab-button" data-tab="tab3">Assignments</button>
+                <button class="tab-button" data-tab="tab4">Commissions</button>
+            </div>
+
+            <!-- Tab 1: Team Overview -->
+            <div class="tab-content active" id="tab1">
+                <div class="stat-cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Team Members</div>
+                        <div class="stat-card-value">12</div>
+                        <div class="stat-card-change positive">+2 this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Active Agents</div>
+                        <div class="stat-card-value">10</div>
+                        <div class="stat-card-change">83% utilization</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Deals This Month</div>
+                        <div class="stat-card-value">47</div>
+                        <div class="stat-card-change positive">+12% vs last month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Team Revenue</div>
+                        <div class="stat-card-value">$284K</div>
+                        <div class="stat-card-change positive">+18% vs last month</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h2>Team Members</h2>
+                    <button class="btn-primary">Add Team Member</button>
+                </div>
+
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Active Deals</th>
+                            <th>Total Deals</th>
+                            <th>Revenue</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">MJ</div>
+                                    <div>
+                                        <div class="agent-name">Mike Johnson</div>
+                                        <div class="agent-email">mike@propertyhub.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge info">Senior Agent</span></td>
+                            <td><span class="status-badge success">Active</span></td>
+                            <td class="metric-value">8</td>
+                            <td class="metric-value">142</td>
+                            <td class="metric-value">$52,300</td>
+                            <td>
+                                <button class="btn-sm">View</button>
+                                <button class="btn-sm">Edit</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">AS</div>
+                                    <div>
+                                        <div class="agent-name">Amy Smith</div>
+                                        <div class="agent-email">amy@propertyhub.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge info">Agent</span></td>
+                            <td><span class="status-badge success">Active</span></td>
+                            <td class="metric-value">6</td>
+                            <td class="metric-value">98</td>
+                            <td class="metric-value">$38,900</td>
+                            <td>
+                                <button class="btn-sm">View</button>
+                                <button class="btn-sm">Edit</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">JD</div>
+                                    <div>
+                                        <div class="agent-name">John Davis</div>
+                                        <div class="agent-email">john@propertyhub.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="status-badge info">Agent</span></td>
+                            <td><span class="status-badge success">Active</span></td>
+                            <td class="metric-value">5</td>
+                            <td class="metric-value">76</td>
+                            <td class="metric-value">$31,200</td>
+                            <td>
+                                <button class="btn-sm">View</button>
+                                <button class="btn-sm">Edit</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tab 2: Agent Performance -->
+            <div class="tab-content" id="tab2">
+                <div class="section-header">
+                    <h2>Performance Leaderboard</h2>
+                    <select class="filter-select">
+                        <option>This Month</option>
+                        <option>Last Month</option>
+                        <option>This Quarter</option>
+                        <option>This Year</option>
+                    </select>
+                </div>
+
+                <div class="chart-cards-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Deals Closed by Agent</h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="dealsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Revenue by Agent</h3>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Agent</th>
+                            <th>Deals Closed</th>
+                            <th>Revenue</th>
+                            <th>Avg Deal Size</th>
+                            <th>Close Rate</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="rank-badge rank-1">1</span></td>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">MJ</div>
+                                    <div class="agent-name">Mike Johnson</div>
+                                </div>
+                            </td>
+                            <td class="metric-value">18</td>
+                            <td class="metric-value">$52,300</td>
+                            <td class="metric-value">$2,906</td>
+                            <td class="percentage-cell good">72%</td>
+                            <td><span class="trend-up">↑ 12%</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="rank-badge rank-2">2</span></td>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">AS</div>
+                                    <div class="agent-name">Amy Smith</div>
+                                </div>
+                            </td>
+                            <td class="metric-value">14</td>
+                            <td class="metric-value">$38,900</td>
+                            <td class="metric-value">$2,779</td>
+                            <td class="percentage-cell good">68%</td>
+                            <td><span class="trend-up">↑ 8%</span></td>
+                        </tr>
+                        <tr>
+                            <td><span class="rank-badge rank-3">3</span></td>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">JD</div>
+                                    <div class="agent-name">John Davis</div>
+                                </div>
+                            </td>
+                            <td class="metric-value">11</td>
+                            <td class="metric-value">$31,200</td>
+                            <td class="metric-value">$2,836</td>
+                            <td class="percentage-cell average">65%</td>
+                            <td><span class="trend-down">↓ 3%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tab 3: Assignments & Workload -->
+            <div class="tab-content" id="tab3">
+                <div class="stat-cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Assignments</div>
+                        <div class="stat-card-value">87</div>
+                        <div class="stat-card-change">Across 10 agents</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Unassigned Properties</div>
+                        <div class="stat-card-value">12</div>
+                        <div class="stat-card-change warning">Needs attention</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Avg Workload</div>
+                        <div class="stat-card-value">8.7</div>
+                        <div class="stat-card-change">Properties per agent</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Overloaded Agents</div>
+                        <div class="stat-card-value">2</div>
+                        <div class="stat-card-change warning">Above 12 properties</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h2>Current Assignments</h2>
+                    <button class="btn-primary">Auto-Assign Properties</button>
+                </div>
+
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Active Properties</th>
+                            <th>Showings This Week</th>
+                            <th>Applications</th>
+                            <th>Workload Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">MJ</div>
+                                    <div class="agent-name">Mike Johnson</div>
+                                </div>
+                            </td>
+                            <td class="metric-value">14</td>
+                            <td class="metric-value">23</td>
+                            <td class="metric-value">8</td>
+                            <td><span class="status-badge warning">High</span></td>
+                            <td><button class="btn-sm">Manage</button></td>
+                        </tr>
+                        <tr>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">AS</div>
+                                    <div class="agent-name">Amy Smith</div>
+                                </div>
+                            </td>
+                            <td class="metric-value">9</td>
+                            <td class="metric-value">18</td>
+                            <td class="metric-value">6</td>
+                            <td><span class="status-badge success">Normal</span></td>
+                            <td><button class="btn-sm">Manage</button></td>
+                        </tr>
+                        <tr>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">JD</div>
+                                    <div class="agent-name">John Davis</div>
+                                </div>
+                            </td>
+                            <td class="metric-value">7</td>
+                            <td class="metric-value">12</td>
+                            <td class="metric-value">4</td>
+                            <td><span class="status-badge success">Normal</span></td>
+                            <td><button class="btn-sm">Manage</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tab 4: Commissions & Payouts -->
+            <div class="tab-content" id="tab4">
+                <div class="stat-cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Commissions</div>
+                        <div class="stat-card-value">$284K</div>
+                        <div class="stat-card-change positive">+18% this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Pending Payouts</div>
+                        <div class="stat-card-value">$42K</div>
+                        <div class="stat-card-change">12 transactions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Paid This Month</div>
+                        <div class="stat-card-value">$198K</div>
+                        <div class="stat-card-change">35 transactions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Avg Commission</div>
+                        <div class="stat-card-value">$6,043</div>
+                        <div class="stat-card-change positive">+5% vs last month</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h2>Commission Breakdown</h2>
+                    <select class="filter-select">
+                        <option>This Month</option>
+                        <option>Last Month</option>
+                        <option>This Quarter</option>
+                    </select>
+                </div>
+
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Agent</th>
+                            <th>Deals</th>
+                            <th>Total Commission</th>
+                            <th>Paid</th>
+                            <th>Pending</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">MJ</div>
+                                    <div class="agent-name">Mike Johnson</div>
+                                </div>
+                            </td>
+                            <td class="metric-value">18</td>
+                            <td class="metric-value">$52,300</td>
+                            <td class="metric-value">$38,200</td>
+                            <td class="metric-value">$14,100</td>
+                            <td><span class="status-badge warning">Pending</span></td>
+                            <td><button class="btn-sm">Process</button></td>
+                        </tr>
+                        <tr>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">AS</div>
+                                    <div class="agent-name">Amy Smith</div>
+                                </div>
+                            </td>
+                            <td class="metric-value">14</td>
+                            <td class="metric-value">$38,900</td>
+                            <td class="metric-value">$31,200</td>
+                            <td class="metric-value">$7,700</td>
+                            <td><span class="status-badge warning">Pending</span></td>
+                            <td><button class="btn-sm">Process</button></td>
+                        </tr>
+                        <tr>
+                            <td class="property-address-cell">
+                                <div class="agent-info">
+                                    <div class="agent-avatar">JD</div>
+                                    <div class="agent-name">John Davis</div>
+                                </div>
+                            </td>
+                            <td class="metric-value">11</td>
+                            <td class="metric-value">$31,200</td>
+                            <td class="metric-value">$31,200</td>
+                            <td class="metric-value">$0</td>
+                            <td><span class="status-badge success">Paid</span></td>
+                            <td><button class="btn-sm">View</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                button.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Charts
+        const dealsCtx = document.getElementById('dealsChart');
+        if (dealsCtx) {
+            new Chart(dealsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mike Johnson', 'Amy Smith', 'John Davis', 'Sarah Wilson', 'Tom Brown'],
+                    datasets: [{
+                        label: 'Deals Closed',
+                        data: [18, 14, 11, 9, 7],
+                        backgroundColor: '#2C5282'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        const revenueCtx = document.getElementById('revenueChart');
+        if (revenueCtx) {
+            new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mike Johnson', 'Amy Smith', 'John Davis', 'Sarah Wilson', 'Tom Brown'],
+                    datasets: [{
+                        label: 'Revenue ($)',
+                        data: [52300, 38900, 31200, 24800, 19500],
+                        backgroundColor: '#38A169'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    </script>
+</body>
+</html>
