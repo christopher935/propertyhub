@@ -67,6 +67,9 @@ type AllHandlers struct {
 	// Webhooks
 	Webhook               *handlers.WebhookHandlers
 
+	// WebSocket
+	WebSocket             *handlers.WebSocketHandler
+
 	// Database (for inline handlers that need it)
 	DB                    *gorm.DB
 	
