@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -43,10 +44,13 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 			return
 		}
 
-		// Set session cookie
-		maxAge := 86400 // 24 hours
+		// Log successful login with timestamp
+		log.Printf("✅ Admin login: %s at %s", email, time.Now().Format("2006-01-02 15:04:05"))
+
+		// Set session cookie with proper time duration
+		maxAge := int(24 * time.Hour / time.Second) // 24 hours
 		if rememberMe {
-			maxAge = 2592000 // 30 days
+			maxAge = int(30 * 24 * time.Hour / time.Second) // 30 days
 		}
 
 		c.SetCookie(
