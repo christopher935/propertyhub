@@ -161,16 +161,14 @@ func (cpsh *CentralPropertySyncHandlers) UpdatePropertyStatus(c *gin.Context) {
 	}
 
 	// For now, use propertyID as MLSId - in production, you'd look up the MLS ID
-	// TODO: Implement UpdatePropertyStatus method in CentralPropertyStateManager
-	log.Printf("⚠️ UpdatePropertyStatus not implemented yet for %s -> %s (Source: %s)", propertyID, request.Status, request.Source)
-	// err := cpsh.centralStateManager.UpdatePropertyStatus(propertyID, request.Status, request.Source)
-	// if err != nil {
-	//	c.JSON(http.StatusInternalServerError, gin.H{
-	//		"error":   "Failed to update property status",
-	//		"details": err.Error(),
-	//	})
-	//	return
-	// }
+	err := cpsh.centralStateManager.UpdatePropertyStatus(propertyID, request.Status, request.Source)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to update property status",
+			"details": err.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success":        true,
