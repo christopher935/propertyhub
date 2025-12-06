@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"strconv"
@@ -390,7 +391,11 @@ log.Println("🔗 Webhook handlers initialized")
         }
         log.Println("All critical templates validated successfully")
 
-        // Enterprise security middleware (exclude static files)
+        // Initialize enhanced security middleware
+        securityMiddleware := middleware.NewSecurityMiddleware(gormDB)
+        log.Println("🔒 Enhanced security middleware initialized")
+
+        // Enterprise security headers with CSP (exclude static files)
         r.Use(func(c *gin.Context) {
                 // Don't apply nosniff to static files
                 if !strings.HasPrefix(c.Request.URL.Path, "/static/") {
@@ -398,12 +403,21 @@ log.Println("🔗 Webhook handlers initialized")
                 }
                 c.Header("X-Frame-Options", "DENY") 
                 c.Header("X-XSS-Protection", "1; mode=block")
-	c.Header("Strict-Transport-Security", "max-age=31536000")
+	c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+	c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
+	c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+	c.Header("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none';")
 		c.Next()
 	})
+	log.Println("🛡️ Enhanced security headers applied (CSP, Referrer-Policy, Permissions-Policy)")
 
 	// ISSUE #3 FIX: Apply CSRF protection middleware globally
 	r.Use(middleware.CSRFProtection())
+
+	// Apply SQL injection and XSS protection globally
+	r.Use(gin.WrapH(securityMiddleware.SQLInjectionProtection(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))))
+	r.Use(gin.WrapH(securityMiddleware.XSSProtection(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))))
+	log.Println("🛡️ SQL injection and XSS protection applied")
 
 	// ===== TEMPLATE ROUTES (All 35+ Templates) =====
 
@@ -418,9 +432,23 @@ log.Println("🔗 Webhook handlers initialized")
 
 	log.Println("🛣️ Registering API routes...")
 	api := r.Group("/api")
+	// Apply API rate limiting to all API routes
+	api.Use(middleware.PublicAPIRateLimiter.RateLimit())
+	log.Println("🔒 API rate limiting applied (10/min, 50/hour)")
 	RegisterAPIRoutes(api, allHandlers, propertyValuationHandler, emailAutomationHandler)
 // DISABLED - causes duplicate routes: 	RegisterMissingRoutes(api) // 55 missing endpoints
 	log.Println("✅ API routes registered")
+
+	// Register admin authentication routes with enhanced security
+	log.Println("🛣️ Registering admin authentication routes...")
+	adminAuth := r.Group("/api/v1/admin")
+	// Apply strict rate limiting for admin login
+	adminAuth.Use(middleware.AdminLoginRateLimiter.RateLimit())
+	// Apply brute force protection
+	adminAuth.Use(gin.WrapH(securityMiddleware.BruteForceProtection(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))))
+	log.Println("🔒 Admin login protection applied (rate limiting + brute force detection)")
+	handlers.RegisterAdminAuthRoutes(r, gormDB, cfg.JWTSecret)
+	log.Println("✅ Admin authentication routes registered")
 
 	log.Println("🛣️ Registering health check and error handlers...")
 	RegisterHealthRoutes(r, gormDB, authManager, encryptionManager)
