@@ -11,19 +11,29 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
+	github.com/gorilla/websocket v1.5.3
 	github.com/lib/pq v1.10.9
 	github.com/pquerna/otp v1.4.0
 	github.com/redis/go-redis/v9 v9.8.0
+	github.com/sendgrid/sendgrid-go v3.16.1+incompatible
+	github.com/stretchr/testify v1.8.3
+	github.com/twilio/twilio-go v1.28.8
 	golang.org/x/crypto v0.44.0
 	gorm.io/driver/postgres v1.5.2
+	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.30.0
 )
 
 require (
 	github.com/andybalholm/cascadia v1.3.3 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
-	github.com/kr/text v0.2.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
+	github.com/golang/mock v1.6.0 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 )
 
 require (

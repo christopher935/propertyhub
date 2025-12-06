@@ -44,10 +44,13 @@ type Config struct {
         RedisDB       int
 
         // Email configuration (from database)
-        SMTPHost     string
-        SMTPPort     int
-        SMTPUsername string
-        SMTPPassword string
+        SMTPHost         string
+        SMTPPort         int
+        SMTPUsername     string
+        SMTPPassword     string
+        SendGridAPIKey   string
+        EmailFromAddress string
+        EmailFromName    string
 
         // Features (from database)
         TwilioAccountSID string
@@ -124,10 +127,13 @@ func LoadConfig() *Config {
                 RedisDB:       getDbSettingInt(dbSettings, "REDIS_DB", 0),
 
                 // Email
-                SMTPHost:     getDbSetting(dbSettings, "SMTP_HOST", "localhost"),
-                SMTPPort:     getDbSettingInt(dbSettings, "SMTP_PORT", 587),
-                SMTPUsername: dbSettings["SMTP_USERNAME"],
-                SMTPPassword: dbSettings["SMTP_PASSWORD"],
+                SMTPHost:         getDbSetting(dbSettings, "SMTP_HOST", "localhost"),
+                SMTPPort:         getDbSettingInt(dbSettings, "SMTP_PORT", 587),
+                SMTPUsername:     dbSettings["SMTP_USERNAME"],
+                SMTPPassword:     dbSettings["SMTP_PASSWORD"],
+                SendGridAPIKey:   dbSettings["SENDGRID_API_KEY"],
+                EmailFromAddress: getDbSetting(dbSettings, "EMAIL_FROM_ADDRESS", "noreply@landlordsoftexas.com"),
+                EmailFromName:    getDbSetting(dbSettings, "EMAIL_FROM_NAME", "Landlords of Texas"),
 
                 // Twilio
                 TwilioAccountSID:  dbSettings["TWILIO_ACCOUNT_SID"],

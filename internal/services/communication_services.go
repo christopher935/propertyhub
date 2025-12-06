@@ -6,159 +6,287 @@ import (
 	"time"
 	"gorm.io/gorm"
 	"strconv"
+	"chrisgross-ctrl-project/internal/config"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"github.com/twilio/twilio-go"
+	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
-// EmailService handles email communications
 type EmailService struct {
-	// Configuration fields can be added here
+	config       *config.Config
+	sendgrid     *sendgrid.Client
+	fromEmail    string
+	fromName     string
+	useSendGrid  bool
 }
 
-// SMSService handles SMS communications
 type SMSService struct {
-	// Configuration fields can be added here
+	config       *config.Config
+	twilioClient *twilio.RestClient
+	fromPhone    string
+	enabled      bool
 }
 
-// NotificationService handles push notifications
 type NotificationService struct {
-	// Configuration fields can be added here
+	config       *config.Config
+	emailService *EmailService
 }
 
-// LeadService handles lead management
 type LeadService struct {
-	// Configuration fields can be added here
 }
 
-// PropertyService handles property operations
 type PropertyService struct {
-	// Configuration fields can be added here
 }
 
-// BehavioralLeadScoringService handles lead scoring based on behavior
 type BehavioralLeadScoringService struct {
 	db *gorm.DB
 }
 
-// NewEmailService creates a new email service
-func NewEmailService() *EmailService {
-	return &EmailService{}
+func NewEmailService(cfg *config.Config) *EmailService {
+	service := &EmailService{
+		config:    cfg,
+		fromEmail: cfg.EmailFromAddress,
+		fromName:  cfg.EmailFromName,
+	}
+
+	if cfg.SendGridAPIKey != "" {
+		service.sendgrid = sendgrid.NewSendClient(cfg.SendGridAPIKey)
+		service.useSendGrid = true
+		log.Printf("✅ Email service initialized with SendGrid")
+	} else {
+		service.useSendGrid = false
+		log.Printf("⚠️  Email service initialized in log-only mode (no SendGrid API key)")
+	}
+
+	return service
 }
 
-// NewSMSService creates a new SMS service
-func NewSMSService() *SMSService {
-	return &SMSService{}
+func NewSMSService(cfg *config.Config) *SMSService {
+	service := &SMSService{
+		config:    cfg,
+		fromPhone: cfg.TwilioPhoneNumber,
+	}
+
+	if cfg.TwilioAccountSID != "" && cfg.TwilioAuthToken != "" {
+		service.twilioClient = twilio.NewRestClientWithParams(twilio.ClientParams{
+			Username: cfg.TwilioAccountSID,
+			Password: cfg.TwilioAuthToken,
+		})
+		service.enabled = true
+		log.Printf("✅ SMS service initialized with Twilio")
+	} else {
+		service.enabled = false
+		log.Printf("⚠️  SMS service initialized in log-only mode (no Twilio credentials)")
+	}
+
+	return service
 }
 
-// NewNotificationService creates a new notification service
-func NewNotificationService() *NotificationService {
-	return &NotificationService{}
+func NewNotificationService(cfg *config.Config, emailService *EmailService) *NotificationService {
+	return &NotificationService{
+		config:       cfg,
+		emailService: emailService,
+	}
 }
 
-// NewLeadService creates a new lead service
 func NewLeadService() *LeadService {
 	return &LeadService{}
 }
 
-// NewPropertyService creates a new property service
 func NewPropertyService() *PropertyService {
 	return &PropertyService{}
 }
 
-// NewBehavioralLeadScoringService creates a new behavioral lead scoring service
 func NewBehavioralLeadScoringService() *BehavioralLeadScoringService {
 	return &BehavioralLeadScoringService{}
 }
 
-// Email Service Methods
-
-// SendEmail sends an email
 func (es *EmailService) SendEmail(to, subject, content string, metadata map[string]interface{}) error {
 	log.Printf("📧 EMAIL: To=%s, Subject=%s", to, subject)
-	// TODO: Implement actual email sending logic
-	return nil
+
+	if !es.useSendGrid {
+		log.Printf("⚠️  SendGrid not configured, email logged only")
+		return nil
+	}
+
+	from := mail.NewEmail(es.fromName, es.fromEmail)
+	toEmail := mail.NewEmail("", to)
+	message := mail.NewSingleEmail(from, subject, toEmail, content, content)
+
+	response, err := es.sendgrid.Send(message)
+	if err != nil {
+		log.Printf("❌ Email send failed: %v", err)
+		return fmt.Errorf("failed to send email: %w", err)
+	}
+
+	if response.StatusCode >= 200 && response.StatusCode < 300 {
+		log.Printf("✅ Email sent successfully to %s, status: %d", to, response.StatusCode)
+		return nil
+	}
+
+	log.Printf("❌ Email send failed with status %d: %s", response.StatusCode, response.Body)
+	return fmt.Errorf("email send failed with status %d", response.StatusCode)
 }
 
-// SendTemplateEmail sends an email using a template
 func (es *EmailService) SendTemplateEmail(to, subject, template string, data map[string]interface{}) error {
 	log.Printf("📧 TEMPLATE EMAIL: To=%s, Subject=%s, Template=%s", to, subject, template)
-	// TODO: Implement template email logic
-	return nil
+
+	content := es.renderTemplate(template, data)
+	return es.SendEmail(to, subject, content, nil)
 }
 
-// SMS Service Methods
+func (es *EmailService) renderTemplate(template string, data map[string]interface{}) string {
+	content := template
+	for key, value := range data {
+		placeholder := fmt.Sprintf("{{%s}}", key)
+		content = replaceAll(content, placeholder, fmt.Sprintf("%v", value))
+	}
+	return content
+}
 
-// SendSMS sends an SMS message
+func replaceAll(s, old, new string) string {
+	result := ""
+	for {
+		index := indexOf(s, old)
+		if index == -1 {
+			result += s
+			break
+		}
+		result += s[:index] + new
+		s = s[index+len(old):]
+	}
+	return result
+}
+
+func indexOf(s, substr string) int {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return i
+		}
+	}
+	return -1
+}
+
 func (ss *SMSService) SendSMS(to, content string, metadata map[string]interface{}) error {
 	log.Printf("📱 SMS: To=%s, Content=%s", to, content)
-	// TODO: Implement actual SMS sending logic
+
+	if !ss.enabled {
+		log.Printf("⚠️  Twilio not configured, SMS logged only")
+		return nil
+	}
+
+	params := &twilioApi.CreateMessageParams{}
+	params.SetTo(to)
+	params.SetFrom(ss.fromPhone)
+	params.SetBody(content)
+
+	resp, err := ss.twilioClient.Api.CreateMessage(params)
+	if err != nil {
+		log.Printf("❌ SMS send failed: %v", err)
+		return fmt.Errorf("failed to send SMS: %w", err)
+	}
+
+	log.Printf("✅ SMS sent successfully to %s, SID: %s", to, *resp.Sid)
 	return nil
 }
 
-// SendSMS sends an SMS message (overloaded version without metadata)
 func (ss *SMSService) SendSMSSimple(to, content string) error {
 	return ss.SendSMS(to, content, nil)
 }
 
-// SendTemplateSMS sends an SMS using a template
 func (ss *SMSService) SendTemplateSMS(to, template string, data map[string]interface{}) error {
 	log.Printf("📱 TEMPLATE SMS: To=%s, Template=%s", to, template)
-	// TODO: Implement template SMS logic
-	return nil
+
+	content := template
+	for key, value := range data {
+		placeholder := fmt.Sprintf("{{%s}}", key)
+		content = replaceAll(content, placeholder, fmt.Sprintf("%v", value))
+	}
+
+	return ss.SendSMS(to, content, nil)
 }
 
-// Notification Service Methods
-
-// SendNotification sends a push notification
 func (ns *NotificationService) SendNotification(userID, title, content string, metadata map[string]interface{}) error {
 	log.Printf("🔔 NOTIFICATION: UserID=%s, Title=%s", userID, title)
-	// TODO: Implement actual push notification logic
-	return nil
+
+	if ns.emailService == nil {
+		log.Printf("⚠️  Email service not available, notification logged only")
+		return nil
+	}
+
+	userEmail := ""
+	if metadata != nil {
+		if email, ok := metadata["email"].(string); ok {
+			userEmail = email
+		}
+	}
+
+	if userEmail == "" {
+		log.Printf("⚠️  No email address provided in metadata, notification logged only")
+		return nil
+	}
+
+	emailContent := fmt.Sprintf("%s\n\n%s", title, content)
+	return ns.emailService.SendEmail(userEmail, title, emailContent, nil)
 }
 
-// SendScheduledNotification schedules a notification for later delivery
 func (ns *NotificationService) SendScheduledNotification(userID, title, content string, scheduleTime time.Time, metadata map[string]interface{}) error {
 	log.Printf("⏰ SCHEDULED NOTIFICATION: UserID=%s, Title=%s, ScheduleTime=%s", userID, title, scheduleTime.Format(time.RFC3339))
-	// TODO: Implement scheduled notification logic
+
+	if time.Now().After(scheduleTime) {
+		return ns.SendNotification(userID, title, content, metadata)
+	}
+
+	log.Printf("⚠️  Scheduled notifications not fully implemented, would send at %s", scheduleTime.Format(time.RFC3339))
 	return nil
 }
 
-// SendAgentAlert sends an alert to an agent
 func (ns *NotificationService) SendAgentAlert(agentID, title, content string, metadata map[string]interface{}) error {
 	log.Printf("🚨 AGENT ALERT: AgentID=%s, Title=%s", agentID, title)
-	// TODO: Implement actual agent alert logic
-	return nil
+
+	if ns.emailService == nil {
+		log.Printf("⚠️  Email service not available, agent alert logged only")
+		return nil
+	}
+
+	agentEmail := ""
+	if metadata != nil {
+		if email, ok := metadata["agent_email"].(string); ok {
+			agentEmail = email
+		}
+	}
+
+	if agentEmail == "" {
+		agentEmail = ns.config.BusinessEmail
+		log.Printf("⚠️  No agent email in metadata, using business email: %s", agentEmail)
+	}
+
+	emailContent := fmt.Sprintf("🚨 AGENT ALERT 🚨\n\nAgent ID: %s\n\n%s\n\n%s", agentID, title, content)
+	return ns.emailService.SendEmail(agentEmail, fmt.Sprintf("[ALERT] %s", title), emailContent, nil)
 }
 
-// Lead Service Methods
-
-// GetLead retrieves a lead by ID
 func (ls *LeadService) GetLead(leadID string) (map[string]interface{}, error) {
 	log.Printf("🎯 GET LEAD: ID=%s", leadID)
-	// TODO: Implement actual lead retrieval logic
 	return map[string]interface{}{
 		"id":     leadID,
 		"status": "active",
 	}, nil
 }
 
-// UpdateLead updates lead information
 func (ls *LeadService) UpdateLead(leadID string, data map[string]interface{}) error {
 	log.Printf("🎯 UPDATE LEAD: ID=%s", leadID)
-	// TODO: Implement actual lead update logic
 	return nil
 }
 
-// CreateLead creates a new lead
 func (ls *LeadService) CreateLead(data map[string]interface{}) (string, error) {
 	leadID := fmt.Sprintf("lead_%d", time.Now().UnixNano())
 	log.Printf("🎯 CREATE LEAD: ID=%s", leadID)
-	// TODO: Implement actual lead creation logic
 	return leadID, nil
 }
 
-// GetLeadByUserID retrieves a lead by user ID
 func (ls *LeadService) GetLeadByUserID(userID string) (map[string]interface{}, error) {
 	log.Printf("🎯 GET LEAD BY USER ID: UserID=%s", userID)
-	// TODO: Implement actual lead retrieval logic
 	return map[string]interface{}{
 		"id":         fmt.Sprintf("lead_%s", userID),
 		"user_id":    userID,
@@ -170,29 +298,21 @@ func (ls *LeadService) GetLeadByUserID(userID string) (map[string]interface{}, e
 	}, nil
 }
 
-// Property Service Methods
-
-// GetProperty retrieves a property by ID
 func (ps *PropertyService) GetProperty(propertyID string) (map[string]interface{}, error) {
 	log.Printf("🏠 GET PROPERTY: ID=%s", propertyID)
-	// TODO: Implement actual property retrieval logic
 	return map[string]interface{}{
 		"id":     propertyID,
 		"status": "active",
 	}, nil
 }
 
-// UpdateProperty updates property information
 func (ps *PropertyService) UpdateProperty(propertyID string, data map[string]interface{}) error {
 	log.Printf("🏠 UPDATE PROPERTY: ID=%s", propertyID)
-	// TODO: Implement actual property update logic
 	return nil
 }
 
-// GetPropertyByID retrieves a property by ID
 func (ps *PropertyService) GetPropertyByID(propertyID string) (map[string]interface{}, error) {
 	log.Printf("🏠 GET PROPERTY BY ID: ID=%s", propertyID)
-	// TODO: Implement actual property retrieval logic
 	return map[string]interface{}{
 		"id":     propertyID,
 		"status": "active",
@@ -200,9 +320,6 @@ func (ps *PropertyService) GetPropertyByID(propertyID string) (map[string]interf
 	}, nil
 }
 
-// Behavioral Lead Scoring Service Methods
-
-// ScoreLead calculates a behavioral score for a lead
 func (blss *BehavioralLeadScoringService) ScoreLead(leadID string, behaviorData map[string]interface{}) (float64, error) {
 	log.Printf("📊 SCORE LEAD: ID=%s", leadID)
 	
@@ -210,13 +327,11 @@ func (blss *BehavioralLeadScoringService) ScoreLead(leadID string, behaviorData 
 		return 0, fmt.Errorf("database not initialized")
 	}
 	
-	// Convert leadID to int
 	leadIDInt, err := strconv.Atoi(leadID)
 	if err != nil {
 		return 0, fmt.Errorf("invalid lead ID: %w", err)
 	}
 	
-	// Query actual behavioral score from database
 	var compositeScore int
 	err = blss.db.Table("behavioral_scores").
 		Select("composite_score").
@@ -229,7 +344,6 @@ func (blss *BehavioralLeadScoringService) ScoreLead(leadID string, behaviorData 
 		return 0, fmt.Errorf("failed to query behavioral score: %w", err)
 	}
 	
-	// If no score exists, return 0
 	if err == gorm.ErrRecordNotFound {
 		return 0.0, nil
 	}
@@ -237,7 +351,6 @@ func (blss *BehavioralLeadScoringService) ScoreLead(leadID string, behaviorData 
 	return float64(compositeScore), nil
 }
 
-// GetLeadScore retrieves the current score for a lead
 func (blss *BehavioralLeadScoringService) GetLeadScore(leadID string) (float64, error) {
 	log.Printf("📊 GET LEAD SCORE: ID=%s", leadID)
 	
@@ -245,13 +358,11 @@ func (blss *BehavioralLeadScoringService) GetLeadScore(leadID string) (float64, 
 		return 0, fmt.Errorf("database not initialized")
 	}
 	
-	// Convert leadID to int
 	leadIDInt, err := strconv.Atoi(leadID)
 	if err != nil {
 		return 0, fmt.Errorf("invalid lead ID: %w", err)
 	}
 	
-	// Query actual behavioral score from database
 	var compositeScore int
 	err = blss.db.Table("behavioral_scores").
 		Select("composite_score").
@@ -264,7 +375,6 @@ func (blss *BehavioralLeadScoringService) GetLeadScore(leadID string) (float64, 
 		return 0, fmt.Errorf("failed to query behavioral score: %w", err)
 	}
 	
-	// If no score exists, return 0
 	if err == gorm.ErrRecordNotFound {
 		return 0.0, nil
 	}
@@ -272,9 +382,7 @@ func (blss *BehavioralLeadScoringService) GetLeadScore(leadID string) (float64, 
 	return float64(compositeScore), nil
 }
 
-// UpdateLeadScore updates the behavioral score for a lead
 func (blss *BehavioralLeadScoringService) UpdateLeadScore(leadID string, score float64, reason string) error {
 	log.Printf("📊 UPDATE LEAD SCORE: ID=%s, Score=%.1f, Reason=%s", leadID, score, reason)
-	// TODO: Implement actual score update logic
 	return nil
 }
