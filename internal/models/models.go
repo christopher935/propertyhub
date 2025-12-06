@@ -406,18 +406,19 @@ type ScheduledAction struct {
 
 // Lead represents a potential client for FUB integration
 type Lead struct {
-	ID           uint        `json:"id" gorm:"primaryKey"`
-	FirstName    string      `json:"first_name" gorm:"not null"`
-	LastName     string      `json:"last_name" gorm:"not null"`
-	Email        string      `json:"email" gorm:"not null"`
-	Phone        string      `json:"phone"`
-	City         string      `json:"city"`
-	State        string      `json:"state"`
-	FUBLeadID    string      `json:"fub_lead_id" gorm:"uniqueIndex"`
-	Source       string      `json:"source" gorm:"default:'Website'"`
-	Status       string      `json:"status" gorm:"default:'new'"`
-	Tags         StringArray `json:"tags" gorm:"type:json"`
-	CustomFields JSONB       `json:"custom_fields" gorm:"type:json"`
+	ID               uint        `json:"id" gorm:"primaryKey"`
+	FirstName        string      `json:"first_name" gorm:"not null"`
+	LastName         string      `json:"last_name" gorm:"not null"`
+	Email            string      `json:"email" gorm:"not null"`
+	Phone            string      `json:"phone"`
+	City             string      `json:"city"`
+	State            string      `json:"state"`
+	FUBLeadID        string      `json:"fub_lead_id" gorm:"uniqueIndex"`
+	Source           string      `json:"source" gorm:"default:'Website'"`
+	Status           string      `json:"status" gorm:"default:'new'"`
+	AssignedAgentID  string      `json:"assigned_agent_id" gorm:"index"`
+	Tags             StringArray `json:"tags" gorm:"type:json"`
+	CustomFields     JSONB       `json:"custom_fields" gorm:"type:json"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

@@ -50,6 +50,9 @@ type AllHandlers struct {
 	LeadReengagement      *handlers.LeadReengagementHandler
 	LeadsList             *handlers.LeadsListHandler
 
+	// Team Management
+	Team                  *handlers.TeamHandlers
+
 	// Pre-Listing
 	PreListing            *handlers.PreListingHandlers
 
