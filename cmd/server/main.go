@@ -419,7 +419,6 @@ log.Println("🔗 Webhook handlers initialized")
 	log.Println("🛣️ Registering API routes...")
 	api := r.Group("/api")
 	RegisterAPIRoutes(api, allHandlers, propertyValuationHandler, emailAutomationHandler)
-// DISABLED - causes duplicate routes: 	RegisterMissingRoutes(api) // 55 missing endpoints
 	log.Println("✅ API routes registered")
 
 	log.Println("🛣️ Registering health check and error handlers...")
