@@ -336,3 +336,99 @@ func generateBookingReference() string {
 	
 	return fmt.Sprintf("BK%d%s", timestamp, randomHex[:6])
 }
+
+func (h *BookingHandler) CompleteBooking(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid booking ID", err)
+		return
+	}
+
+	var booking models.Booking
+	if err := h.db.First(&booking, uint(id)).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusNotFound, "Booking not found", err)
+		return
+	}
+
+	booking.Status = "completed"
+	now := time.Now()
+	booking.CompletedAt = &now
+	
+	if err := h.db.Save(&booking).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update booking", err)
+		return
+	}
+
+	utils.SuccessResponse(c, gin.H{
+		"message": "Booking marked as completed",
+		"booking": booking,
+	})
+}
+
+func (h *BookingHandler) MarkNoShow(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid booking ID", err)
+		return
+	}
+
+	var booking models.Booking
+	if err := h.db.First(&booking, uint(id)).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusNotFound, "Booking not found", err)
+		return
+	}
+
+	booking.Status = "no-show"
+	
+	if err := h.db.Save(&booking).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to update booking", err)
+		return
+	}
+
+	utils.SuccessResponse(c, gin.H{
+		"message": "Booking marked as no-show",
+		"booking": booking,
+	})
+}
+
+func (h *BookingHandler) RescheduleBooking(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid booking ID", err)
+		return
+	}
+
+	var request struct {
+		NewDatetime string `json:"new_datetime"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid request", err)
+		return
+	}
+
+	var booking models.Booking
+	if err := h.db.First(&booking, uint(id)).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusNotFound, "Booking not found", err)
+		return
+	}
+
+	newDateTime, err := time.Parse("2006-01-02 15:04", request.NewDatetime)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid datetime format (expected YYYY-MM-DD HH:MM)", err)
+		return
+	}
+
+	booking.ScheduledAt = newDateTime
+	booking.Status = "rescheduled"
+	
+	if err := h.db.Save(&booking).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to reschedule booking", err)
+		return
+	}
+
+	utils.SuccessResponse(c, gin.H{
+		"message": "Booking rescheduled successfully",
+		"booking": booking,
+	})
+}
+}

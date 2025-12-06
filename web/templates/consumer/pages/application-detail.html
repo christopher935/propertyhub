@@ -530,31 +530,118 @@
         });
 
         // Application action handlers
-        function approveApplication() {
-            if (confirm('Approve this application?\n\nThis will:\n✓ Set status to "Approved"\n✓ Trigger Zipforms to send lease documents\n✓ Send approval email to applicant\n✓ Notify property owner')) {
-                alert('Application approved!\n\nZipforms triggered for lease documents\nApproval email sent to john.doe@email.com\n\nAPI: POST /api/applications/1/approve');
-                // TODO: Actual API call
-                // window.location.href = '/admin/applications-list';
+        async function approveApplication() {
+            if (!confirm('Approve this application?\n\nThis will:\n✓ Set status to "Approved"\n✓ Trigger Zipforms to send lease documents\n✓ Send approval email to applicant\n✓ Notify property owner')) {
+                return;
             }
-        }
-
-        function requestMoreInfo() {
-            const info = prompt('What additional information do you need?\n\nExamples:\n- Additional income verification\n- Previous landlord reference\n- Co-signer information\n- Pet documentation');
-            if (info) {
-                alert('Request sent!\n\nEmail sent to applicant requesting:\n' + info + '\n\nStatus updated to "Pending More Info"\n\nAPI: POST /api/applications/1/request-info');
-                // TODO: Actual API call
-            }
-        }
-
-        function denyApplication() {
-            if (confirm('Deny this application?\n\nThis will:\n✗ Set status to "Denied"\n✓ Send denial email (with fair housing compliance)\n✓ Archive application\n\nThis action cannot be undone.')) {
-                const reason = prompt('Reason for denial (required for compliance):\n\nExamples:\n- Insufficient income (does not meet 3x rent requirement)\n- Negative rental history\n- Failed background check');
-                if (reason) {
-                    alert('Application denied\n\nReason: ' + reason + '\n\nCompliance email sent\n\nAPI: POST /api/applications/1/deny');
-                    // TODO: Actual API call
-                    // window.location.href = '/admin/applications-list';
+            
+            try {
+                const applicationId = getApplicationIdFromURL();
+                const response = await fetch(`/api/applications/${applicationId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCsrfToken()
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Failed to approve application');
                 }
+                
+                showNotification('Application approved successfully!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                console.error('Approve error:', error);
+                showNotification(error.message || 'Failed to approve application', 'error');
             }
+        }
+
+        async function requestMoreInfo() {
+            const info = prompt('What additional information do you need?\n\nExamples:\n- Additional income verification\n- Previous landlord reference\n- Co-signer information\n- Pet documentation');
+            
+            if (!info || info.trim() === '') {
+                return;
+            }
+            
+            try {
+                const applicationId = getApplicationIdFromURL();
+                const response = await fetch(`/api/applications/${applicationId}/request-info`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCsrfToken()
+                    },
+                    body: JSON.stringify({ message: info })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Failed to send request');
+                }
+                
+                showNotification('Information request sent to applicant.', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                console.error('Request info error:', error);
+                showNotification(error.message || 'Failed to send information request', 'error');
+            }
+        }
+
+        async function denyApplication() {
+            if (!confirm('Deny this application?\n\nThis will:\n✗ Set status to "Denied"\n✓ Send denial email (with fair housing compliance)\n✓ Archive application\n\nThis action cannot be undone.')) {
+                return;
+            }
+            
+            const reason = prompt('Reason for denial (required for compliance):\n\nExamples:\n- Insufficient income (does not meet 3x rent requirement)\n- Negative rental history\n- Failed background check');
+            
+            if (reason === null) {
+                return;
+            }
+            
+            try {
+                const applicationId = getApplicationIdFromURL();
+                const response = await fetch(`/api/applications/${applicationId}/deny`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCsrfToken()
+                    },
+                    body: JSON.stringify({ reason: reason || 'No reason provided' })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Failed to deny application');
+                }
+                
+                showNotification('Application denied.', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                console.error('Deny error:', error);
+                showNotification(error.message || 'Failed to deny application', 'error');
+            }
+        }
+
+        function showNotification(message, type) {
+            if (window.showToast) {
+                window.showToast(message, type);
+            } else {
+                alert(message);
+            }
+        }
+
+        function getCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.content || '';
+        }
+
+        function getApplicationIdFromURL() {
+            const pathParts = window.location.pathname.split('/');
+            return pathParts[pathParts.length - 1] || '1';
         }
     </script>
 </body>

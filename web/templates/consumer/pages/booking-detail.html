@@ -502,33 +502,135 @@
         });
 
         // Booking action handlers
-        function markCompleted() {
-            if (confirm('Mark this showing as completed?\n\nThis will:\n✓ Update status to "Completed"\n✓ Send application link to client\n✓ Track conversion metrics')) {
-                alert('Showing marked as completed!\n\nApplication link sent to john.doe@email.com\n\nAPI: POST /api/bookings/1/complete');
-                // TODO: Actual API call
-                // window.location.reload();
+        async function markCompleted() {
+            if (!confirm('Mark this showing as completed?\n\nThis will:\n✓ Update status to "Completed"\n✓ Send application link to client\n✓ Track conversion metrics')) {
+                return;
+            }
+            
+            try {
+                const bookingId = getBookingIdFromURL();
+                const response = await fetch(`/api/v1/bookings/${bookingId}/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCsrfToken()
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to mark showing as completed');
+                }
+                
+                showNotification('Showing marked as completed!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                console.error('Mark completed error:', error);
+                showNotification(error.message || 'Failed to mark showing as completed', 'error');
             }
         }
 
-        function markNoShow() {
-            if (confirm('Mark this showing as no-show?\n\nThis will:\n✓ Update status to "No-Show"\n✓ Send follow-up email\n✓ AI will suggest reschedule or alternative properties')) {
-                alert('Showing marked as no-show!\n\nFollow-up email sent with reschedule options\n\nAPI: POST /api/bookings/1/no-show');
-                // TODO: Actual API call
-                // window.location.reload();
+        async function markNoShow() {
+            if (!confirm('Mark this showing as no-show?\n\nThis will:\n✓ Update status to "No-Show"\n✓ Send follow-up email\n✓ AI will suggest reschedule or alternative properties')) {
+                return;
+            }
+            
+            try {
+                const bookingId = getBookingIdFromURL();
+                const response = await fetch(`/api/v1/bookings/${bookingId}/no-show`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCsrfToken()
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to mark showing as no-show');
+                }
+                
+                showNotification('Showing marked as no-show. Follow-up email sent.', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                console.error('Mark no-show error:', error);
+                showNotification(error.message || 'Failed to mark showing as no-show', 'error');
             }
         }
 
-        function rescheduleShowing() {
-            alert('Reschedule functionality\n\nWill open calendar picker to select new date/time\n\nAPI: PUT /api/bookings/1/reschedule');
-            // TODO: Calendar integration
+        async function rescheduleShowing() {
+            const newDate = prompt('Enter new date and time (YYYY-MM-DD HH:MM):');
+            if (!newDate) {
+                return;
+            }
+            
+            try {
+                const bookingId = getBookingIdFromURL();
+                const response = await fetch(`/api/v1/bookings/${bookingId}/reschedule`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCsrfToken()
+                    },
+                    body: JSON.stringify({ new_datetime: newDate })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to reschedule showing');
+                }
+                
+                showNotification('Showing rescheduled successfully!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                console.error('Reschedule error:', error);
+                showNotification(error.message || 'Failed to reschedule showing', 'error');
+            }
         }
 
-        function cancelShowing() {
-            if (confirm('Cancel this showing?\n\nThis will:\n✗ Cancel the showing\n✓ Send cancellation email to client\n✓ Free up agent\'s calendar slot')) {
-                alert('Showing cancelled!\n\nCancellation email sent\n\nAPI: DELETE /api/bookings/1');
-                // TODO: Actual API call
-                // window.location.href = '/admin/bookings-list';
+        async function cancelShowing() {
+            if (!confirm('Cancel this showing?\n\nThis will:\n✗ Cancel the showing\n✓ Send cancellation email to client\n✓ Free up agent\'s calendar slot')) {
+                return;
             }
+            
+            try {
+                const bookingId = getBookingIdFromURL();
+                const response = await fetch(`/api/v1/bookings/${bookingId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': getCsrfToken()
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to cancel showing');
+                }
+                
+                showNotification('Showing cancelled successfully.', 'success');
+                setTimeout(() => window.location.href = '/admin/bookings', 2000);
+            } catch (error) {
+                console.error('Cancel showing error:', error);
+                showNotification(error.message || 'Failed to cancel showing', 'error');
+            }
+        }
+
+        function showNotification(message, type) {
+            if (window.showToast) {
+                window.showToast(message, type);
+            } else {
+                alert(message);
+            }
+        }
+
+        function getCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.content || '';
+        }
+
+        function getBookingIdFromURL() {
+            const pathParts = window.location.pathname.split('/');
+            return pathParts[pathParts.length - 1] || '1';
         }
     </script>
 </body>

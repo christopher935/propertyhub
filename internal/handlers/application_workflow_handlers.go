@@ -361,3 +361,153 @@ func extractSessionIDFromGin(c *gin.Context) string {
 	}
 	return ""
 }
+
+// ApproveApplication approves an application
+func (awh *ApplicationWorkflowHandlers) ApproveApplication(c *gin.Context) {
+	applicationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid application ID",
+		})
+		return
+	}
+
+	var appNumber models.ApplicationNumber
+	if err := awh.db.First(&appNumber, uint(applicationID)).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Application not found",
+		})
+		return
+	}
+
+	err = appNumber.UpdateStatus(awh.db, models.AppStatusApproved, "System", "Application approved")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to approve application",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Application approved successfully",
+		"data": gin.H{
+			"application_id": applicationID,
+			"status": models.AppStatusApproved,
+		},
+	})
+}
+
+// DenyApplication denies an application
+func (awh *ApplicationWorkflowHandlers) DenyApplication(c *gin.Context) {
+	applicationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid application ID",
+		})
+		return
+	}
+
+	var request struct {
+		Reason string `json:"reason"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		request.Reason = "No reason provided"
+	}
+
+	var appNumber models.ApplicationNumber
+	if err := awh.db.First(&appNumber, uint(applicationID)).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Application not found",
+		})
+		return
+	}
+
+	reason := request.Reason
+	if reason == "" {
+		reason = "Application denied"
+	}
+
+	err = appNumber.UpdateStatus(awh.db, models.AppStatusDenied, "System", reason)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to deny application",
+		})
+		return
+	}
+
+	if reason != "" && reason != "Application denied" {
+		appNumber.InternalNotes = appendNote(appNumber.InternalNotes, fmt.Sprintf("Denial reason: %s", reason))
+		awh.db.Save(&appNumber)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Application denied",
+		"data": gin.H{
+			"application_id": applicationID,
+			"status": models.AppStatusDenied,
+			"reason": reason,
+		},
+	})
+}
+
+// RequestMoreInfo requests additional information for an application
+func (awh *ApplicationWorkflowHandlers) RequestMoreInfo(c *gin.Context) {
+	applicationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid application ID",
+		})
+		return
+	}
+
+	var request struct {
+		Message string `json:"message"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil || request.Message == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Message is required",
+		})
+		return
+	}
+
+	var appNumber models.ApplicationNumber
+	if err := awh.db.First(&appNumber, uint(applicationID)).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"message": "Application not found",
+		})
+		return
+	}
+
+	err = appNumber.UpdateStatus(awh.db, models.AppStatusFurtherReview, "System", "Additional information requested")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to request information",
+		})
+		return
+	}
+
+	appNumber.InternalNotes = appendNote(appNumber.InternalNotes, fmt.Sprintf("Info requested: %s", request.Message))
+	awh.db.Save(&appNumber)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Information request sent to applicant",
+		"data": gin.H{
+			"application_id": applicationID,
+			"status": models.AppStatusFurtherReview,
+			"message": request.Message,
+		},
+	})
+}
