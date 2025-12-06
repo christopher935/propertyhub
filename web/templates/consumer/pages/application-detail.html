@@ -12,6 +12,8 @@
     <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
     <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
     <link href="/static/css/scout-components.css" rel="stylesheet"/>
+    <link href="/static/css/modals.css" rel="stylesheet"/>
+    <script src="/static/js/modals.js" defer></script>
 </head>
 <body class="admin-analytics-page">
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -531,7 +533,7 @@
 
         // Application action handlers
         async function approveApplication() {
-            if (!confirm('Are you sure you want to approve this application?')) return;
+            if (!await showConfirm('Are you sure you want to approve this application?', 'Approve Application')) return;
             
             try {
                 const response = await fetch('/api/applications/1/approve', {
@@ -556,7 +558,7 @@
         }
 
         async function requestMoreInfo() {
-            const info = prompt('What additional information do you need?\n\nExamples:\n- Additional income verification\n- Previous landlord reference\n- Co-signer information\n- Pet documentation');
+            const info = await showPrompt('What additional information do you need?\n\nExamples:\n- Additional income verification\n- Previous landlord reference\n- Co-signer information\n- Pet documentation', '', 'Request More Information');
             if (!info) return;
             
             try {
@@ -582,9 +584,9 @@
         }
 
         async function denyApplication() {
-            if (!confirm('Deny this application?\n\nThis action cannot be undone.')) return;
+            if (!await showConfirm('Deny this application?\n\nThis action cannot be undone.', 'Deny Application')) return;
             
-            const reason = prompt('Reason for denial (required for compliance):\n\nExamples:\n- Insufficient income (does not meet 3x rent requirement)\n- Negative rental history\n- Failed background check');
+            const reason = await showPrompt('Reason for denial (required for compliance):\n\nExamples:\n- Insufficient income (does not meet 3x rent requirement)\n- Negative rental history\n- Failed background check', '', 'Denial Reason');
             if (reason === null) return;
             
             try {
@@ -612,7 +614,7 @@
 
         // Helper for notifications
         function showNotification(message, type) {
-            alert(message);
+            showToast(message, type);
         }
     </script>
 </body>

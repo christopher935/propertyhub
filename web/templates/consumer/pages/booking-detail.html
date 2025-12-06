@@ -12,6 +12,8 @@
     <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
     <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
     <link href="/static/css/scout-components.css" rel="stylesheet"/>
+    <link href="/static/css/modals.css" rel="stylesheet"/>
+    <script src="/static/js/modals.js" defer></script>
 </head>
 <body class="admin-analytics-page">
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -503,7 +505,7 @@
 
         // Booking action handlers
         async function markCompleted() {
-            if (!confirm('Mark this showing as completed?\n\nThis will update the status to "Completed" and send an application link to the client.')) return;
+            if (!await showConfirm('Mark this showing as completed?\n\nThis will update the status to "Completed" and send an application link to the client.', 'Mark Completed')) return;
             
             try {
                 const response = await fetch('/api/bookings/1/complete', {
@@ -528,7 +530,7 @@
         }
 
         async function markNoShow() {
-            if (!confirm('Mark this showing as no-show?\n\nThis will send a follow-up email to the client.')) return;
+            if (!await showConfirm('Mark this showing as no-show?\n\nThis will send a follow-up email to the client.', 'Mark No-Show')) return;
             
             try {
                 const response = await fetch('/api/bookings/1/no-show', {
@@ -553,10 +555,10 @@
         }
 
         async function rescheduleShowing() {
-            const newDate = prompt('Enter new date (YYYY-MM-DD):');
+            const newDate = await showPrompt('Enter new date (YYYY-MM-DD):', '', 'Reschedule - Date');
             if (!newDate) return;
             
-            const newTime = prompt('Enter new time (HH:MM):');
+            const newTime = await showPrompt('Enter new time (HH:MM):', '', 'Reschedule - Time');
             if (!newTime) return;
             
             try {
@@ -583,9 +585,9 @@
         }
 
         async function cancelShowing() {
-            if (!confirm('Cancel this showing?\n\nThis will send a cancellation email to the client.')) return;
+            if (!await showConfirm('Cancel this showing?\n\nThis will send a cancellation email to the client.', 'Cancel Showing')) return;
             
-            const reason = prompt('Reason for cancellation (optional):');
+            const reason = await showPrompt('Reason for cancellation (optional):', '', 'Cancellation Reason');
             if (reason === null) return;
             
             try {
@@ -613,7 +615,7 @@
 
         // Helper for notifications
         function showNotification(message, type) {
-            alert(message);
+            showToast(message, type);
         }
     </script>
 </body>
