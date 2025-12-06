@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/services"
 )
 
@@ -85,10 +86,33 @@ func (h *EmailAutomationHandlers) ProcessEmail(c *gin.Context) {
 	})
 }
 
-// GetProcessingHistory returns email processing history - SIMPLE JSON RESPONSE
+// GetProcessingHistory returns email processing history
 func (h *EmailAutomationHandlers) GetProcessingHistory(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "50"))
+
+	var emails []models.EmailEvent
+	var total int64
+
+	offset := (page - 1) * limit
+
+	if err := h.db.Model(&models.EmailEvent{}).Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to count email history",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := h.db.Order("created_at DESC").Limit(limit).Offset(offset).Find(&emails).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to retrieve email history",
+			"error":   err.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -96,19 +120,41 @@ func (h *EmailAutomationHandlers) GetProcessingHistory(c *gin.Context) {
 		"data": gin.H{
 			"page":    page,
 			"limit":   limit,
-			"total":   0,
-			"history": []interface{}{}, // Simple placeholder
+			"total":   total,
+			"history": emails,
 		},
 	})
 }
 
-// GetCampaigns returns all email campaigns - SIMPLE JSON RESPONSE
+// GetCampaigns returns all email campaigns
 func (h *EmailAutomationHandlers) GetCampaigns(c *gin.Context) {
+	var campaigns []models.Campaign
+	var total int64
+
+	if err := h.db.Model(&models.Campaign{}).Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to count campaigns",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := h.db.Order("created_at DESC").Find(&campaigns).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to retrieve campaigns",
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Email campaigns retrieved",
 		"data": gin.H{
-			"campaigns": []interface{}{}, // Simple placeholder
+			"campaigns": campaigns,
+			"total":     total,
 		},
 	})
 }
@@ -222,24 +268,68 @@ func (h *EmailAutomationHandlers) GetBatchStatus(c *gin.Context) {
 	})
 }
 
-// GetBatchHistory returns batch processing history - SIMPLE JSON RESPONSE
+// GetBatchHistory returns batch processing history
 func (h *EmailAutomationHandlers) GetBatchHistory(c *gin.Context) {
+	var batches []models.EmailBatch
+	var total int64
+
+	if err := h.db.Model(&models.EmailBatch{}).Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to count batches",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := h.db.Order("created_at DESC").Find(&batches).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to retrieve batches",
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Batch history retrieved",
 		"data": gin.H{
-			"batches": []interface{}{}, // Simple placeholder
+			"batches": batches,
+			"total":   total,
 		},
 	})
 }
 
-// Template handlers - ALL SIMPLE JSON RESPONSES
+// GetTemplates returns all email templates
 func (h *EmailAutomationHandlers) GetTemplates(c *gin.Context) {
+	var templates []models.EmailTemplate
+	var total int64
+
+	if err := h.db.Model(&models.EmailTemplate{}).Count(&total).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to count templates",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if err := h.db.Order("created_at DESC").Find(&templates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to retrieve templates",
+			"error":   err.Error(),
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Email templates retrieved",
 		"data": gin.H{
-			"templates": []interface{}{}, // Simple placeholder
+			"templates": templates,
+			"total":     total,
 		},
 	})
 }
