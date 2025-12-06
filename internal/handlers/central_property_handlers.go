@@ -234,13 +234,11 @@ func (cph *CentralPropertyHandler) UpdatePropertyStatus(w http.ResponseWriter, r
 	}
 
 	// Update property status
-	// TODO: Implement UpdatePropertyStatus method in CentralPropertyStateManager
-	log.Printf("⚠️ UpdatePropertyStatus not implemented yet for %s -> %s (Source: %s)", mlsID, statusReq.Status, statusReq.Source)
-	// if err := cph.stateManager.UpdatePropertyStatus(mlsID, statusReq.Status, statusReq.Source); err != nil {
-	//	log.Printf("Error updating property status: %v", err)
-	//	cph.sendErrorResponse(w, http.StatusInternalServerError, "STATUS_UPDATE_ERROR", fmt.Sprintf("Failed to update status: %v", err))
-	//	return
-	// }
+	if err := cph.stateManager.UpdatePropertyStatus(mlsID, statusReq.Status, statusReq.Source); err != nil {
+		log.Printf("Error updating property status: %v", err)
+		cph.sendErrorResponse(w, http.StatusInternalServerError, "STATUS_UPDATE_ERROR", fmt.Sprintf("Failed to update status: %v", err))
+		return
+	}
 
 	// Send success response
 	w.WriteHeader(http.StatusOK)

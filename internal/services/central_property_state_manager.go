@@ -167,3 +167,40 @@ func (cpsm *CentralPropertyStateManager) GetPublicProperties() ([]models.Propert
 	log.Printf("🔍 GetPublicProperties returned %d properties", len(propertyStates))
 	return propertyStates, nil
 }
+
+// UpdatePropertyStatus updates the status of a property by MLS ID
+func (cpsm *CentralPropertyStateManager) UpdatePropertyStatus(mlsID string, newStatus string, source string) error {
+	// Find property by MLS ID
+	var property models.PropertyState
+	if err := cpsm.db.Where("mls_id = ?", mlsID).First(&property).Error; err != nil {
+		return fmt.Errorf("property not found: %w", err)
+	}
+
+	// Validate status transition
+	validStatuses := []string{"active", "pending", "sold", "withdrawn", "expired", "coming_soon"}
+	isValid := false
+	for _, s := range validStatuses {
+		if s == newStatus {
+			isValid = true
+			break
+		}
+	}
+	if !isValid {
+		return fmt.Errorf("invalid status: %s", newStatus)
+	}
+
+	// Update status
+	oldStatus := property.Status
+	property.Status = newStatus
+	property.StatusUpdatedAt = time.Now()
+	property.StatusSource = source
+
+	if err := cpsm.db.Save(&property).Error; err != nil {
+		return fmt.Errorf("failed to update status: %w", err)
+	}
+
+	// Log the change
+	log.Printf("✅ Property %s status changed: %s -> %s (Source: %s)", mlsID, oldStatus, newStatus, source)
+
+	return nil
+}
