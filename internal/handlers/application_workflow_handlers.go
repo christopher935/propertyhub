@@ -16,7 +16,8 @@ import (
 type ApplicationWorkflowHandlers struct {
 	db                *gorm.DB
 	service           *services.ApplicationWorkflowService
-	behavioralService *services.BehavioralEventService  // ADDED: Behavioral tracking
+	behavioralService *services.BehavioralEventService
+	notificationHub   *services.AdminNotificationHub
 }
 
 // NewApplicationWorkflowHandlers creates new application workflow handlers
@@ -24,8 +25,13 @@ func NewApplicationWorkflowHandlers(db *gorm.DB) *ApplicationWorkflowHandlers {
 	return &ApplicationWorkflowHandlers{
 		db:                db,
 		service:           services.NewApplicationWorkflowService(db),
-		behavioralService: services.NewBehavioralEventService(db),  // ADDED: Initialize tracking
+		behavioralService: services.NewBehavioralEventService(db),
 	}
+}
+
+// SetNotificationHub sets the notification hub for real-time alerts
+func (awh *ApplicationWorkflowHandlers) SetNotificationHub(hub *services.AdminNotificationHub) {
+	awh.notificationHub = hub
 }
 
 // GetApplicationWorkflow returns the application workflow view
@@ -112,6 +118,19 @@ func (awh *ApplicationWorkflowHandlers) CreateApplicationNumber(c *gin.Context) 
 		)
 	}
 	// ============ END TRACKING ============
+	
+	// Send real-time notification to admin
+	if awh.notificationHub != nil {
+		applicantName := c.PostForm("applicant_name")
+		if applicantName == "" {
+			applicantName = "New Applicant"
+		}
+		awh.notificationHub.SendApplicationAlert(
+			propertyGroup.PropertyAddress,
+			applicantName,
+			appNumber.ID,
+		)
+	}
 	
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

@@ -23,6 +23,11 @@ func NewBehavioralScoringEngine(db *gorm.DB) *BehavioralScoringEngine {
 	}
 }
 
+// SetNotificationHub sets the notification hub for sending real-time alerts
+func (e *BehavioralScoringEngine) SetNotificationHub(hub *AdminNotificationHub) {
+	e.notificationHub = hub
+}
+
 // CalculateScore calculates the behavioral score for a lead based on all their events
 func (e *BehavioralScoringEngine) CalculateScore(leadID int64) (*models.BehavioralScore, error) {
 	// Get all events for this lead

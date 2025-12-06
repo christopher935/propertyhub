@@ -262,6 +262,9 @@ log.Println("🔗 Webhook handlers initialized")
 	scoringEngine.SetNotificationHub(adminNotificationHub)
 	log.Println("🎯 Scoring engine wired to notifications")
 
+	applicationWorkflowHandler.SetNotificationHub(adminNotificationHub)
+	log.Println("📝 Application workflow handler wired to notifications")
+
 	// Command Center - AI-driven actionable insights
 	propertyMatcher := services.NewPropertyMatchingService(gormDB)
 	fubIntegrationService := services.NewBehavioralFUBIntegrationService(gormDB, cfg.FUBAPIKey)
