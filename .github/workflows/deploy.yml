@@ -42,17 +42,12 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H 209.38.116.238 >> ~/.ssh/known_hosts
           
-          echo "🧹 Cleaning deployment target (Amazon-style immutable deployment)..."
-          ssh -i ~/.ssh/deploy_key root@209.38.116.238 << 'ENDSSH'
-            cd /opt/propertyhub
-            rm -rf web/*
-            echo "✅ Deployment target cleaned"
-          ENDSSH
-          
           echo "📤 Uploading fresh files to droplet..."
           scp -i ~/.ssh/deploy_key propertyhub-server root@209.38.116.238:/opt/propertyhub/propertyhub-server.new
-          scp -i ~/.ssh/deploy_key -r web/templates root@209.38.116.238:/opt/propertyhub/web/
-          scp -i ~/.ssh/deploy_key -r web/static root@209.38.116.238:/opt/propertyhub/web/
+          
+          echo "📤 Syncing files to droplet (with cleanup of orphaned files)..."
+          rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key" web/templates/ root@209.38.116.238:/opt/propertyhub/web/templates/
+          rsync -avz --delete -e "ssh -i ~/.ssh/deploy_key" web/static/ root@209.38.116.238:/opt/propertyhub/web/static/
           
           echo "📦 Uploading database migrations..."
           scp -i ~/.ssh/deploy_key -r internal/database/migrations root@209.38.116.238:/opt/propertyhub/
