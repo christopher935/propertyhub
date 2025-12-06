@@ -19,6 +19,22 @@ jobs:
         with:
           go-version: '1.22'
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements-dev.txt 2>/dev/null || pip install pytest pytest-asyncio pytest-cov
+          pip install aiofiles fastapi uvicorn pydantic
+
+      - name: Run Python tests
+        run: |
+          echo "🧪 Running bash_server tests..."
+          pytest tests/ -v --tb=short --cov=bash_server --cov-report=term-missing
+          echo "✅ Tests passed"
+
       - name: Build PropertyHub for Linux
         run: |
           echo "🔨 Building PropertyHub..."
