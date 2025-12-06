@@ -13,7 +13,9 @@
 <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
 <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
 <link href="/static/css/scout-components.css" rel="stylesheet"/>
+<link href="/static/css/modals.css" rel="stylesheet"/>
 <script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITE_KEY"></script>
+<script src="/static/js/modals.js"></script>
 </head>
 <body class="scout-consumer-layout page-booking">
 <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
@@ -247,13 +249,13 @@ function validateStep(step) {
     for (let input of inputs) {
         if (!input.value.trim()) {
             input.focus();
-            alert('Please fill in all required fields');
+            showToast('Please fill in all required fields', 'error');
             return false;
         }
         
         if (input.type === 'email' && !isValidEmail(input.value)) {
             input.focus();
-            alert('Please enter a valid email address');
+            showToast('Please enter a valid email address', 'error');
             return false;
         }
         
@@ -261,7 +263,7 @@ function validateStep(step) {
             const password = document.getElementById('password').value;
             if (input.value !== password) {
                 input.focus();
-                alert('Passwords do not match');
+                showToast('Passwords do not match', 'error');
                 return false;
             }
         }
@@ -315,11 +317,11 @@ async function submitRegistration() {
             nextStep(4);
         } else {
             const error = await response.json();
-            alert(error.message || 'Registration failed. Please try again.');
+            showToast(error.message || 'Registration failed. Please try again.', 'error');
         }
     } catch (error) {
         console.error('Registration error:', error);
-        alert('An error occurred. Please try again or contact us for assistance.');
+        showToast('An error occurred. Please try again or contact us for assistance.', 'error');
     }
 }
 </script>

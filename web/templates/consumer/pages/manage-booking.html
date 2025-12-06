@@ -13,6 +13,8 @@
 <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
 <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
 <link href="/static/css/scout-components.css" rel="stylesheet"/>
+<link href="/static/css/modals.css" rel="stylesheet"/>
+<script src="/static/js/modals.js"></script>
 </head>
 <body>
 <!-- SVG Icon Sprite -->
@@ -416,14 +418,14 @@ document.getElementById('reschedule-form').addEventListener('submit', async (e) 
         });
         
         if (response.ok) {
-            alert('Your tour has been rescheduled successfully!');
-            location.reload();
+            showToast('Your tour has been rescheduled successfully!', 'success');
+            setTimeout(() => location.reload(), 1500);
         } else {
-            alert('Failed to reschedule. Please try again or contact us.');
+            showToast('Failed to reschedule. Please try again or contact us.', 'error');
         }
     } catch (error) {
         console.error('Reschedule error:', error);
-        alert('An error occurred. Please contact us at (281) 925-7222.');
+        showToast('An error occurred. Please contact us at (281) 925-7222.', 'error');
     }
 });
 
@@ -442,14 +444,14 @@ document.getElementById('cancel-form').addEventListener('submit', async (e) => {
         });
         
         if (response.ok) {
-            alert('Your booking has been cancelled.');
-            window.location.href = '/properties';
+            showToast('Your booking has been cancelled.', 'success');
+            setTimeout(() => { window.location.href = '/properties'; }, 1500);
         } else {
-            alert('Failed to cancel booking. Please try again or contact us.');
+            showToast('Failed to cancel booking. Please try again or contact us.', 'error');
         }
     } catch (error) {
         console.error('Cancel error:', error);
-        alert('An error occurred. Please contact us at (281) 925-7222.');
+        showToast('An error occurred. Please contact us at (281) 925-7222.', 'error');
     }
 });
 </script>

@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="/static/css/scout-utilities.css">
     <link rel="stylesheet" href="/static/css/scout-layouts.css">
     <link rel="stylesheet" href="/static/css/scout-components.css">
+    <link rel="stylesheet" href="/static/css/modals.css">
+    <script src="/static/js/modals.js"></script>
 </head>
 <body class="scout-consumer-layout page-property-alerts">
 
@@ -194,11 +196,11 @@ document.getElementById('alertForm').addEventListener('submit', async (e) => {
             }, 2000);
         } else {
             const error = await response.json();
-            alert('Error: ' + (error.error || 'Failed to save preferences'));
+            showToast('Error: ' + (error.error || 'Failed to save preferences'), 'error');
         }
     } catch (error) {
         console.error('Error saving preferences:', error);
-        alert('Failed to save alert preferences. Please try again.');
+        showToast('Failed to save alert preferences. Please try again.', 'error');
     }
 });
 
