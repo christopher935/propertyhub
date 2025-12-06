@@ -17,7 +17,7 @@ func AuthRequired(authManager interface{}) gin.HandlerFunc {
 			sessionToken, err = c.Cookie("admin_session")
 			if err != nil || sessionToken == "" {
 				// No valid session cookie found
-				c.Redirect(http.StatusFound, "/admin/login")
+				c.Redirect(http.StatusFound, "/admin")
 				c.Abort()
 				return
 			}
