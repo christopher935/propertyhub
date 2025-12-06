@@ -688,14 +688,20 @@ func getConfidenceLevel(confidence float32) string {
 
 
 
+func structToJSONB(v interface{}) models.JSONB {
+	data, err := json.Marshal(v)
+	if err != nil {
+		return models.JSONB{}
+	}
+	var result models.JSONB
+	if err := json.Unmarshal(data, &result); err != nil {
+		return models.JSONB{}
+	}
+	return result
+}
+
 // SaveValuation saves a valuation report to the database
 func (pvs *PropertyValuationService) SaveValuation(propertyID *uint, valuation *PropertyValuation, requestedBy string) (*models.PropertyValuationRecord, error) {
-	// Convert to JSON for storage
-	comparablesJSON, _ := json.Marshal(valuation.Comparables)
-	adjustmentsJSON, _ := json.Marshal(valuation.ValuationFactors)
-	marketAnalysisJSON, _ := json.Marshal(valuation.MarketConditions)
-	recommendationsJSON, _ := json.Marshal(valuation.Recommendations)
-
 	pricePerSqft := float64(valuation.PricePerSqFt)
 
 	record := &models.PropertyValuationRecord{
@@ -705,10 +711,10 @@ func (pvs *PropertyValuationService) SaveValuation(propertyID *uint, valuation *
 		ValueHigh:        float64(valuation.ValueRange.High),
 		PricePerSqft:     &pricePerSqft,
 		Confidence:       float64(valuation.ConfidenceScore),
-		Comparables:      models.JSONB(comparablesJSON),
-		Adjustments:      models.JSONB(adjustmentsJSON),
-		MarketAnalysis:   models.JSONB(marketAnalysisJSON),
-		Recommendations:  models.JSONB(recommendationsJSON),
+		Comparables:      structToJSONB(valuation.Comparables),
+		Adjustments:      structToJSONB(valuation.ValuationFactors),
+		MarketAnalysis:   structToJSONB(valuation.MarketConditions),
+		Recommendations:  structToJSONB(valuation.Recommendations),
 		RequestedBy:      requestedBy,
 		ModelVersion:     "v1.0",
 	}
@@ -779,7 +785,8 @@ func (pvs *PropertyValuationService) GetMarketTrendsForArea(city, zipCode, prope
 		marketData.InventoryCount = int(count)
 	}
 
-	return pvs.assessMarketConditions(marketData), nil
+	conditions := pvs.assessMarketConditions(marketData)
+	return &conditions, nil
 }
 
 // UpdateMarketData manually updates market data for a zip code
