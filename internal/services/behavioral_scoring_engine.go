@@ -245,3 +245,8 @@ func (e *BehavioralScoringEngine) RecalculateAllScores() error {
 	log.Printf("✅ Batch recalculation complete")
 	return nil
 }
+
+func (e *BehavioralScoringEngine) SetNotificationHub(hub *AdminNotificationHub) {
+	e.notificationHub = hub
+	log.Println("🔔 Notification hub connected to scoring engine")
+}
