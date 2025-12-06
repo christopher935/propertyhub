@@ -264,86 +264,18 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	// ============================================================================
 
 	// Agent Dashboard API
-	api.GET("/agent/dashboard", func(c *gin.Context) {
-		// TODO: Implement agent-specific dashboard data
-		c.JSON(200, gin.H{
-			"activeLeads":          12,
-			"upcomingShowings":     5,
-			"conversionRate":       32,
-			"avgResponseTime":      "2.3h",
-			"recentLeads":          []gin.H{},
-			"upcomingShowingsList": []gin.H{},
-		})
-	})
+	api.GET("/agent/dashboard", h.Team.GetAgentDashboard)
 
 	// Team Management API
-	api.GET("/admin/team/dashboard", func(c *gin.Context) {
-		// TODO: Implement team dashboard data
-		c.JSON(200, gin.H{
-			"activeAgents":   8,
-			"assignedLeads":  124,
-			"teamConversion": 28,
-			"weeklyShowings": 47,
-			"teamMembers":    []gin.H{},
-			"topPerformers":  []gin.H{},
-		})
-	})
-
-	api.GET("/admin/team", func(c *gin.Context) {
-		// TODO: Return list of team members
-		c.JSON(200, gin.H{"agents": []gin.H{}})
-	})
-
-	api.GET("/admin/team/:id", func(c *gin.Context) {
-		// TODO: Return single team member details
-		c.JSON(200, gin.H{
-			"id":             c.Param("id"),
-			"firstName":      "",
-			"lastName":       "",
-			"email":          "",
-			"phone":          "",
-			"role":           "agent",
-			"status":         "active",
-			"permissions":    []string{},
-			"assignedLeads":  0,
-			"activeShowings": 0,
-			"conversionRate": 0,
-			"totalRevenue":   0,
-		})
-	})
-
-	api.POST("/admin/team/add", func(c *gin.Context) {
-		// TODO: Add new team member
-		c.JSON(200, gin.H{
-			"success": true,
-			"message": "Team member added successfully",
-		})
-	})
-
-	api.PUT("/admin/team/:id", func(c *gin.Context) {
-		// TODO: Update team member
-		c.JSON(200, gin.H{
-			"success": true,
-			"message": "Team member updated successfully",
-		})
-	})
-
-	api.DELETE("/admin/team/:id", func(c *gin.Context) {
-		// TODO: Delete team member
-		c.JSON(200, gin.H{
-			"success": true,
-			"message": "Team member deleted successfully",
-		})
-	})
+	api.GET("/admin/team/dashboard", h.Team.GetTeamDashboard)
+	api.GET("/admin/team", h.Team.GetTeamMembers)
+	api.GET("/admin/team/:id", h.Team.GetTeamMember)
+	api.POST("/admin/team/add", h.Team.AddTeamMember)
+	api.PUT("/admin/team/:id", h.Team.UpdateTeamMember)
+	api.DELETE("/admin/team/:id", h.Team.DeleteTeamMember)
 
 	// Lead Assignment API
-	api.POST("/admin/leads/assign", func(c *gin.Context) {
-		// TODO: Assign lead to agent
-		c.JSON(200, gin.H{
-			"success": true,
-			"message": "Lead assigned successfully",
-		})
-	})
+	api.POST("/admin/leads/assign", h.Team.AssignLead)
 
 	api.POST("/admin/leads/add", func(c *gin.Context) {
 		// TODO: Add new lead manually

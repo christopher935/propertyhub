@@ -163,6 +163,10 @@ leadReengagementHandler := handlers.NewLeadReengagementHandler(gormDB, encryptio
 leadsListHandler := handlers.NewLeadsListHandler(gormDB, encryptionManager)
 log.Println("👥 Lead management handlers initialized")
 
+// Team Management
+teamHandler := handlers.NewTeamHandlers(gormDB)
+log.Println("👥 Team management handlers initialized")
+
 // Pre-listing Management
 preListingHandler := handlers.NewPreListingHandlers(gormDB, cfg, scraperService)
 log.Println("📝 Pre-listing handlers initialized")
@@ -275,6 +279,7 @@ log.Println("🔗 Webhook handlers initialized")
 		HARMarket:             harMarketHandler,
 		LeadReengagement:      leadReengagementHandler,
 		LeadsList:             leadsListHandler,
+		Team:                  teamHandler,
 		PreListing:            preListingHandler,
 		Properties:            propertiesHandler,
 		SavedProperties:       savedPropertiesHandler,
