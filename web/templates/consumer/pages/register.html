@@ -13,6 +13,8 @@
 <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
 <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
 <link href="/static/css/scout-components.css" rel="stylesheet"/>
+<link href="/static/css/modals.css" rel="stylesheet"/>
+<script src="/static/js/modals.js"></script>
 <script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITE_KEY"></script>
 </head>
 <body class="scout-consumer-layout page-booking">
@@ -240,20 +242,20 @@ function prevStep(step) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function validateStep(step) {
+async function validateStep(step) {
     const stepElement = document.querySelector(`#step-${step}`);
     const inputs = stepElement.querySelectorAll('input[required]');
     
     for (let input of inputs) {
         if (!input.value.trim()) {
             input.focus();
-            alert('Please fill in all required fields');
+            await showAlert('Please fill in all required fields', 'Validation Error');
             return false;
         }
         
         if (input.type === 'email' && !isValidEmail(input.value)) {
             input.focus();
-            alert('Please enter a valid email address');
+            await showAlert('Please enter a valid email address', 'Invalid Email');
             return false;
         }
         
@@ -261,7 +263,7 @@ function validateStep(step) {
             const password = document.getElementById('password').value;
             if (input.value !== password) {
                 input.focus();
-                alert('Passwords do not match');
+                await showAlert('Passwords do not match', 'Validation Error');
                 return false;
             }
         }
@@ -289,7 +291,7 @@ function isValidEmail(email) {
 
 async function submitRegistration() {
     // Validate final step
-    if (!validateStep(3)) {
+    if (!(await validateStep(3))) {
         return;
     }
     
@@ -315,11 +317,11 @@ async function submitRegistration() {
             nextStep(4);
         } else {
             const error = await response.json();
-            alert(error.message || 'Registration failed. Please try again.');
+            await showAlert(error.message || 'Registration failed. Please try again.', 'Registration Error');
         }
     } catch (error) {
         console.error('Registration error:', error);
-        alert('An error occurred. Please try again or contact us for assistance.');
+        await showAlert('An error occurred. Please try again or contact us for assistance.', 'Error');
     }
 }
 </script>

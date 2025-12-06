@@ -548,11 +548,11 @@
                             // Reload stats
                             this.loadStats();
                         } else {
-                            alert('Action failed: ' + (data.message || 'Unknown error'));
+                            showToast('Action failed: ' + (data.message || 'Unknown error'), 'error');
                         }
                     } catch (error) {
                         console.error('Failed to execute action:', error);
-                        alert('Failed to execute action');
+                        showToast('Failed to execute action', 'error');
                     } finally {
                         delete this.actionLoading[itemId];
                     }

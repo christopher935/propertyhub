@@ -289,11 +289,11 @@
                         if (response.ok) {
                             window.location.href = `/admin/property-updated-success?id=${this.propertyId}`;
                         } else {
-                            alert('Failed to update property. Please try again.');
+                            await showAlert('Failed to update property. Please try again.', 'Error');
                         }
                     } catch (error) {
                         console.error('Error updating property:', error);
-                        alert('An error occurred. Please try again.');
+                        await showAlert('An error occurred. Please try again.', 'Error');
                     } finally {
                         this.submitting = false;
                     }

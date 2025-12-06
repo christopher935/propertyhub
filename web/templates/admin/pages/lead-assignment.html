@@ -275,13 +275,13 @@
                             this.selectedAgentId = '';
                             this.assignmentNotes = '';
                             await this.fetchAgents();
-                            alert('Lead assigned successfully!');
+                            showToast('Lead assigned successfully!', 'success');
                         } else {
-                            alert('Failed to assign lead. Please try again.');
+                            showToast('Failed to assign lead. Please try again.', 'error');
                         }
                     } catch (error) {
                         console.error('Error assigning lead:', error);
-                        alert('An error occurred. Please try again.');
+                        showToast('An error occurred. Please try again.', 'error');
                     } finally {
                         this.assigning = false;
                     }

@@ -240,11 +240,11 @@
                             const data = await response.json();
                             window.location.href = `/admin/property-added-success?id=${data.id}`;
                         } else {
-                            alert('Failed to create property. Please try again.');
+                            await showAlert('Failed to create property. Please try again.', 'Error');
                         }
                     } catch (error) {
                         console.error('Error creating property:', error);
-                        alert('An error occurred. Please try again.');
+                        await showAlert('An error occurred. Please try again.', 'Error');
                     } finally {
                         this.submitting = false;
                     }

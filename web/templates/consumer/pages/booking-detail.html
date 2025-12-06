@@ -12,6 +12,8 @@
     <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
     <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
     <link href="/static/css/scout-components.css" rel="stylesheet"/>
+    <link href="/static/css/modals.css" rel="stylesheet"/>
+    <script src="/static/js/modals.js"></script>
 </head>
 <body class="admin-analytics-page">
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -502,30 +504,30 @@
         });
 
         // Booking action handlers
-        function markCompleted() {
-            if (confirm('Mark this showing as completed?\n\nThis will:\n✓ Update status to "Completed"\n✓ Send application link to client\n✓ Track conversion metrics')) {
-                alert('Showing marked as completed!\n\nApplication link sent to john.doe@email.com\n\nAPI: POST /api/bookings/1/complete');
+        async function markCompleted() {
+            if (await showConfirm('Mark this showing as completed?\n\nThis will:\n✓ Update status to "Completed"\n✓ Send application link to client\n✓ Track conversion metrics', 'Mark as Completed')) {
+                showToast('Showing marked as completed! Application link sent to john.doe@email.com', 'success');
                 // TODO: Actual API call
                 // window.location.reload();
             }
         }
 
-        function markNoShow() {
-            if (confirm('Mark this showing as no-show?\n\nThis will:\n✓ Update status to "No-Show"\n✓ Send follow-up email\n✓ AI will suggest reschedule or alternative properties')) {
-                alert('Showing marked as no-show!\n\nFollow-up email sent with reschedule options\n\nAPI: POST /api/bookings/1/no-show');
+        async function markNoShow() {
+            if (await showConfirm('Mark this showing as no-show?\n\nThis will:\n✓ Update status to "No-Show"\n✓ Send follow-up email\n✓ AI will suggest reschedule or alternative properties', 'Mark as No-Show')) {
+                showToast('Showing marked as no-show! Follow-up email sent with reschedule options', 'info');
                 // TODO: Actual API call
                 // window.location.reload();
             }
         }
 
-        function rescheduleShowing() {
-            alert('Reschedule functionality\n\nWill open calendar picker to select new date/time\n\nAPI: PUT /api/bookings/1/reschedule');
+        async function rescheduleShowing() {
+            await showAlert('Reschedule functionality\n\nWill open calendar picker to select new date/time\n\nAPI: PUT /api/bookings/1/reschedule', 'Reschedule Showing');
             // TODO: Calendar integration
         }
 
-        function cancelShowing() {
-            if (confirm('Cancel this showing?\n\nThis will:\n✗ Cancel the showing\n✓ Send cancellation email to client\n✓ Free up agent\'s calendar slot')) {
-                alert('Showing cancelled!\n\nCancellation email sent\n\nAPI: DELETE /api/bookings/1');
+        async function cancelShowing() {
+            if (await showConfirm('Cancel this showing?\n\nThis will:\n✗ Cancel the showing\n✓ Send cancellation email to client\n✓ Free up agent\'s calendar slot', 'Cancel Showing')) {
+                showToast('Showing cancelled! Cancellation email sent', 'success');
                 // TODO: Actual API call
                 // window.location.href = '/admin/bookings-list';
             }

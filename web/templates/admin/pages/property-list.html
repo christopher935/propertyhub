@@ -793,7 +793,7 @@
                 },
                 
                 async requestBulkValuation() {
-                    if (!confirm('Request valuations for all active properties? This may take a few moments.')) {
+                    if (!(await showConfirm('Request valuations for all active properties? This may take a few moments.', 'Request Valuations'))) {
                         return;
                     }
                     
@@ -817,14 +817,14 @@
                         });
                         
                         if (res.ok) {
-                            alert('Valuations requested successfully!');
+                            showToast('Valuations requested successfully!', 'success');
                             await this.fetchValuations();
                         } else {
-                            alert('Failed to request valuations. Please try again.');
+                            showToast('Failed to request valuations. Please try again.', 'error');
                         }
                     } catch (error) {
                         console.error('Error requesting valuations:', error);
-                        alert('Error requesting valuations: ' + error.message);
+                        showToast('Error requesting valuations: ' + error.message, 'error');
                     } finally {
                         this.loadingValuations = false;
                     }

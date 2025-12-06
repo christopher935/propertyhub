@@ -321,7 +321,7 @@
                 },
                 
                 async cancelBooking() {
-                    if (confirm('Are you sure you want to cancel this showing?')) {
+                    if (await showConfirm('Are you sure you want to cancel this showing?', 'Cancel Booking')) {
                         try {
                             const response = await fetch(`/api/v1/bookings/${this.bookingId}`, {
                                 method: 'PUT',
@@ -331,9 +331,11 @@
                             
                             if (response.ok) {
                                 await this.fetchBooking();
+                                showToast('Booking cancelled successfully', 'success');
                             }
                         } catch (error) {
                             console.error('Failed to cancel booking:', error);
+                            showToast('Failed to cancel booking', 'error');
                         }
                     }
                 },

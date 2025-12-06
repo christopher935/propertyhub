@@ -237,11 +237,11 @@
                             const data = await response.json();
                             window.location.href = `/admin/lead-added-success?id=${data.id}`;
                         } else {
-                            alert('Failed to create lead. Please try again.');
+                            await showAlert('Failed to create lead. Please try again.', 'Error');
                         }
                     } catch (error) {
                         console.error('Error creating lead:', error);
-                        alert('An error occurred. Please try again.');
+                        await showAlert('An error occurred. Please try again.', 'Error');
                     } finally {
                         this.submitting = false;
                     }

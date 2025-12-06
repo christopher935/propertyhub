@@ -333,13 +333,21 @@
                     }
                 },
                 
-                archiveProperty() {
-                    if (confirm('Are you sure you want to archive this property?')) {
-                        fetch(`/api/properties/${this.property.id}`, {
-                            method: 'DELETE'
-                        }).then(() => {
-                            window.location.href = '/admin/properties';
-                        });
+                async archiveProperty() {
+                    if (await showConfirm('Are you sure you want to archive this property?', 'Archive Property')) {
+                        try {
+                            const response = await fetch(`/api/properties/${this.property.id}`, {
+                                method: 'DELETE'
+                            });
+                            if (response.ok) {
+                                window.location.href = '/admin/properties';
+                            } else {
+                                showToast('Failed to archive property', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Error archiving property:', error);
+                            showToast('An error occurred', 'error');
+                        }
                     }
                 }
             };

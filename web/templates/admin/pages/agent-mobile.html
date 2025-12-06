@@ -296,21 +296,21 @@
     </footer>
 
     <script>
-        function openBookTour() {
+        async function openBookTour() {
             // In real app: open tour booking modal or navigate to booking page
-            alert("🏠 Book A Tour\n\nDemo: Would open tour booking interface for when leads call in');
+            await showAlert("🏠 Book A Tour\n\nDemo: Would open tour booking interface for when leads call in", 'Demo');
             // Real implementation: window.location.href = '/book-tour';
         }
 
-        function callClient(phone) {
+        async function callClient(phone) {
             // In real app: initiate phone call
-            alert("🏠 Calling ${phone}`);
+            await showAlert(`🏠 Calling ${phone}`, 'Demo');
             // Real implementation: window.location.href = `tel:${phone}`;
         }
 
-        function getDirections(address) {
+        async function getDirections(address) {
             // In real app: open maps with directions
-            alert("🏠 Opening directions to ${address}`);
+            await showAlert(`🏠 Opening directions to ${address}`, 'Demo');
             // Real implementation: window.open(`https://maps.google.com/?q=${encodeURIComponent(address)}`);
         }
 

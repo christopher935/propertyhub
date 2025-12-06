@@ -231,13 +231,13 @@
                         if (response.ok) {
                             await this.fetchFeedback();
                             this.responseText = '';
-                            alert('Response sent successfully!');
+                            showToast('Response sent successfully!', 'success');
                         } else {
-                            alert('Failed to send response. Please try again.');
+                            showToast('Failed to send response. Please try again.', 'error');
                         }
                     } catch (error) {
                         console.error('Error sending response:', error);
-                        alert('An error occurred. Please try again.');
+                        showToast('An error occurred. Please try again.', 'error');
                     } finally {
                         this.submitting = false;
                     }
@@ -260,7 +260,7 @@
                 },
                 
                 async archiveFeedback() {
-                    if (confirm('Are you sure you want to archive this feedback?')) {
+                    if (await showConfirm('Are you sure you want to archive this feedback?', 'Archive Feedback')) {
                         try {
                             const response = await fetch(`/api/admin/feedback/${this.feedbackId}`, {
                                 method: 'DELETE'

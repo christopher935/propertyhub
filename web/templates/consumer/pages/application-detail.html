@@ -12,6 +12,8 @@
     <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
     <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
     <link href="/static/css/scout-components.css" rel="stylesheet"/>
+    <link href="/static/css/modals.css" rel="stylesheet"/>
+    <script src="/static/js/modals.js"></script>
 </head>
 <body class="admin-analytics-page">
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
@@ -530,27 +532,27 @@
         });
 
         // Application action handlers
-        function approveApplication() {
-            if (confirm('Approve this application?\n\nThis will:\n✓ Set status to "Approved"\n✓ Trigger Zipforms to send lease documents\n✓ Send approval email to applicant\n✓ Notify property owner')) {
-                alert('Application approved!\n\nZipforms triggered for lease documents\nApproval email sent to john.doe@email.com\n\nAPI: POST /api/applications/1/approve');
+        async function approveApplication() {
+            if (await showConfirm('Approve this application?\n\nThis will:\n✓ Set status to "Approved"\n✓ Trigger Zipforms to send lease documents\n✓ Send approval email to applicant\n✓ Notify property owner', 'Approve Application')) {
+                showToast('Application approved! Zipforms triggered for lease documents. Approval email sent to john.doe@email.com', 'success');
                 // TODO: Actual API call
                 // window.location.href = '/admin/applications-list';
             }
         }
 
-        function requestMoreInfo() {
-            const info = prompt('What additional information do you need?\n\nExamples:\n- Additional income verification\n- Previous landlord reference\n- Co-signer information\n- Pet documentation');
+        async function requestMoreInfo() {
+            const info = await showPrompt('What additional information do you need?\n\nExamples:\n- Additional income verification\n- Previous landlord reference\n- Co-signer information\n- Pet documentation', '', 'Request Information');
             if (info) {
-                alert('Request sent!\n\nEmail sent to applicant requesting:\n' + info + '\n\nStatus updated to "Pending More Info"\n\nAPI: POST /api/applications/1/request-info');
+                showToast('Request sent! Email sent to applicant requesting: ' + info + '. Status updated to "Pending More Info"', 'success');
                 // TODO: Actual API call
             }
         }
 
-        function denyApplication() {
-            if (confirm('Deny this application?\n\nThis will:\n✗ Set status to "Denied"\n✓ Send denial email (with fair housing compliance)\n✓ Archive application\n\nThis action cannot be undone.')) {
-                const reason = prompt('Reason for denial (required for compliance):\n\nExamples:\n- Insufficient income (does not meet 3x rent requirement)\n- Negative rental history\n- Failed background check');
+        async function denyApplication() {
+            if (await showConfirm('Deny this application?\n\nThis will:\n✗ Set status to "Denied"\n✓ Send denial email (with fair housing compliance)\n✓ Archive application\n\nThis action cannot be undone.', 'Deny Application')) {
+                const reason = await showPrompt('Reason for denial (required for compliance):\n\nExamples:\n- Insufficient income (does not meet 3x rent requirement)\n- Negative rental history\n- Failed background check', '', 'Denial Reason');
                 if (reason) {
-                    alert('Application denied\n\nReason: ' + reason + '\n\nCompliance email sent\n\nAPI: POST /api/applications/1/deny');
+                    showToast('Application denied. Reason: ' + reason + '. Compliance email sent.', 'success');
                     // TODO: Actual API call
                     // window.location.href = '/admin/applications-list';
                 }
