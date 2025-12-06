@@ -16,13 +16,34 @@ from collections import defaultdict
 from dataclasses import dataclass, fields, replace
 from typing import Any, ClassVar, Dict, List, Literal, Optional, get_args
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Depends, Security, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 import uvicorn
 from pathlib import Path
+import secrets
+import logging
+
+logger = logging.getLogger(__name__)
+
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+def get_api_key() -> str:
+    key = os.getenv("BASH_SERVER_API_KEY")
+    if not key:
+        raise RuntimeError("BASH_SERVER_API_KEY environment variable not set")
+    return key
+
+async def verify_api_key(api_key: str = Security(api_key_header)) -> str:
+    if not api_key:
+        raise HTTPException(status_code=401, detail="API key required")
+    if not secrets.compare_digest(api_key, get_api_key()):
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    return api_key
 
 
 # Command types for file operations
@@ -765,11 +786,17 @@ class FileTool(BaseAnthropicTool):
     async def _validate_path(self, path: str) -> Path:
         try:
             path_obj = Path(path)
-            full_path = path_obj if path_obj.is_absolute() else (self.base_path / path_obj).resolve()
-            # Allow access to the entire workspace area
-            if not str(full_path).startswith(str(self.base_path)):
+            if path_obj.is_absolute():
+                full_path = path_obj
+            else:
+                full_path = self.base_path / path_obj
+            resolved_path = full_path.resolve(strict=False)
+            resolved_base = self.base_path.resolve(strict=False)
+            if not resolved_path.is_relative_to(resolved_base):
                 raise ToolError("Path is outside the allowed base directory")
-            return full_path
+            return resolved_path
+        except ToolError:
+            raise
         except Exception as e:
             raise ToolError(f"Invalid path: {str(e)}")
         
@@ -800,7 +827,8 @@ class FileTool(BaseAnthropicTool):
         except ToolError as e:
             return ToolResult(error=str(e))
         except Exception as e:
-            return ToolResult(error=f"Unexpected error: {str(e)}")
+            logger.exception("Unexpected error in file operation")
+            return ToolResult(error="An internal error occurred. Check server logs.")
 
     async def read(self, path: str, mode: str = "text", encoding: str = "utf-8", line_numbers: bool = True) -> ToolResult:
         """Read the content of a file in text or binary mode."""
@@ -1205,13 +1233,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add CORS middleware
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8080").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["X-API-Key", "Content-Type"],
 )
 
 # Define the workspace directory
@@ -1278,7 +1307,7 @@ def _tool_result_to_response(result: ToolResult) -> Dict[str, Any]:
 
 # API Endpoints
 @app.post("/bash", response_model=ToolResponse)
-async def bash_action(request: BashRequest):
+async def bash_action(request: BashRequest, _: str = Depends(verify_api_key)):
     try:
         result = await bash_tool(**request.model_dump(exclude_none=True))
         return _tool_result_to_response(result)
@@ -1287,22 +1316,25 @@ async def bash_action(request: BashRequest):
 
 
 @app.post("/file", response_model=ToolResponse)
-async def file_action(request: FileRequest):
+async def file_action(request: FileRequest, _: str = Depends(verify_api_key)):
     """Execute file operations"""
     try:
-        # Convert request to kwargs, excluding None values
         kwargs = request.model_dump(exclude_none=True)
         result = await file_tool(**kwargs)
         return _tool_result_to_response(result)
     except ToolError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+        logger.exception("Unexpected error in file action")
+        raise HTTPException(status_code=500, detail="An internal error occurred. Check server logs.")
 
 
 @app.websocket("/bash/ws")
-async def bash_websocket(websocket: WebSocket):
+async def bash_websocket(websocket: WebSocket, api_key: str = Query(None)):
     """WebSocket endpoint providing live bash output suitable for xterm.js clients."""
+    if not api_key or not secrets.compare_digest(api_key, get_api_key()):
+        await websocket.close(code=4001, reason="Invalid API key")
+        return
     await websocket.accept()
 
     # Create a dedicated bash session for this WebSocket connection
@@ -1404,7 +1436,7 @@ async def list_files(git_ignore: bool = False):
 
 
 @app.get("/file/{file_path:path}")
-async def get_file(file_path: str):
+async def get_file(file_path: str, _: str = Depends(verify_api_key)):
     """Get a specific file from the workspace"""
     try:
         full_path = WORKSPACE_DIR / file_path
