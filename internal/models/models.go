@@ -1,13 +1,13 @@
 package models
 
 import (
-	"time"
+	"chrisgross-ctrl-project/internal/security"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/security"
 	"log"
+	"time"
 )
 
 // DealType constants for commission tracking
@@ -16,8 +16,6 @@ const (
 	DealTypeListingSide = "listing_side"
 	DealTypeTenantSide  = "tenant_side"
 )
-
-
 
 // StringArray type for storing arrays of strings
 type StringArray []string
@@ -137,17 +135,17 @@ func (b Booking) ToDict() map[string]interface{} {
 
 // WebhookEvent represents incoming webhook events from various sources
 type WebhookEvent struct {
-	ID          uint           `json:"id" gorm:"primaryKey"`
-	Source      string         `json:"source" gorm:"not null;index"`          // fub, buildium, stripe, twilio, etc.
-	EventType   string         `json:"event_type" gorm:"not null;index"`
-	EventID     string         `json:"event_id" gorm:"uniqueIndex"`
-	Payload     JSONB          `json:"payload" gorm:"type:json"`
-	Status      string         `json:"status" gorm:"default:'pending';index"` // pending, processed, failed
-	ProcessedAt *time.Time     `json:"processed_at"`
-	Error       string         `json:"error" gorm:"type:text"`
-	RetryCount  int            `json:"retry_count" gorm:"default:0"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	ID          uint       `json:"id" gorm:"primaryKey"`
+	Source      string     `json:"source" gorm:"not null;index"` // fub, buildium, stripe, twilio, etc.
+	EventType   string     `json:"event_type" gorm:"not null;index"`
+	EventID     string     `json:"event_id" gorm:"uniqueIndex"`
+	Payload     JSONB      `json:"payload" gorm:"type:json"`
+	Status      string     `json:"status" gorm:"default:'pending';index"` // pending, processed, failed
+	ProcessedAt *time.Time `json:"processed_at"`
+	Error       string     `json:"error" gorm:"type:text"`
+	RetryCount  int        `json:"retry_count" gorm:"default:0"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
 // BookingStatusLog tracks status changes for audit trail
@@ -259,14 +257,14 @@ type ClosingPipeline struct {
 	MonthlyRent   *float64 `json:"monthly_rent"`
 
 	// Commission Tracking (NEW - for analytics)
-	CommissionEarned    *float64   `json:"commission_earned" gorm:"type:decimal(10,2)"`
-	CommissionRate      *float64   `json:"commission_rate" gorm:"type:decimal(5,2)"`
-	DealType            string     `json:"deal_type" gorm:"type:varchar(20)"`
-	ListingAgentID      *uint      `json:"listing_agent_id"`
-	TenantAgentID       *uint      `json:"tenant_agent_id"`
-	LeaseSignedDate     *time.Time `json:"lease_signed_date"`
-	ApplicationDate     *time.Time `json:"application_date"`
-	ApprovalDate        *time.Time `json:"approval_date"`
+	CommissionEarned *float64   `json:"commission_earned" gorm:"type:decimal(10,2)"`
+	CommissionRate   *float64   `json:"commission_rate" gorm:"type:decimal(5,2)"`
+	DealType         string     `json:"deal_type" gorm:"type:varchar(20)"`
+	ListingAgentID   *uint      `json:"listing_agent_id"`
+	TenantAgentID    *uint      `json:"tenant_agent_id"`
+	LeaseSignedDate  *time.Time `json:"lease_signed_date"`
+	ApplicationDate  *time.Time `json:"application_date"`
+	ApprovalDate     *time.Time `json:"approval_date"`
 
 	// Tenant Information (minimal for tracking)
 	TenantName  security.EncryptedString `json:"tenant_name"`
@@ -396,6 +394,12 @@ func AutoMigrate(db *gorm.DB) error {
 	}
 	log.Println("✅ AdminNotification migration completed")
 
+	if err := db.AutoMigrate(&DataImport{}); err != nil {
+		log.Printf("❌ DataImport migration failed: %v", err)
+		return err
+	}
+	log.Println("✅ DataImport migration completed")
+
 	log.Println("✅ Database migrations completed successfully")
 	log.Println("🎉 Database initialization complete - proceeding to HTTP server startup")
 	return nil
@@ -442,19 +446,19 @@ type ScheduledAction struct {
 
 // Lead represents a potential client for FUB integration
 type Lead struct {
-	ID               uint        `json:"id" gorm:"primaryKey"`
-	FirstName        string      `json:"first_name" gorm:"not null"`
-	LastName         string      `json:"last_name" gorm:"not null"`
-	Email            string      `json:"email" gorm:"not null"`
-	Phone            string      `json:"phone"`
-	City             string      `json:"city"`
-	State            string      `json:"state"`
-	FUBLeadID        string      `json:"fub_lead_id" gorm:"uniqueIndex"`
-	Source           string      `json:"source" gorm:"default:'Website'"`
-	Status           string      `json:"status" gorm:"default:'new'"`
-	AssignedAgentID  string      `json:"assigned_agent_id" gorm:"index"`
-	Tags             StringArray `json:"tags" gorm:"type:json"`
-	CustomFields     JSONB       `json:"custom_fields" gorm:"type:json"`
+	ID              uint        `json:"id" gorm:"primaryKey"`
+	FirstName       string      `json:"first_name" gorm:"not null"`
+	LastName        string      `json:"last_name" gorm:"not null"`
+	Email           string      `json:"email" gorm:"not null"`
+	Phone           string      `json:"phone"`
+	City            string      `json:"city"`
+	State           string      `json:"state"`
+	FUBLeadID       string      `json:"fub_lead_id" gorm:"uniqueIndex"`
+	Source          string      `json:"source" gorm:"default:'Website'"`
+	Status          string      `json:"status" gorm:"default:'new'"`
+	AssignedAgentID string      `json:"assigned_agent_id" gorm:"index"`
+	Tags            StringArray `json:"tags" gorm:"type:json"`
+	CustomFields    JSONB       `json:"custom_fields" gorm:"type:json"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -697,32 +701,32 @@ func (c Contact) ToDict() map[string]interface{} {
 
 // CommissionAnalytics holds commission analytics data
 type CommissionAnalytics struct {
-	TotalLeases         int     `json:"total_leases"`
-	TotalCommission     float64 `json:"total_commission"`
-	AvgCommission       float64 `json:"avg_commission"`
-	DoubleEndedCount    int     `json:"double_ended_count"`
-	DoubleEndedRevenue  float64 `json:"double_ended_revenue"`
-	DoubleEndedRate     float64 `json:"double_ended_rate"`
-	ListingSideCount    int     `json:"listing_side_count"`
-	ListingSideRevenue  float64 `json:"listing_side_revenue"`
-	TenantSideCount     int     `json:"tenant_side_count"`
-	TenantSideRevenue   float64 `json:"tenant_side_revenue"`
+	TotalLeases        int     `json:"total_leases"`
+	TotalCommission    float64 `json:"total_commission"`
+	AvgCommission      float64 `json:"avg_commission"`
+	DoubleEndedCount   int     `json:"double_ended_count"`
+	DoubleEndedRevenue float64 `json:"double_ended_revenue"`
+	DoubleEndedRate    float64 `json:"double_ended_rate"`
+	ListingSideCount   int     `json:"listing_side_count"`
+	ListingSideRevenue float64 `json:"listing_side_revenue"`
+	TenantSideCount    int     `json:"tenant_side_count"`
+	TenantSideRevenue  float64 `json:"tenant_side_revenue"`
 }
 
 // MonthlyCommissionSummary holds monthly commission summary data
 type MonthlyCommissionSummary struct {
-	Year                     int     `json:"year"`
-	Month                    int     `json:"month"`
-	YearMonth                string  `json:"year_month"`
-	TotalLeases              int     `json:"total_leases"`
-	TotalCommission          float64 `json:"total_commission"`
-	AvgCommission            float64 `json:"avg_commission"`
-	DoubleEndedCount         int     `json:"double_ended_count"`
-	ListingSideCount         int     `json:"listing_side_count"`
-	TenantSideCount          int     `json:"tenant_side_count"`
-	DoubleEndedCommission    float64 `json:"double_ended_commission"`
-	ListingSideCommission    float64 `json:"listing_side_commission"`
-	TenantSideCommission     float64 `json:"tenant_side_commission"`
+	Year                  int     `json:"year"`
+	Month                 int     `json:"month"`
+	YearMonth             string  `json:"year_month"`
+	TotalLeases           int     `json:"total_leases"`
+	TotalCommission       float64 `json:"total_commission"`
+	AvgCommission         float64 `json:"avg_commission"`
+	DoubleEndedCount      int     `json:"double_ended_count"`
+	ListingSideCount      int     `json:"listing_side_count"`
+	TenantSideCount       int     `json:"tenant_side_count"`
+	DoubleEndedCommission float64 `json:"double_ended_commission"`
+	ListingSideCommission float64 `json:"listing_side_commission"`
+	TenantSideCommission  float64 `json:"tenant_side_commission"`
 }
 
 // AgentCommissionPerformance holds agent performance data

@@ -5,22 +5,24 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
+	"chrisgross-ctrl-project/internal/models"
+	"chrisgross-ctrl-project/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/services"
 )
 
 // DataMigrationHandlers handles CSV import functionality
 type DataMigrationHandlers struct {
-	db              *gorm.DB
+	db               *gorm.DB
 	migrationService *services.DataMigrationService
 }
 
 // NewDataMigrationHandlers creates new data migration handlers
 func NewDataMigrationHandlers(db *gorm.DB) *DataMigrationHandlers {
 	return &DataMigrationHandlers{
-		db:              db,
+		db:               db,
 		migrationService: services.NewDataMigrationService(db),
 	}
 }
@@ -46,7 +48,7 @@ func (dmh *DataMigrationHandlers) ImportCustomers(c *gin.Context) {
 	}
 
 	file := files[0]
-	
+
 	// Validate file type
 	if !strings.HasSuffix(strings.ToLower(file.Filename), ".csv") {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -77,6 +79,40 @@ func (dmh *DataMigrationHandlers) ImportCustomers(c *gin.Context) {
 		return
 	}
 
+	status := "completed"
+	if result.ErrorCount > 0 && result.SuccessCount == 0 {
+		status = "failed"
+	} else if result.ErrorCount > 0 {
+		status = "partial"
+	}
+
+	errorLog := ""
+	if len(result.Errors) > 0 {
+		for i, e := range result.Errors {
+			if i >= 10 {
+				errorLog += fmt.Sprintf("... and %d more errors\n", len(result.Errors)-10)
+				break
+			}
+			errorLog += fmt.Sprintf("Row %d: %s\n", e.Row, e.Message)
+		}
+	}
+
+	dataImport := models.DataImport{
+		Type:           "customers",
+		FileName:       file.Filename,
+		RecordsTotal:   result.TotalRows,
+		RecordsSuccess: result.SuccessCount,
+		RecordsFailed:  result.ErrorCount,
+		RecordsSkipped: result.SkippedCount,
+		Status:         status,
+		ErrorLog:       errorLog,
+		ImportedBy:     "admin",
+		DurationMs:     result.Duration.Milliseconds(),
+	}
+
+	if err := dmh.db.Create(&dataImport).Error; err != nil {
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Customer import completed",
@@ -84,7 +120,7 @@ func (dmh *DataMigrationHandlers) ImportCustomers(c *gin.Context) {
 	})
 }
 
-// ImportProperties handles property CSV imports  
+// ImportProperties handles property CSV imports
 func (dmh *DataMigrationHandlers) ImportProperties(c *gin.Context) {
 	// Parse form data
 	form, err := c.MultipartForm()
@@ -105,7 +141,7 @@ func (dmh *DataMigrationHandlers) ImportProperties(c *gin.Context) {
 	}
 
 	file := files[0]
-	
+
 	// Validate file type
 	if !strings.HasSuffix(strings.ToLower(file.Filename), ".csv") {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -136,6 +172,40 @@ func (dmh *DataMigrationHandlers) ImportProperties(c *gin.Context) {
 		return
 	}
 
+	status := "completed"
+	if result.ErrorCount > 0 && result.SuccessCount == 0 {
+		status = "failed"
+	} else if result.ErrorCount > 0 {
+		status = "partial"
+	}
+
+	errorLog := ""
+	if len(result.Errors) > 0 {
+		for i, e := range result.Errors {
+			if i >= 10 {
+				errorLog += fmt.Sprintf("... and %d more errors\n", len(result.Errors)-10)
+				break
+			}
+			errorLog += fmt.Sprintf("Row %d: %s\n", e.Row, e.Message)
+		}
+	}
+
+	dataImport := models.DataImport{
+		Type:           "properties",
+		FileName:       file.Filename,
+		RecordsTotal:   result.TotalRows,
+		RecordsSuccess: result.SuccessCount,
+		RecordsFailed:  result.ErrorCount,
+		RecordsSkipped: result.SkippedCount,
+		Status:         status,
+		ErrorLog:       errorLog,
+		ImportedBy:     "admin",
+		DurationMs:     result.Duration.Milliseconds(),
+	}
+
+	if err := dmh.db.Create(&dataImport).Error; err != nil {
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Property import completed",
@@ -164,7 +234,7 @@ func (dmh *DataMigrationHandlers) ImportBookings(c *gin.Context) {
 	}
 
 	file := files[0]
-	
+
 	// Validate file type
 	if !strings.HasSuffix(strings.ToLower(file.Filename), ".csv") {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -195,6 +265,40 @@ func (dmh *DataMigrationHandlers) ImportBookings(c *gin.Context) {
 		return
 	}
 
+	status := "completed"
+	if result.ErrorCount > 0 && result.SuccessCount == 0 {
+		status = "failed"
+	} else if result.ErrorCount > 0 {
+		status = "partial"
+	}
+
+	errorLog := ""
+	if len(result.Errors) > 0 {
+		for i, e := range result.Errors {
+			if i >= 10 {
+				errorLog += fmt.Sprintf("... and %d more errors\n", len(result.Errors)-10)
+				break
+			}
+			errorLog += fmt.Sprintf("Row %d: %s\n", e.Row, e.Message)
+		}
+	}
+
+	dataImport := models.DataImport{
+		Type:           "bookings",
+		FileName:       file.Filename,
+		RecordsTotal:   result.TotalRows,
+		RecordsSuccess: result.SuccessCount,
+		RecordsFailed:  result.ErrorCount,
+		RecordsSkipped: result.SkippedCount,
+		Status:         status,
+		ErrorLog:       errorLog,
+		ImportedBy:     "admin",
+		DurationMs:     result.Duration.Milliseconds(),
+	}
+
+	if err := dmh.db.Create(&dataImport).Error; err != nil {
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Booking import completed",
@@ -205,7 +309,7 @@ func (dmh *DataMigrationHandlers) ImportBookings(c *gin.Context) {
 // DownloadSampleCSV provides sample CSV files for import
 func (dmh *DataMigrationHandlers) DownloadSampleCSV(c *gin.Context) {
 	dataType := c.Param("type")
-	
+
 	if dataType == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Data type is required",
@@ -235,65 +339,48 @@ func (dmh *DataMigrationHandlers) DownloadSampleCSV(c *gin.Context) {
 
 // GetImportHistory returns import history and statistics
 func (dmh *DataMigrationHandlers) GetImportHistory(c *gin.Context) {
-	// This would typically be stored in a separate imports table
-	// For now, return mock data showing the concept
-	
-	mockHistory := []map[string]interface{}{
-		{
-			"id":           1,
-			"import_type":  "customers",
-			"filename":     "customers_20240115.csv",
-			"total_rows":   150,
-			"success_count": 142,
-			"error_count":  5,
-			"skipped_count": 3,
-			"imported_at":  "2024-01-15T10:30:00Z",
-			"duration_ms":  2500,
-			"status":       "completed",
-		},
-		{
-			"id":           2,
-			"import_type":  "properties",
-			"filename":     "properties_20240110.csv",
-			"total_rows":   45,
-			"success_count": 45,
-			"error_count":  0,
-			"skipped_count": 0,
-			"imported_at":  "2024-01-10T14:15:00Z",
-			"duration_ms":  1200,
-			"status":       "completed",
-		},
-		{
-			"id":           3,
-			"import_type":  "bookings",
-			"filename":     "bookings_20240108.csv",
-			"total_rows":   89,
-			"success_count": 82,
-			"error_count":  7,
-			"skipped_count": 0,
-			"imported_at":  "2024-01-08T09:20:00Z",
-			"duration_ms":  3100,
-			"status":       "completed",
-		},
+	var imports []models.DataImport
+	if err := dmh.db.Order("created_at DESC").Limit(50).Find(&imports).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch import history",
+		})
+		return
 	}
 
-	// Get summary statistics
+	var totalCount int64
+	dmh.db.Model(&models.DataImport{}).Count(&totalCount)
+
+	totalRecordsImported := 0
+	totalRecordsProcessed := 0
+	importTypeCount := make(map[string]int)
+	var mostRecentImport *time.Time
+
+	for _, imp := range imports {
+		totalRecordsImported += imp.RecordsSuccess
+		totalRecordsProcessed += imp.RecordsTotal
+		importTypeCount[imp.Type]++
+		if mostRecentImport == nil || imp.CreatedAt.After(*mostRecentImport) {
+			mostRecentImport = &imp.CreatedAt
+		}
+	}
+
+	successRate := 0.0
+	if totalRecordsProcessed > 0 {
+		successRate = (float64(totalRecordsImported) / float64(totalRecordsProcessed)) * 100
+	}
+
 	summary := map[string]interface{}{
-		"total_imports": len(mockHistory),
-		"total_records_imported": 269, // 142 + 45 + 82
-		"success_rate": 96.4, // (269 / 284) * 100
-		"most_recent_import": "2024-01-15T10:30:00Z",
-		"import_types": map[string]int{
-			"customers":  1,
-			"properties": 1,
-			"bookings":   1,
-		},
+		"total_imports":          totalCount,
+		"total_records_imported": totalRecordsImported,
+		"success_rate":           successRate,
+		"most_recent_import":     mostRecentImport,
+		"import_types":           importTypeCount,
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
-			"history": mockHistory,
+			"history": imports,
 			"summary": summary,
 		},
 	})
@@ -328,7 +415,7 @@ func (dmh *DataMigrationHandlers) ValidateCSV(c *gin.Context) {
 	}
 
 	file := files[0]
-	
+
 	// Validate file type
 	if !strings.HasSuffix(strings.ToLower(file.Filename), ".csv") {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -351,7 +438,7 @@ func (dmh *DataMigrationHandlers) ValidateCSV(c *gin.Context) {
 	validation := dmh.performCSVValidation(src, dataType)
 
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
+		"success":    true,
 		"validation": validation,
 	})
 }
@@ -384,14 +471,14 @@ func (dmh *DataMigrationHandlers) GetImportRequirements(c *gin.Context) {
 				"owner_name", "owner_email", "owner_phone",
 			},
 			"sample_data": map[string]string{
-				"address":       "123 Main St",
-				"city":          "Houston",
-				"state":         "TX",
-				"zip_code":      "77002",
-				"bedrooms":      "2",
-				"bathrooms":     "2",
-				"rent":          "2500",
-				"available":     "true",
+				"address":        "123 Main St",
+				"city":           "Houston",
+				"state":          "TX",
+				"zip_code":       "77002",
+				"bedrooms":       "2",
+				"bathrooms":      "2",
+				"rent":           "2500",
+				"available":      "true",
 				"available_date": "2024-01-15",
 			},
 		},
@@ -410,7 +497,7 @@ func (dmh *DataMigrationHandlers) GetImportRequirements(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
+		"success":      true,
 		"requirements": requirements,
 	})
 }
@@ -419,17 +506,17 @@ func (dmh *DataMigrationHandlers) GetImportRequirements(c *gin.Context) {
 func (dmh *DataMigrationHandlers) performCSVValidation(src interface{}, dataType string) map[string]interface{} {
 	// This is a simplified validation - in production you'd parse the CSV
 	// and check column headers, data types, required fields, etc.
-	
+
 	return map[string]interface{}{
-		"valid": true,
-		"row_count": 100, // Mock count
-		"columns_found": []string{"first_name", "last_name", "email", "phone"},
+		"valid":           true,
+		"row_count":       100, // Mock count
+		"columns_found":   []string{"first_name", "last_name", "email", "phone"},
 		"missing_columns": []string{},
 		"warnings": []string{
 			"10 rows have empty phone numbers",
 			"2 rows have invalid email formats",
 		},
-		"errors": []string{},
+		"errors":          []string{},
 		"ready_to_import": true,
 	}
 }

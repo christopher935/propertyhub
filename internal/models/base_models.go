@@ -1,10 +1,10 @@
 package models
 
 import (
-	"fmt"
-	"gorm.io/gorm"
-        "github.com/lib/pq"
 	"chrisgross-ctrl-project/internal/security"
+	"fmt"
+	"github.com/lib/pq"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -33,7 +33,7 @@ type Property struct {
 
 	// Images and media
 	Images        pq.StringArray `json:"images" gorm:"type:text[]"`
-	FeaturedImage string   `json:"featured_image"`
+	FeaturedImage string         `json:"featured_image"`
 
 	// Agent and office information
 	ListingAgent     string `json:"listing_agent" gorm:"default:'Christopher Gross'"`
@@ -128,15 +128,15 @@ func (p *Property) BeforeUpdate(tx *gorm.DB) error {
 	if p.ID == 0 {
 		return nil
 	}
-	
+
 	var original Property
 	if err := tx.First(&original, p.ID).Error; err != nil {
 		return nil
 	}
-	
+
 	if original.Price != p.Price && original.Price > 0 && p.Price > 0 {
 		percentChange := ((p.Price - original.Price) / original.Price) * 100
-		
+
 		priceChangeEvent := PriceChangeEvent{
 			PropertyID:      p.ID,
 			PropertyAddress: string(p.Address),
@@ -146,13 +146,13 @@ func (p *Property) BeforeUpdate(tx *gorm.DB) error {
 			ChangePercent:   percentChange,
 			ChangedAt:       time.Now(),
 		}
-		
+
 		go func() {
 			if err := tx.Create(&priceChangeEvent).Error; err != nil {
 			}
 		}()
 	}
-	
+
 	return nil
 }
 
@@ -168,4 +168,19 @@ type PriceChangeEvent struct {
 	ProcessedAt     *time.Time `json:"processed_at,omitempty"`
 	CampaignSent    bool       `gorm:"default:false" json:"campaign_sent"`
 	CreatedAt       time.Time  `json:"created_at"`
+}
+
+type DataImport struct {
+	ID             uint      `json:"id" gorm:"primaryKey"`
+	Type           string    `json:"type"`
+	FileName       string    `json:"file_name"`
+	RecordsTotal   int       `json:"records_total"`
+	RecordsSuccess int       `json:"records_success"`
+	RecordsFailed  int       `json:"records_failed"`
+	RecordsSkipped int       `json:"records_skipped"`
+	Status         string    `json:"status"`
+	ErrorLog       string    `json:"error_log" gorm:"type:text"`
+	ImportedBy     string    `json:"imported_by"`
+	DurationMs     int64     `json:"duration_ms"`
+	CreatedAt      time.Time `json:"created_at"`
 }
