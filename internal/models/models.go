@@ -135,14 +135,19 @@ func (b Booking) ToDict() map[string]interface{} {
 	}
 }
 
-// WebhookEvent represents incoming webhook events from FollowUp Boss
+// WebhookEvent represents incoming webhook events from various sources
 type WebhookEvent struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	EventType string    `json:"event_type" gorm:"not null"`
-	EventID   string    `json:"event_id" gorm:"uniqueIndex"`
-	Payload   JSONB     `json:"payload" gorm:"type:json"`
-	Processed bool      `json:"processed" gorm:"default:false"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          uint           `json:"id" gorm:"primaryKey"`
+	Source      string         `json:"source" gorm:"not null;index"`          // fub, buildium, stripe, twilio, etc.
+	EventType   string         `json:"event_type" gorm:"not null;index"`
+	EventID     string         `json:"event_id" gorm:"uniqueIndex"`
+	Payload     JSONB          `json:"payload" gorm:"type:json"`
+	Status      string         `json:"status" gorm:"default:'pending';index"` // pending, processed, failed
+	ProcessedAt *time.Time     `json:"processed_at"`
+	Error       string         `json:"error" gorm:"type:text"`
+	RetryCount  int            `json:"retry_count" gorm:"default:0"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
 // BookingStatusLog tracks status changes for audit trail
