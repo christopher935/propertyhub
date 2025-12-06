@@ -336,3 +336,121 @@ func generateBookingReference() string {
 	
 	return fmt.Sprintf("BK%d%s", timestamp, randomHex[:6])
 }
+
+func (h *BookingHandler) MarkCompleted(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid booking ID", err)
+		return
+	}
+
+	ctx := context.Background()
+	var booking models.Booking
+	if err := h.repos.Booking.FindByID(ctx, uint(id), &booking); err != nil {
+		utils.ErrorResponse(c, http.StatusNotFound, "Booking not found", err)
+		return
+	}
+
+	booking.Status = "completed"
+
+	if err := h.repos.Booking.Update(ctx, &booking); err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to mark booking as completed", err)
+		return
+	}
+
+	utils.SuccessResponse(c, gin.H{
+		"message":          "Booking marked as completed successfully",
+		"booking_id":       booking.ID,
+		"reference_number": booking.ReferenceNumber,
+		"status":           booking.Status,
+	})
+}
+
+func (h *BookingHandler) MarkNoShow(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid booking ID", err)
+		return
+	}
+
+	ctx := context.Background()
+	var booking models.Booking
+	if err := h.repos.Booking.FindByID(ctx, uint(id), &booking); err != nil {
+		utils.ErrorResponse(c, http.StatusNotFound, "Booking not found", err)
+		return
+	}
+
+	booking.Status = "no-show"
+
+	if err := h.repos.Booking.Update(ctx, &booking); err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to mark booking as no-show", err)
+		return
+	}
+
+	utils.SuccessResponse(c, gin.H{
+		"message":          "Booking marked as no-show successfully",
+		"booking_id":       booking.ID,
+		"reference_number": booking.ReferenceNumber,
+		"status":           booking.Status,
+	})
+}
+
+func (h *BookingHandler) RescheduleBooking(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid booking ID", err)
+		return
+	}
+
+	var request struct {
+		NewDate string `json:"new_date" binding:"required"`
+		NewTime string `json:"new_time" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid request data", err)
+		return
+	}
+
+	ctx := context.Background()
+	var booking models.Booking
+	if err := h.repos.Booking.FindByID(ctx, uint(id), &booking); err != nil {
+		utils.ErrorResponse(c, http.StatusNotFound, "Booking not found", err)
+		return
+	}
+
+	dateFormats := []string{
+		"2006-01-02",
+		"01/02/2006",
+		"1/2/2006",
+		"2006-1-2",
+	}
+	var parsedDate time.Time
+	for _, format := range dateFormats {
+		parsedDate, err = time.Parse(format, request.NewDate)
+		if err == nil {
+			break
+		}
+	}
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid date format", err)
+		return
+	}
+
+	booking.ShowingDate = parsedDate
+	booking.Status = "rescheduled"
+
+	if err := h.repos.Booking.Update(ctx, &booking); err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to reschedule booking", err)
+		return
+	}
+
+	utils.SuccessResponse(c, gin.H{
+		"message":          "Booking rescheduled successfully",
+		"booking_id":       booking.ID,
+		"reference_number": booking.ReferenceNumber,
+		"new_date":         request.NewDate,
+		"new_time":         request.NewTime,
+		"status":           booking.Status,
+	})
+}

@@ -502,33 +502,118 @@
         });
 
         // Booking action handlers
-        function markCompleted() {
-            if (confirm('Mark this showing as completed?\n\nThis will:\n✓ Update status to "Completed"\n✓ Send application link to client\n✓ Track conversion metrics')) {
-                alert('Showing marked as completed!\n\nApplication link sent to john.doe@email.com\n\nAPI: POST /api/bookings/1/complete');
-                // TODO: Actual API call
-                // window.location.reload();
+        async function markCompleted() {
+            if (!confirm('Mark this showing as completed?\n\nThis will update the status to "Completed" and send an application link to the client.')) return;
+            
+            try {
+                const response = await fetch('/api/bookings/1/complete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to mark as completed');
+                }
+                
+                const result = await response.json();
+                showNotification(result.message || 'Showing marked as completed!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                console.error('Complete error:', error);
+                showNotification(error.message, 'error');
             }
         }
 
-        function markNoShow() {
-            if (confirm('Mark this showing as no-show?\n\nThis will:\n✓ Update status to "No-Show"\n✓ Send follow-up email\n✓ AI will suggest reschedule or alternative properties')) {
-                alert('Showing marked as no-show!\n\nFollow-up email sent with reschedule options\n\nAPI: POST /api/bookings/1/no-show');
-                // TODO: Actual API call
-                // window.location.reload();
+        async function markNoShow() {
+            if (!confirm('Mark this showing as no-show?\n\nThis will send a follow-up email to the client.')) return;
+            
+            try {
+                const response = await fetch('/api/bookings/1/no-show', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to mark as no-show');
+                }
+                
+                const result = await response.json();
+                showNotification(result.message || 'Showing marked as no-show!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                console.error('No-show error:', error);
+                showNotification(error.message, 'error');
             }
         }
 
-        function rescheduleShowing() {
-            alert('Reschedule functionality\n\nWill open calendar picker to select new date/time\n\nAPI: PUT /api/bookings/1/reschedule');
-            // TODO: Calendar integration
+        async function rescheduleShowing() {
+            const newDate = prompt('Enter new date (YYYY-MM-DD):');
+            if (!newDate) return;
+            
+            const newTime = prompt('Enter new time (HH:MM):');
+            if (!newTime) return;
+            
+            try {
+                const response = await fetch('/api/bookings/1/reschedule', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ new_date: newDate, new_time: newTime })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to reschedule');
+                }
+                
+                const result = await response.json();
+                showNotification(result.message || 'Showing rescheduled successfully!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } catch (error) {
+                console.error('Reschedule error:', error);
+                showNotification(error.message, 'error');
+            }
         }
 
-        function cancelShowing() {
-            if (confirm('Cancel this showing?\n\nThis will:\n✗ Cancel the showing\n✓ Send cancellation email to client\n✓ Free up agent\'s calendar slot')) {
-                alert('Showing cancelled!\n\nCancellation email sent\n\nAPI: DELETE /api/bookings/1');
-                // TODO: Actual API call
-                // window.location.href = '/admin/bookings-list';
+        async function cancelShowing() {
+            if (!confirm('Cancel this showing?\n\nThis will send a cancellation email to the client.')) return;
+            
+            const reason = prompt('Reason for cancellation (optional):');
+            if (reason === null) return;
+            
+            try {
+                const response = await fetch('/api/v1/bookings/1/cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason: reason || 'Cancelled by admin' })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to cancel showing');
+                }
+                
+                const result = await response.json();
+                showNotification(result.message || 'Showing cancelled!', 'success');
+                setTimeout(() => window.location.href = '/admin/bookings-list', 1500);
+            } catch (error) {
+                console.error('Cancel error:', error);
+                showNotification(error.message, 'error');
             }
+        }
+
+        // Helper for notifications
+        function showNotification(message, type) {
+            alert(message);
         }
     </script>
 </body>
