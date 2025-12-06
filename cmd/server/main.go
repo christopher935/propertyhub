@@ -249,8 +249,18 @@ log.Println("🔗 Webhook handlers initialized")
 	webSocketHandler := handlers.NewWebSocketHandler(gormDB, dashboardStatsService)
 	log.Println("🔌 WebSocket handler initialized")
 
+	adminNotificationHub := services.NewAdminNotificationHub(gormDB)
+	log.Println("🔔 Admin notification hub initialized")
+
+	adminNotificationHandler := handlers.NewAdminNotificationHandler(adminNotificationHub, gormDB)
+	log.Println("📢 Admin notification handler initialized")
+
 	bookingHandler := handlers.NewBookingHandler(gormDB, repos, encryptionManager)
-	log.Println("📅 Booking handler initialized")
+	bookingHandler.SetNotificationHub(adminNotificationHub)
+	log.Println("📅 Booking handler initialized with notifications")
+
+	scoringEngine.SetNotificationHub(adminNotificationHub)
+	log.Println("🎯 Scoring engine wired to notifications")
 
 	// Command Center - AI-driven actionable insights
 	propertyMatcher := services.NewPropertyMatchingService(gormDB)
@@ -299,6 +309,7 @@ log.Println("🔗 Webhook handlers initialized")
 		AdvancedSecurityAPI:   advancedSecurityAPIHandler,
 		Webhook:               webhookHandler,
 		WebSocket:             webSocketHandler,
+		AdminNotification:     adminNotificationHandler,
 		DB:                    gormDB,
 	}
 	log.Println("📦 Handler struct initialized for route registration")

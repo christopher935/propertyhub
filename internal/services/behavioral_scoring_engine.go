@@ -12,6 +12,7 @@ import (
 type BehavioralScoringEngine struct {
 	db           *gorm.DB
 	scoringRules *ScoringRules
+	notificationHub *AdminNotificationHub
 }
 
 // NewBehavioralScoringEngine creates a new scoring engine
@@ -180,18 +181,38 @@ func (e *BehavioralScoringEngine) SaveScore(score *models.BehavioralScore) error
 	var existing models.BehavioralScore
 	err := e.db.Where("lead_id = ?", score.LeadID).First(&existing).Error
 	
+	newSegment := e.determineSegment(score.CompositeScore)
+	var previousSegment string
+	
 	if err == gorm.ErrRecordNotFound {
 		// Create new score
 		score.CreatedAt = time.Now()
-		return e.db.Create(score).Error
+		if err := e.db.Create(score).Error; err != nil {
+			return err
+		}
+		previousSegment = ""
 	} else if err != nil {
 		return err
+	} else {
+		// Update existing score
+		previousSegment = e.determineSegment(existing.CompositeScore)
+		score.ID = existing.ID
+		score.CreatedAt = existing.CreatedAt
+		if err := e.db.Save(score).Error; err != nil {
+			return err
+		}
 	}
 	
-	// Update existing score
-	score.ID = existing.ID
-	score.CreatedAt = existing.CreatedAt
-	return e.db.Save(score).Error
+	// Check if lead just became hot
+	if e.notificationHub != nil && newSegment == "hot" && previousSegment != "hot" {
+		var lead models.Lead
+		if err := e.db.First(&lead, score.LeadID).Error; err == nil {
+			leadName := lead.FirstName + " " + lead.LastName
+			e.notificationHub.SendHotLeadAlert(leadName, score.CompositeScore, int64(*score.LeadID))
+		}
+	}
+	
+	return nil
 }
 
 // GetScore retrieves the current score for a lead

@@ -15,6 +15,15 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/ws", h.WebSocket.HandleWebSocket)
 
 	// ============================================================================
+	// ADMIN NOTIFICATIONS - Real-time Alerts
+	// ============================================================================
+	api.GET("/notifications/ws", h.AdminNotification.HandleWebSocket)
+	api.GET("/notifications", h.AdminNotification.GetNotifications)
+	api.GET("/notifications/unread-count", h.AdminNotification.GetUnreadCount)
+	api.PUT("/notifications/:id/read", h.AdminNotification.MarkAsRead)
+	api.PUT("/notifications/read-all", h.AdminNotification.MarkAllAsRead)
+
+	// ============================================================================
 	// TIERED STATS API - Dashboard Intelligence with Redis Caching
 	// ============================================================================
 	api.GET("/stats/live", h.TieredStats.GetLiveStats)

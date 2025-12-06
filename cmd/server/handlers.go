@@ -74,6 +74,12 @@ type AllHandlers struct {
 	// WebSocket
 	WebSocket             *handlers.WebSocketHandler
 
+	// Admin Notifications
+	AdminNotification     *handlers.AdminNotificationHandler
+
+	// Admin Notifications
+	AdminNotification     *handlers.AdminNotificationHandler
+
 	// Database (for inline handlers that need it)
 	DB                    *gorm.DB
 	
