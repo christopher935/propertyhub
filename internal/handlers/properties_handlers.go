@@ -925,6 +925,43 @@ func (h *PropertiesHandler) GetPropertiesGin(c *gin.Context) {
 	})
 }
 
+// GetPropertyByIDGin returns a single property by ID with decrypted address (Gin version)
+func (h *PropertiesHandler) GetPropertyByIDGin(c *gin.Context) {
+	propertyID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil || propertyID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Invalid property ID",
+		})
+		return
+	}
+
+	var property models.Property
+	if err := h.db.First(&property, propertyID).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{
+				"success": false,
+				"error":   "Property not found",
+			})
+			return
+		}
+		log.Printf("Error fetching property %d: %v", propertyID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to fetch property",
+		})
+		return
+	}
+
+	// Convert to response format with decrypted address
+	propertyResponse := models.ToResponse(property, h.encryptionManager)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    propertyResponse,
+	})
+}
+
 func (h *PropertiesHandler) SearchPropertiesPost(c *gin.Context) {
 	var searchReq struct {
 		Search       string   `json:"search"`

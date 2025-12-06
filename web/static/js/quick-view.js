@@ -1,62 +1,76 @@
 // Quick View Modal - Pattern 3: Hybrid Quick View
 // Handles modal open/close, image gallery, and property data display
 
-// Sample property data (will be replaced with real data later)
-const sampleProperty = {
-    id: 1,
-    address: "1426 Ashwood Dr",
-    city: "Houston",
-    state: "TX",
-    zip: "77077",
-    price: 2500,
-    beds: 3,
-    baths: 2,
-    sqft: 1650,
-    images: [
-        "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&h=800&fit=crop",
-        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=800&fit=crop",
-        "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&h=800&fit=crop",
-        "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1200&h=800&fit=crop"
-    ],
-    description: "Beautiful 3-bedroom, 2-bathroom home in a quiet neighborhood. This well-maintained property features an open floor plan, modern kitchen with stainless steel appliances, spacious master suite, and a large backyard perfect for entertaining.",
-    yearBuilt: 2015,
-    propertyType: "Single Family",
-    parking: "2-Car Garage",
-    yard: "Large Yard"
-};
-
 // Current image index for gallery
 let currentImageIndex = 0;
+// Current property data (loaded from API)
+let currentProperty = null;
 
 // Open Quick View Modal
-function openQuickView(propertyId) {
-    // In production, fetch property data by ID
-    // For now, use sample data
-    const property = sampleProperty;
-    
-    // Populate modal with property data
-    document.getElementById('qv-address').textContent = property.address;
-    document.getElementById('qv-location').textContent = `${property.city}, ${property.state} ${property.zip}`;
-    document.getElementById('qv-price').textContent = `$${property.price.toLocaleString()}`;
-    document.getElementById('qv-beds').innerHTML = `<strong>${property.beds}</strong> Beds`;
-    document.getElementById('qv-baths').innerHTML = `<strong>${property.baths}</strong> Baths`;
-    document.getElementById('qv-sqft').innerHTML = `<strong>${property.sqft.toLocaleString()}</strong> sq ft`;
-    document.getElementById('qv-description').textContent = property.description;
-    document.getElementById('qv-full-details-link').href = `/property/${property.id}`;
-    
-    // Set up image gallery
-    currentImageIndex = 0;
-    updateGallery(property.images);
-    
-    // Show modal with animation
+async function openQuickView(propertyId) {
     const modal = document.getElementById('quick-view-modal');
+    
+    // Show modal with loading state
     modal.style.display = 'flex';
-    // Trigger reflow for animation
     modal.offsetHeight;
     modal.classList.add('active');
-    
-    // Prevent body scroll
     document.body.style.overflow = 'hidden';
+    
+    // Show loading state in modal
+    const modalContent = modal.querySelector('.quick-view-content');
+    if (modalContent) {
+        modalContent.classList.add('loading');
+    }
+    
+    try {
+        const response = await fetch(`/api/properties/${propertyId}`);
+        if (!response.ok) {
+            throw new Error('Failed to load property');
+        }
+        
+        const result = await response.json();
+        if (!result.success || !result.data) {
+            throw new Error('Invalid response format');
+        }
+        
+        const property = result.data;
+        currentProperty = property;
+        
+        // Populate modal with property data
+        document.getElementById('qv-address').textContent = property.address || 'Address not available';
+        document.getElementById('qv-location').textContent = `${property.city || ''}, ${property.state || ''} ${property.zip_code || ''}`;
+        document.getElementById('qv-price').textContent = `$${(property.price || 0).toLocaleString()}`;
+        document.getElementById('qv-beds').innerHTML = `<strong>${property.bedrooms || 0}</strong> Beds`;
+        document.getElementById('qv-baths').innerHTML = `<strong>${property.bathrooms || 0}</strong> Baths`;
+        document.getElementById('qv-sqft').innerHTML = `<strong>${(property.square_feet || 0).toLocaleString()}</strong> sq ft`;
+        document.getElementById('qv-description').textContent = property.description || 'No description available';
+        document.getElementById('qv-full-details-link').href = `/property/${property.id}`;
+        
+        // Set up image gallery
+        currentImageIndex = 0;
+        const images = property.images && property.images.length > 0 ? property.images : [];
+        updateGallery(images);
+        
+        // Remove loading state
+        if (modalContent) {
+            modalContent.classList.remove('loading');
+        }
+    } catch (error) {
+        console.error('Quick view error:', error);
+        
+        // Show error state
+        const errorHtml = `
+            <div style="text-align: center; padding: 40px;">
+                <p style="color: #ef4444; font-size: 18px; margin-bottom: 10px;">Failed to load property details</p>
+                <p style="color: #6b7280;">Please try again later</p>
+            </div>
+        `;
+        
+        if (modalContent) {
+            modalContent.innerHTML = errorHtml;
+            modalContent.classList.remove('loading');
+        }
+    }
 }
 
 // Close Quick View Modal
@@ -73,6 +87,23 @@ function closeQuickView() {
 
 // Update Gallery Images
 function updateGallery(images) {
+    // Handle empty images array
+    if (!images || images.length === 0) {
+        const mainImageContainer = document.getElementById('qv-main-image');
+        if (mainImageContainer) {
+            mainImageContainer.src = 'https://via.placeholder.com/800x600?text=No+Image+Available';
+        }
+        const counter = document.getElementById('qv-image-counter');
+        if (counter) {
+            counter.textContent = '0 / 0';
+        }
+        const thumbnailsContainer = document.getElementById('qv-thumbnails');
+        if (thumbnailsContainer) {
+            thumbnailsContainer.innerHTML = '';
+        }
+        return;
+    }
+    
     // Update main image
     document.getElementById('qv-main-image').src = images[currentImageIndex];
     
@@ -102,14 +133,20 @@ function updateGallery(images) {
 
 // Navigate to previous image
 function prevImage() {
-    const images = sampleProperty.images;
+    if (!currentProperty || !currentProperty.images || currentProperty.images.length === 0) {
+        return;
+    }
+    const images = currentProperty.images;
     currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
     updateGallery(images);
 }
 
 // Navigate to next image
 function nextImage() {
-    const images = sampleProperty.images;
+    if (!currentProperty || !currentProperty.images || currentProperty.images.length === 0) {
+        return;
+    }
+    const images = currentProperty.images;
     currentImageIndex = (currentImageIndex + 1) % images.length;
     updateGallery(images);
 }
