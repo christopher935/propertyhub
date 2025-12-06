@@ -2,6 +2,7 @@ package main
 
 import (
 	"chrisgross-ctrl-project/internal/handlers"
+	"chrisgross-ctrl-project/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -73,8 +74,8 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	// Behavioral Analytics API
 	handlers.RegisterBehavioralAnalyticsRoutes(api, h.DB)
 
-	// Booking API
-	api.POST("/v1/bookings", h.Booking.CreateBooking)
+	// Booking API - stricter rate limiting for booking creation
+	api.POST("/v1/bookings", middleware.BookingRateLimiter.RateLimit(), h.Booking.CreateBooking)
 	api.GET("/v1/bookings/:id", h.Booking.GetBooking)
 	api.POST("/v1/bookings/:id/cancel", h.Booking.CancelBooking)
 	api.GET("/v1/bookings", h.Booking.ListBookings)
