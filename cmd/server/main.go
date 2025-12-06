@@ -228,7 +228,15 @@ log.Println("🔗 Webhook handlers initialized")
 	recommendationsHandler := handlers.NewRecommendationsHandler(gormDB, scoringEngine)
 	log.Println("🤖 AI recommendations handler initialized")
 	
-	emailService := services.NewEmailService()
+	emailService := services.NewEmailService(cfg, gormDB)
+	log.Println("📧 Email service initialized")
+	
+	_ = services.NewSMSService(cfg, gormDB)
+	log.Println("📱 SMS service initialized")
+	
+	_ = services.NewNotificationService(emailService, gormDB)
+	log.Println("🔔 Notification service initialized")
+	
 	propertyAlertsHandler := handlers.NewPropertyAlertsHandler(gormDB, emailService)
 	log.Println("🔔 Property alerts handler initialized")
 	
