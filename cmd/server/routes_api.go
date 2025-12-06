@@ -64,6 +64,9 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.PUT("/application-workflow/:id/status", h.ApplicationWorkflow.UpdateApplicationStatus)
 	api.POST("/application-workflow/assign-agent", h.ApplicationWorkflow.AssignAgentToApplication)
 	api.POST("/application-workflow/move-applicant", h.ApplicationWorkflow.MoveApplicantToApplication)
+	api.POST("/applications/:id/approve", h.ApplicationWorkflow.ApproveApplication)
+	api.POST("/applications/:id/deny", h.ApplicationWorkflow.DenyApplication)
+	api.POST("/applications/:id/request-info", h.ApplicationWorkflow.RequestMoreInfo)
 
 	// Behavioral Intelligence API
 	api.GET("/behavioral/dashboard", h.Behavioral.GetBehavioralIntelligenceDashboard)
@@ -79,6 +82,9 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/v1/bookings/:id", h.Booking.GetBooking)
 	api.POST("/v1/bookings/:id/cancel", h.Booking.CancelBooking)
 	api.GET("/v1/bookings", h.Booking.ListBookings)
+	api.POST("/bookings/:id/complete", h.Booking.MarkCompleted)
+	api.POST("/bookings/:id/no-show", h.Booking.MarkNoShow)
+	api.PUT("/bookings/:id/reschedule", h.Booking.RescheduleBooking)
 
 	// Calendar Management API
 	api.GET("/calendar/stats", h.Calendar.GetCalendarStats)

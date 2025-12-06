@@ -361,3 +361,154 @@ func extractSessionIDFromGin(c *gin.Context) string {
 	}
 	return ""
 }
+
+// ApproveApplication approves an application
+func (awh *ApplicationWorkflowHandlers) ApproveApplication(c *gin.Context) {
+	applicationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid application ID",
+		})
+		return
+	}
+
+	var appNumber models.ApplicationNumber
+	if err := awh.db.First(&appNumber, uint(applicationID)).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Application not found",
+		})
+		return
+	}
+
+	updatedBy := c.GetString("user_email")
+	if updatedBy == "" {
+		updatedBy = "system"
+	}
+
+	if err := appNumber.UpdateStatus(awh.db, models.AppStatusApproved, updatedBy, "Application approved"); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to approve application",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Application approved successfully",
+		"data": gin.H{
+			"application_id": appNumber.ID,
+			"status":         appNumber.Status,
+		},
+	})
+}
+
+// DenyApplication denies an application
+func (awh *ApplicationWorkflowHandlers) DenyApplication(c *gin.Context) {
+	applicationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid application ID",
+		})
+		return
+	}
+
+	var request struct {
+		Reason string `json:"reason"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request data",
+		})
+		return
+	}
+
+	var appNumber models.ApplicationNumber
+	if err := awh.db.First(&appNumber, uint(applicationID)).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Application not found",
+		})
+		return
+	}
+
+	updatedBy := c.GetString("user_email")
+	if updatedBy == "" {
+		updatedBy = "system"
+	}
+
+	reason := request.Reason
+	if reason == "" {
+		reason = "Application denied"
+	}
+
+	if err := appNumber.UpdateStatus(awh.db, models.AppStatusDenied, updatedBy, reason); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to deny application",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Application denied",
+		"data": gin.H{
+			"application_id": appNumber.ID,
+			"status":         appNumber.Status,
+			"reason":         reason,
+		},
+	})
+}
+
+// RequestMoreInfo requests additional information from applicant
+func (awh *ApplicationWorkflowHandlers) RequestMoreInfo(c *gin.Context) {
+	applicationID, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid application ID",
+		})
+		return
+	}
+
+	var request struct {
+		Message string `json:"message" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Message is required",
+		})
+		return
+	}
+
+	var appNumber models.ApplicationNumber
+	if err := awh.db.First(&appNumber, uint(applicationID)).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Application not found",
+		})
+		return
+	}
+
+	updatedBy := c.GetString("user_email")
+	if updatedBy == "" {
+		updatedBy = "system"
+	}
+
+	note := fmt.Sprintf("Info requested by %s: %s", updatedBy, request.Message)
+	appNumber.ApplicationNotes = appendNote(appNumber.ApplicationNotes, note)
+
+	if err := awh.db.Save(&appNumber).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to save information request",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Information request sent successfully",
+		"data": gin.H{
+			"application_id": appNumber.ID,
+			"message":        request.Message,
+		},
+	})
+}
