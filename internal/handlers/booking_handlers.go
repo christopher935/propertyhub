@@ -163,11 +163,9 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 		if err := h.repos.Property.FindByID(ctx, uint(propertyID), &property); err == nil {
 			decryptedName := string(booking.Name)
 			decryptedAddress := string(property.Address)
-			decryptedAddress := string(property.Address)
 			if h.encryptionManager != nil {
 				decryptedAddress, _ = h.encryptionManager.Decrypt(property.Address)
 				decryptedName, _ = h.encryptionManager.Decrypt(booking.Name)
-				decryptedAddress, _ = h.encryptionManager.Decrypt(decryptedAddress)
 			}
 			h.notificationHub.SendBookingAlert(decryptedAddress, decryptedName, booking.ID)
 		}
