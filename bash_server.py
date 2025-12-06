@@ -9,6 +9,8 @@ import re
 import base64
 import shutil
 import inspect
+import time
+import uuid
 import aiofiles
 import aiofiles.os
 from abc import ABCMeta, abstractmethod
@@ -16,10 +18,11 @@ from collections import defaultdict
 from dataclasses import dataclass, fields, replace
 from typing import Any, ClassVar, Dict, List, Literal, Optional, get_args
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 import uvicorn
 from pathlib import Path
@@ -43,6 +46,13 @@ EXCLUDED_PATTERNS = [
     "README.txt",
     "README.rst"
 ]
+
+# Resource limits
+MAX_SESSIONS = int(os.getenv("MAX_BASH_SESSIONS", "10"))
+SESSION_TTL_SECONDS = int(os.getenv("SESSION_TTL_SECONDS", "1800"))  # 30 minutes
+MAX_FILE_SIZE_BYTES = int(os.getenv("MAX_FILE_SIZE_BYTES", str(50 * 1024 * 1024)))  # 50MB
+MAX_REQUEST_SIZE_BYTES = int(os.getenv("MAX_REQUEST_SIZE_BYTES", str(10 * 1024 * 1024)))  # 10MB
+GREP_TIMEOUT_SECONDS = float(os.getenv("GREP_TIMEOUT_SECONDS", "30.0"))  # 30 seconds
 
 
 def _is_excluded_path(path: Path) -> bool:
@@ -163,11 +173,12 @@ class _BashSession:
     _partial_output: str
     _partial_error: str
     _session_id: int
+    _created_at: float
+    _last_activity: float
 
     command: str = "/bin/bash"
     _output_delay: float = 0.2
     _timeout: float = 10.0
-    _sentinel: str = "<<exit>>"
 
     def __init__(self, session_id: int):
         self._started = False
@@ -177,6 +188,20 @@ class _BashSession:
         self._partial_error = ""
         self._session_id = session_id
         self._process = None
+        self._created_at = time.time()
+        self._last_activity = time.time()
+    
+    def _generate_sentinel(self) -> str:
+        """Generate a unique sentinel for each command."""
+        return f"__SENTINEL_{uuid.uuid4().hex}__"
+    
+    def touch(self):
+        """Update last activity timestamp."""
+        self._last_activity = time.time()
+    
+    def is_expired(self) -> bool:
+        """Check if session has exceeded TTL."""
+        return (time.time() - self._last_activity) > SESSION_TTL_SECONDS
 
     @property
     def session_id(self) -> int:
@@ -208,7 +233,8 @@ class _BashSession:
                 output = self._process.stdout._buffer.decode(errors="replace")
                 self._partial_output = output
                 
-                if self._sentinel in output:
+                # Check for any sentinel pattern (since they're now dynamic)
+                if "__SENTINEL_" in output and "__" in output[output.find("__SENTINEL_")+11:]:
                     self._is_running_command = False
                     return True
         except Exception:
@@ -310,17 +336,24 @@ class _BashSession:
             
         filtered_error = self._filter_error_output(error)
             
-        if self._sentinel in output:
-            self._is_running_command = False
-            output = output.replace(self._sentinel, "")
-            
-            processed_output = output.rstrip('\n')
-            system_msg = f"Command completed. Session ID: {self._session_id}"
-            return CLIResult(
-                output=processed_output,
-                error=filtered_error,
-                system=system_msg
-            )
+        # Check for any sentinel pattern (since they're now dynamic)
+        if "__SENTINEL_" in output:
+            # Extract and remove the sentinel
+            sentinel_start = output.find("__SENTINEL_")
+            if sentinel_start != -1:
+                sentinel_end = output.find("__", sentinel_start + 11)
+                if sentinel_end != -1:
+                    sentinel = output[sentinel_start:sentinel_end + 2]
+                    self._is_running_command = False
+                    output = output.replace(sentinel, "")
+                    
+                    processed_output = output.rstrip('\n')
+                    system_msg = f"Command completed. Session ID: {self._session_id}"
+                    return CLIResult(
+                        output=processed_output,
+                        error=filtered_error,
+                        system=system_msg
+                    )
             
         return CLIResult(
             output=output,
@@ -354,14 +387,16 @@ class _BashSession:
         self._partial_error = ""
         self._last_command = command
         self._is_running_command = True
+        self.touch()  # Update activity timestamp
         
         base_dir = str(WORKSPACE_DIR)
+        sentinel = self._generate_sentinel()  # Generate unique sentinel
 
         wrapped_command = f"""
 {command}
 
 cd "{base_dir}"
-echo '{self._sentinel}'
+echo '{sentinel}'
 """
         self._process.stdout._buffer.clear()
         self._process.stderr._buffer.clear()
@@ -382,10 +417,10 @@ echo '{self._sentinel}'
             # Add timeout protection for the readuntil operation
             try:
                 data = await asyncio.wait_for(
-                    self._process.stdout.readuntil(self._sentinel.encode()),
+                    self._process.stdout.readuntil(sentinel.encode()),
                     timeout=command_timeout
                 )
-                output = data.decode(errors="replace").replace(self._sentinel, "")
+                output = data.decode(errors="replace").replace(sentinel, "")
                 self._partial_output = output
                 error = self._process.stderr._buffer.decode(errors="replace")
                 self._partial_error = error
@@ -413,9 +448,9 @@ echo '{self._sentinel}'
                         pass
                 
                 # Check if the command actually completed successfully despite the stream error
-                if self._sentinel in output:
+                if sentinel in output:
                     # Command completed, just had a stream reading issue
-                    output = output.replace(self._sentinel, "")
+                    output = output.replace(sentinel, "")
                     self._is_running_command = False
                     filtered_error = self._filter_error_output(error)
                     return CLIResult(
@@ -468,8 +503,8 @@ echo '{self._sentinel}'
                     output_chunks.append(chunk.decode(errors="replace"))
                     accumulated = ''.join(output_chunks)
                     
-                    if self._sentinel in accumulated:
-                        output = accumulated.replace(self._sentinel, "")
+                    if sentinel in accumulated:
+                        output = accumulated.replace(sentinel, "")
                         self._partial_output = output
                         error = self._process.stderr._buffer.decode(errors="replace")
                         self._partial_error = error
@@ -517,12 +552,14 @@ echo '{self._sentinel}'
         self._partial_error = ""
         self._last_command = command
         self._is_running_command = True
+        self.touch()  # Update activity timestamp
 
+        sentinel = self._generate_sentinel()  # Generate unique sentinel
         wrapped_command = f"""
 {command}
 
 cd \"{WORKSPACE_DIR}\"
-echo '{self._sentinel}'
+echo '{sentinel}'
 """
 
         self._process.stdout._buffer.clear()
@@ -530,8 +567,6 @@ echo '{self._sentinel}'
 
         self._process.stdin.write(wrapped_command.encode())
         await self._process.stdin.drain()
-
-        sentinel = self._sentinel
 
         queue: asyncio.Queue[str] = asyncio.Queue()
 
@@ -590,7 +625,26 @@ class BashTool(BaseAnthropicTool):
     def __init__(self):
         self._sessions = {}
         self._sessions_lock = asyncio.Lock()
+        self._cleanup_task = None
         super().__init__()
+    
+    async def start_cleanup_task(self):
+        """Start background task to clean expired sessions."""
+        if self._cleanup_task is None:
+            self._cleanup_task = asyncio.create_task(self._cleanup_expired_sessions())
+    
+    async def _cleanup_expired_sessions(self):
+        """Periodically remove expired sessions."""
+        while True:
+            await asyncio.sleep(60)  # Check every minute
+            async with self._sessions_lock:
+                expired = [sid for sid, sess in self._sessions.items() if sess.is_expired()]
+                for sid in expired:
+                    try:
+                        self._sessions[sid].stop()
+                        del self._sessions[sid]
+                    except Exception:
+                        pass
 
     async def __call__(
         self, command: str | None = None, 
@@ -664,6 +718,9 @@ class BashTool(BaseAnthropicTool):
                 
                 # Create session if it doesn't exist
                 if session not in self._sessions:
+                    # Enforce max sessions limit
+                    if len(self._sessions) >= MAX_SESSIONS:
+                        return ToolResult(error=f"Maximum sessions ({MAX_SESSIONS}) reached. Close existing sessions first or wait for idle sessions to expire.")
                     self._sessions[session] = _BashSession(session_id=session)
                     await self._sessions[session].start()
                     created_msg = f"Created new session with ID: {session}"
@@ -671,6 +728,7 @@ class BashTool(BaseAnthropicTool):
             return ToolResult(error=f"Failed to create session {session}: {str(e)}")
             
         current_session = self._sessions[session]
+        current_session.touch()  # Update activity timestamp
         
         await current_session.check_command_completion()
 
@@ -807,6 +865,12 @@ class FileTool(BaseAnthropicTool):
         full_path = await self._validate_path(path)
         if not await aiofiles.os.path.isfile(str(full_path)):
             raise ToolError("Path is not a file")
+        
+        # Check file size before reading
+        file_size = await aiofiles.os.path.getsize(str(full_path))
+        if file_size > MAX_FILE_SIZE_BYTES:
+            raise ToolError(f"File too large ({file_size} bytes). Maximum: {MAX_FILE_SIZE_BYTES} bytes")
+        
         try:
             if mode == "text":
                 async with aiofiles.open(str(full_path), 'r', encoding=encoding) as f:
@@ -830,6 +894,12 @@ class FileTool(BaseAnthropicTool):
     async def write(self, path: str, content: str, mode: str = "text", encoding: str = "utf-8") -> ToolResult:
         """Write content to a file, overwriting if it exists."""
         full_path = await self._validate_path(path)
+        
+        # Check content size before writing
+        content_size = len(content.encode('utf-8')) if mode == "text" else len(base64.b64decode(content))
+        if content_size > MAX_FILE_SIZE_BYTES:
+            raise ToolError(f"Content too large ({content_size} bytes). Maximum: {MAX_FILE_SIZE_BYTES} bytes")
+        
         try:
             await self._ensure_base_path_exists()
             await asyncio.to_thread(full_path.parent.mkdir, parents=True, exist_ok=True)
@@ -849,6 +919,12 @@ class FileTool(BaseAnthropicTool):
     async def append(self, path: str, content: str, mode: str = "text", encoding: str = "utf-8") -> ToolResult:
         """Append content to an existing file or create it if it doesn't exist."""
         full_path = await self._validate_path(path)
+        
+        # Check content size before appending
+        content_size = len(content.encode('utf-8')) if mode == "text" else len(base64.b64decode(content))
+        if content_size > MAX_FILE_SIZE_BYTES:
+            raise ToolError(f"Content too large ({content_size} bytes). Maximum: {MAX_FILE_SIZE_BYTES} bytes")
+        
         try:
             await self._ensure_base_path_exists()
             if mode == "text":
@@ -1014,6 +1090,12 @@ class FileTool(BaseAnthropicTool):
         full_path = await self._validate_path(path)
         if await aiofiles.os.path.exists(str(full_path)):
             raise ToolError("File already exists")
+        
+        # Check content size before creating
+        content_size = len(content.encode('utf-8')) if mode == "text" else len(base64.b64decode(content))
+        if content_size > MAX_FILE_SIZE_BYTES:
+            raise ToolError(f"Content too large ({content_size} bytes). Maximum: {MAX_FILE_SIZE_BYTES} bytes")
+        
         try:
             await self._ensure_base_path_exists()
             await asyncio.to_thread(full_path.parent.mkdir, parents=True, exist_ok=True)
@@ -1142,11 +1224,36 @@ class FileTool(BaseAnthropicTool):
         path: str,
         case_sensitive: bool = True,
         recursive: bool = False,
-        line_numbers: bool = True
+        line_numbers: bool = True,
+        timeout: float = GREP_TIMEOUT_SECONDS
     ) -> ToolResult:
         """Search for a pattern in a file or directory."""
+        try:
+            return await asyncio.wait_for(
+                self._grep_impl(pattern, path, case_sensitive, recursive, line_numbers),
+                timeout=timeout
+            )
+        except asyncio.TimeoutError:
+            return ToolResult(error=f"Grep operation timed out after {timeout} seconds")
+    
+    async def _grep_impl(
+        self,
+        pattern: str,
+        path: str,
+        case_sensitive: bool,
+        recursive: bool,
+        line_numbers: bool
+    ) -> ToolResult:
+        """Internal implementation of grep with timeout protection."""
         full_path = await self._validate_path(path)
         flags = 0 if case_sensitive else re.IGNORECASE
+        
+        # Validate regex pattern
+        try:
+            re.compile(pattern, flags)
+        except re.error as e:
+            raise ToolError(f"Invalid regex pattern: {str(e)}")
+        
         results = []
 
         async def search_file(file_path):
@@ -1205,6 +1312,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Request size limit middleware
+class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        content_length = request.headers.get("content-length")
+        if content_length:
+            if int(content_length) > MAX_REQUEST_SIZE_BYTES:
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": f"Request too large. Maximum: {MAX_REQUEST_SIZE_BYTES} bytes"}
+                )
+        return await call_next(request)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -1213,6 +1332,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add request size limit middleware
+app.add_middleware(RequestSizeLimitMiddleware)
 
 # Define the workspace directory
 WORKSPACE_DIR = Path("/project/workspace")
@@ -1223,6 +1345,21 @@ if not WORKSPACE_DIR.exists():
 # Initialize tools
 bash_tool = BashTool()
 file_tool = FileTool(base_path=WORKSPACE_DIR)
+
+# Startup and shutdown events
+@app.on_event("startup")
+async def startup_event():
+    """Initialize cleanup task on startup."""
+    await bash_tool.start_cleanup_task()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up all sessions on shutdown."""
+    for session in bash_tool._sessions.values():
+        try:
+            session.stop()
+        except Exception:
+            pass
 
 # Mount static file server
 app.mount("/static", StaticFiles(directory=str(WORKSPACE_DIR), html=True), name="static")
@@ -1307,6 +1444,12 @@ async def bash_websocket(websocket: WebSocket):
 
     # Create a dedicated bash session for this WebSocket connection
     async with bash_tool._sessions_lock:
+        # Check session limit
+        if len(bash_tool._sessions) >= MAX_SESSIONS:
+            await websocket.send_text(f"ERROR: Maximum sessions ({MAX_SESSIONS}) reached\n")
+            await websocket.close()
+            return
+        
         session_id = max(bash_tool._sessions.keys(), default=0) + 1
         session = _BashSession(session_id=session_id)
         await session.start()
