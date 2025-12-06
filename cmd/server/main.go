@@ -16,6 +16,7 @@ import (
 	"chrisgross-ctrl-project/internal/config"
 	"chrisgross-ctrl-project/internal/handlers"
 	"chrisgross-ctrl-project/internal/middleware"
+	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/repositories"
 	"chrisgross-ctrl-project/internal/scraper"
 	"chrisgross-ctrl-project/internal/security"
@@ -58,6 +59,10 @@ func main() {
           // Initialize repositories  
         repos := repositories.NewRepositories(gormDB)
         log.Println("📚 Enterprise repositories initialized")
+
+        // Migrate email automation models
+        gormDB.AutoMigrate(&models.EmailEvent{}, &models.Campaign{}, &models.EmailBatch{}, &models.EmailTemplate{})
+        log.Println("✅ Email automation models migrated")
 
         // Initialize email processor
         emailProcessor := services.NewEmailProcessor(gormDB)
@@ -153,6 +158,10 @@ if redisClient != nil {
 } else {
         log.Println("📧 Email senders initialized (automation disabled - Redis not available)")
 }
+
+// Migrate email automation models
+gormDB.AutoMigrate(&handlers.EmailEvent{}, &handlers.Campaign{}, &handlers.EmailBatch{}, &handlers.EmailTemplate{})
+log.Println("✅ Email automation models migrated")
 
 // HAR Market & Reports
 harMarketHandler := handlers.NewHARMarketHandlers(gormDB, cfg.ScraperAPIKey)

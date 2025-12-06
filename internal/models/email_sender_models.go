@@ -172,3 +172,73 @@ func (tes *TrustedEmailSender) IsApplicationSystem() bool {
 func (tes *TrustedEmailSender) RequiresImmediateProcessing() bool {
 	return tes.Priority == "high" || tes.EmailType == "application_notification"
 }
+
+type EmailEvent struct {
+	ID        uint           `json:"id" gorm:"primaryKey"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+
+	EmailType   string    `json:"email_type" gorm:"not null"`
+	Subject     string    `json:"subject" gorm:"not null"`
+	FromEmail   string    `json:"from_email" gorm:"not null"`
+	ToEmail     string    `json:"to_email" gorm:"not null"`
+	Status      string    `json:"status" gorm:"default:'sent'"`
+	SentAt      time.Time `json:"sent_at"`
+	OpenedAt    *time.Time `json:"opened_at"`
+	ClickedAt   *time.Time `json:"clicked_at"`
+	BouncedAt   *time.Time `json:"bounced_at"`
+	ErrorMsg    string    `json:"error_msg"`
+	CampaignID  *uint     `json:"campaign_id"`
+	BatchID     string    `json:"batch_id"`
+}
+
+type Campaign struct {
+	ID        uint           `json:"id" gorm:"primaryKey"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+
+	Name        string     `json:"name" gorm:"not null"`
+	Description string     `json:"description" gorm:"type:text"`
+	Status      string     `json:"status" gorm:"default:'draft'"`
+	Type        string     `json:"type" gorm:"not null"`
+	StartedAt   *time.Time `json:"started_at"`
+	CompletedAt *time.Time `json:"completed_at"`
+	TemplateID  *uint      `json:"template_id"`
+	EmailsSent  int        `json:"emails_sent" gorm:"default:0"`
+	EmailsOpened int       `json:"emails_opened" gorm:"default:0"`
+	EmailsClicked int      `json:"emails_clicked" gorm:"default:0"`
+}
+
+type EmailBatch struct {
+	ID        uint           `json:"id" gorm:"primaryKey"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+
+	BatchID     string     `json:"batch_id" gorm:"uniqueIndex;not null"`
+	Name        string     `json:"name" gorm:"not null"`
+	Status      string     `json:"status" gorm:"default:'pending'"`
+	TotalEmails int        `json:"total_emails" gorm:"default:0"`
+	SentCount   int        `json:"sent_count" gorm:"default:0"`
+	FailedCount int        `json:"failed_count" gorm:"default:0"`
+	StartedAt   *time.Time `json:"started_at"`
+	CompletedAt *time.Time `json:"completed_at"`
+	CampaignID  *uint      `json:"campaign_id"`
+}
+
+type EmailTemplate struct {
+	ID        uint           `json:"id" gorm:"primaryKey"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
+
+	Name        string `json:"name" gorm:"not null"`
+	Description string `json:"description" gorm:"type:text"`
+	Subject     string `json:"subject" gorm:"not null"`
+	Body        string `json:"body" gorm:"type:text;not null"`
+	TemplateType string `json:"template_type" gorm:"not null"`
+	IsActive    bool   `json:"is_active" gorm:"default:true"`
+	UsageCount  int    `json:"usage_count" gorm:"default:0"`
+}
