@@ -160,7 +160,7 @@ if redisClient != nil {
 }
 
 // Migrate email automation models
-gormDB.AutoMigrate(&handlers.EmailEvent{}, &handlers.Campaign{}, &handlers.EmailBatch{}, &handlers.EmailTemplate{})
+gormDB.AutoMigrate(&models.EmailEvent{}, &models.Campaign{}, &models.EmailBatch{}, &models.EmailTemplate{})
 log.Println("✅ Email automation models migrated")
 
 // HAR Market & Reports
