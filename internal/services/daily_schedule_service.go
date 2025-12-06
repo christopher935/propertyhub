@@ -51,6 +51,11 @@ func NewDailyScheduleService(db *gorm.DB) *DailyScheduleService {
 	}
 }
 
+// GetDB returns the database connection for use in handlers
+func (dss *DailyScheduleService) GetDB() *gorm.DB {
+	return dss.db
+}
+
 // GetDailySchedule returns the daily schedule for a specific date
 func (dss *DailyScheduleService) GetDailySchedule(date time.Time) ([]ScheduleItem, error) {
 	items := []ScheduleItem{

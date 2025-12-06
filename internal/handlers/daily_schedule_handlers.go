@@ -255,7 +255,7 @@ func (dsh *DailyScheduleHandlers) CompleteScheduleItem(w http.ResponseWriter, r 
 
 	switch itemType {
 	case "showing":
-		if err := dsh.dailyScheduleService.db.Model(&models.Booking{}).Where("id = ?", itemID).
+		if err := dsh.dailyScheduleService.GetDB().Model(&models.Booking{}).Where("id = ?", itemID).
 			Updates(map[string]interface{}{"status": "completed", "completed_at": &completedAt}).Error; err != nil {
 			log.Printf("Failed to complete showing %s: %v", itemID, err)
 			http.Error(w, "Failed to complete showing", http.StatusInternalServerError)
@@ -263,7 +263,7 @@ func (dsh *DailyScheduleHandlers) CompleteScheduleItem(w http.ResponseWriter, r 
 		}
 		log.Printf("✓ Completed showing: %s", itemID)
 	case "followup":
-		if err := dsh.dailyScheduleService.db.Model(&services.CalendarEvent{}).Where("id = ?", itemID).
+		if err := dsh.dailyScheduleService.GetDB().Model(&services.CalendarEvent{}).Where("id = ?", itemID).
 			Update("status", "completed").Error; err != nil {
 			log.Printf("Failed to complete followup %s: %v", itemID, err)
 			http.Error(w, "Failed to complete followup", http.StatusInternalServerError)
@@ -337,7 +337,7 @@ func (dsh *DailyScheduleHandlers) SnoozeScheduleItem(w http.ResponseWriter, r *h
 
 	switch itemType {
 	case "showing":
-		if err := dsh.dailyScheduleService.db.Model(&models.Booking{}).Where("id = ?", itemID).
+		if err := dsh.dailyScheduleService.GetDB().Model(&models.Booking{}).Where("id = ?", itemID).
 			Update("showing_date", newTime).Error; err != nil {
 			log.Printf("Failed to snooze showing %s: %v", itemID, err)
 			http.Error(w, "Failed to snooze showing", http.StatusInternalServerError)
@@ -345,7 +345,7 @@ func (dsh *DailyScheduleHandlers) SnoozeScheduleItem(w http.ResponseWriter, r *h
 		}
 		log.Printf("⏰ Snoozed showing %s until %s", itemID, newTime.Format("3:04 PM"))
 	case "followup":
-		if err := dsh.dailyScheduleService.db.Model(&services.CalendarEvent{}).Where("id = ?", itemID).
+		if err := dsh.dailyScheduleService.GetDB().Model(&services.CalendarEvent{}).Where("id = ?", itemID).
 			Update("start_time", newTime).Error; err != nil {
 			log.Printf("Failed to snooze followup %s: %v", itemID, err)
 			http.Error(w, "Failed to snooze followup", http.StatusInternalServerError)
