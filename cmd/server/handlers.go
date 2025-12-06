@@ -77,9 +77,6 @@ type AllHandlers struct {
 	// Admin Notifications
 	AdminNotification     *handlers.AdminNotificationHandler
 
-	// Admin Notifications
-	AdminNotification     *handlers.AdminNotificationHandler
-
 	// Database (for inline handlers that need it)
 	DB                    *gorm.DB
 	
