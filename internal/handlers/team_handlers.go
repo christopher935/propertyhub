@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"chrisgross-ctrl-project/internal/security"
 )
 
 type TeamHandlers struct {
@@ -216,7 +217,7 @@ func (h *TeamHandlers) AddTeamMember(c *gin.Context) {
 	
 	agent := models.AdminUser{
 		Username: input.Username,
-		Email:    input.Email,
+		Email:    security.EncryptedString(input.Email),
 		Role:     input.Role,
 		Active:   true,
 	}
@@ -259,7 +260,7 @@ func (h *TeamHandlers) UpdateTeamMember(c *gin.Context) {
 		updates["username"] = input.Username
 	}
 	if input.Email != "" {
-		updates["email"] = input.Email
+		updates["email"] = security.EncryptedString(input.Email)
 	}
 	if input.Role != "" {
 		updates["role"] = input.Role
