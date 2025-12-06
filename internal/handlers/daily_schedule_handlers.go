@@ -1,16 +1,17 @@
 package handlers
 
 import (
-	"os"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"chrisgross-ctrl-project/internal/models"
+	"chrisgross-ctrl-project/internal/services"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/services"
 )
 
 // DailyScheduleHandlers handles daily schedule API endpoints
@@ -36,7 +37,11 @@ func (dsh *DailyScheduleHandlers) RegisterRoutes(mux *http.ServeMux) {
 // GetDailySchedule returns the daily schedule for today
 func (dsh *DailyScheduleHandlers) GetDailySchedule(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
@@ -67,7 +72,11 @@ func (dsh *DailyScheduleHandlers) GetDailySchedule(w http.ResponseWriter, r *htt
 // GetDailyScheduleByDate returns the daily schedule for a specific date
 func (dsh *DailyScheduleHandlers) GetDailyScheduleByDate(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
@@ -108,7 +117,11 @@ func (dsh *DailyScheduleHandlers) GetDailyScheduleByDate(w http.ResponseWriter, 
 // GetTodaySchedule returns a simplified version for quick access
 func (dsh *DailyScheduleHandlers) GetTodaySchedule(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
@@ -152,7 +165,11 @@ func (dsh *DailyScheduleHandlers) GetTodaySchedule(w http.ResponseWriter, r *htt
 // GetMobileSchedule returns optimized data for mobile interface
 func (dsh *DailyScheduleHandlers) GetMobileSchedule(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
@@ -201,7 +218,11 @@ func (dsh *DailyScheduleHandlers) GetMobileSchedule(w http.ResponseWriter, r *ht
 // CompleteScheduleItem marks a schedule item as completed
 func (dsh *DailyScheduleHandlers) CompleteScheduleItem(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
@@ -224,13 +245,45 @@ func (dsh *DailyScheduleHandlers) CompleteScheduleItem(w http.ResponseWriter, r 
 		log.Printf("No completion data provided for item %s", itemID)
 	}
 
-	// TODO: Implement actual completion logic based on item type
-	// For now, just return success
+	itemType := r.URL.Query().Get("type")
+	if itemType == "" {
+		http.Error(w, "Missing item type parameter", http.StatusBadRequest)
+		return
+	}
+
+	completedAt := time.Now()
+
+	switch itemType {
+	case "showing":
+		if err := dsh.dailyScheduleService.db.Model(&models.Booking{}).Where("id = ?", itemID).
+			Updates(map[string]interface{}{"status": "completed", "completed_at": &completedAt}).Error; err != nil {
+			log.Printf("Failed to complete showing %s: %v", itemID, err)
+			http.Error(w, "Failed to complete showing", http.StatusInternalServerError)
+			return
+		}
+		log.Printf("✓ Completed showing: %s", itemID)
+	case "followup":
+		if err := dsh.dailyScheduleService.db.Model(&services.CalendarEvent{}).Where("id = ?", itemID).
+			Update("status", "completed").Error; err != nil {
+			log.Printf("Failed to complete followup %s: %v", itemID, err)
+			http.Error(w, "Failed to complete followup", http.StatusInternalServerError)
+			return
+		}
+		log.Printf("✓ Completed followup: %s", itemID)
+	case "task":
+		http.Error(w, "Task type not yet implemented", http.StatusNotImplemented)
+		return
+	default:
+		http.Error(w, "Invalid item type. Must be: showing, followup, or task", http.StatusBadRequest)
+		return
+	}
+
 	response := map[string]interface{}{
 		"success":      true,
 		"message":      fmt.Sprintf("Schedule item %s marked as completed", itemID),
 		"item_id":      itemID,
-		"completed_at": time.Now(),
+		"item_type":    itemType,
+		"completed_at": completedAt,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -240,7 +293,11 @@ func (dsh *DailyScheduleHandlers) CompleteScheduleItem(w http.ResponseWriter, r 
 // SnoozeScheduleItem postpones a schedule item
 func (dsh *DailyScheduleHandlers) SnoozeScheduleItem(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
@@ -270,13 +327,44 @@ func (dsh *DailyScheduleHandlers) SnoozeScheduleItem(w http.ResponseWriter, r *h
 		return
 	}
 
+	itemType := r.URL.Query().Get("type")
+	if itemType == "" {
+		http.Error(w, "Missing item type parameter", http.StatusBadRequest)
+		return
+	}
+
 	newTime := time.Now().Add(duration)
 
-	// TODO: Implement actual snooze logic based on item type
+	switch itemType {
+	case "showing":
+		if err := dsh.dailyScheduleService.db.Model(&models.Booking{}).Where("id = ?", itemID).
+			Update("showing_date", newTime).Error; err != nil {
+			log.Printf("Failed to snooze showing %s: %v", itemID, err)
+			http.Error(w, "Failed to snooze showing", http.StatusInternalServerError)
+			return
+		}
+		log.Printf("⏰ Snoozed showing %s until %s", itemID, newTime.Format("3:04 PM"))
+	case "followup":
+		if err := dsh.dailyScheduleService.db.Model(&services.CalendarEvent{}).Where("id = ?", itemID).
+			Update("start_time", newTime).Error; err != nil {
+			log.Printf("Failed to snooze followup %s: %v", itemID, err)
+			http.Error(w, "Failed to snooze followup", http.StatusInternalServerError)
+			return
+		}
+		log.Printf("⏰ Snoozed followup %s until %s", itemID, newTime.Format("3:04 PM"))
+	case "task":
+		http.Error(w, "Task type not yet implemented", http.StatusNotImplemented)
+		return
+	default:
+		http.Error(w, "Invalid item type. Must be: showing, followup, or task", http.StatusBadRequest)
+		return
+	}
+
 	response := map[string]interface{}{
 		"success":       true,
 		"message":       fmt.Sprintf("Schedule item %s snoozed until %s", itemID, newTime.Format("3:04 PM")),
 		"item_id":       itemID,
+		"item_type":     itemType,
 		"snoozed_until": newTime,
 		"reason":        snoozeData.Reason,
 	}
