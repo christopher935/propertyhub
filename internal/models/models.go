@@ -385,9 +385,40 @@ func AutoMigrate(db *gorm.DB) error {
 	}
 	log.Println("✅ NotificationState migration completed")
 
+	if err := db.AutoMigrate(&AdminNotification{}); err != nil {
+		log.Printf("❌ AdminNotification migration failed: %v", err)
+		return err
+	}
+	log.Println("✅ AdminNotification migration completed")
+
 	log.Println("✅ Database migrations completed successfully")
 	log.Println("🎉 Database initialization complete - proceeding to HTTP server startup")
 	return nil
+}
+
+type AdminNotification struct {
+	ID        uint            `json:"id" gorm:"primaryKey"`
+	Type      string          `json:"type" gorm:"not null"`
+	Title     string          `json:"title" gorm:"not null"`
+	Message   string          `json:"message"`
+	Priority  string          `json:"priority" gorm:"default:'normal'"`
+	Data      json.RawMessage `json:"data" gorm:"type:jsonb"`
+	ReadAt    *time.Time      `json:"read_at"`
+	CreatedAt time.Time       `json:"created_at"`
+}
+
+func (an *AdminNotification) ToDict() map[string]interface{} {
+	return map[string]interface{}{
+		"id":         an.ID,
+		"type":       an.Type,
+		"title":      an.Title,
+		"message":    an.Message,
+		"priority":   an.Priority,
+		"data":       an.Data,
+		"read_at":    an.ReadAt,
+		"created_at": an.CreatedAt,
+		"read":       an.ReadAt != nil,
+	}
 }
 
 // ScheduledAction stores automation actions to be executed later

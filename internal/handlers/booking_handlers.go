@@ -26,6 +26,7 @@ type BookingHandler struct {
 	encryptionManager   *security.EncryptionManager
 	fubBatchService     *services.FUBBatchService
 	availabilityService *services.AvailabilityService
+	notificationHub     *services.AdminNotificationHub
 }
 
 func NewBookingHandler(db *gorm.DB, repos *repositories.Repositories, em *security.EncryptionManager) *BookingHandler {
@@ -36,6 +37,10 @@ func NewBookingHandler(db *gorm.DB, repos *repositories.Repositories, em *securi
 		fubBatchService:     nil,
 		availabilityService: services.NewAvailabilityService(db),
 	}
+}
+
+func (h *BookingHandler) SetNotificationHub(hub *services.AdminNotificationHub) {
+	h.notificationHub = hub
 }
 
 func (h *BookingHandler) CreateBooking(c *gin.Context) {
@@ -151,6 +156,21 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	if err := h.repos.Booking.Create(ctx, booking); err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to save booking", err)
 		return
+	}
+
+	if h.notificationHub != nil {
+		var property models.Property
+		if err := h.repos.Property.FindByID(ctx, uint(propertyID), &property); err == nil {
+			decryptedName := string(booking.Name)
+			decryptedAddress := string(property.Address)
+			decryptedAddress := string(property.Address)
+			if h.encryptionManager != nil {
+				decryptedAddress, _ = h.encryptionManager.Decrypt(property.Address)
+				decryptedName, _ = h.encryptionManager.Decrypt(booking.Name)
+				decryptedAddress, _ = h.encryptionManager.Decrypt(decryptedAddress)
+			}
+			h.notificationHub.SendBookingAlert(decryptedAddress, decryptedName, booking.ID)
+		}
 	}
 
 	utils.SuccessResponse(c, gin.H{
