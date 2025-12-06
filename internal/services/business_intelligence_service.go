@@ -2,7 +2,9 @@ package services
 
 import (
 	"chrisgross-ctrl-project/internal/models"
+	"fmt"
 	"gorm.io/gorm"
+	"math"
 	"time"
 )
 
@@ -259,11 +261,36 @@ func (bis *BusinessIntelligenceService) GenerateFridayReport() (*FridayReportDat
 
 // GetDashboardData returns dashboard analytics data
 func (bis *BusinessIntelligenceService) GetDashboardData() (map[string]interface{}, error) {
+	// Get real property metrics
+	propertyMetrics := bis.GetPropertyMetrics()
+	
+	// Get active leads count
+	var activeLeads int64
+	bis.db.Table("contacts").Where("status = ?", "active").Count(&activeLeads)
+	
+	// Calculate monthly revenue from closed deals
+	var monthlyRevenue float64
+	now := time.Now()
+	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	
+	bis.db.Model(&models.ClosingPipeline{}).
+		Select("COALESCE(SUM(commission_earned), 0)").
+		Where("status = ? AND lease_signed_date >= ?", "completed", monthStart).
+		Scan(&monthlyRevenue)
+	
+	// If no commission data, calculate from monthly rent
+	if monthlyRevenue == 0 {
+		bis.db.Model(&models.ClosingPipeline{}).
+			Select("COALESCE(SUM(monthly_rent), 0)").
+			Where("status = ? AND lease_signed_date >= ?", "completed", monthStart).
+			Scan(&monthlyRevenue)
+	}
+	
 	data := map[string]interface{}{
-		"total_properties": 125,
-		"active_leads":     89,
-		"monthly_revenue":  45000,
-		"conversion_rate":  18.5,
+		"total_properties": propertyMetrics["total_properties"],
+		"active_leads":     activeLeads,
+		"monthly_revenue":  math.Round(monthlyRevenue),
+		"conversion_rate":  propertyMetrics["conversion_rate"],
 	}
 
 	return data, nil
@@ -455,14 +482,34 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 		})
 	}
 	
+	// Get property metrics with real queries
+	propertyMetrics := bis.GetPropertyMetrics()
+	
+	// Calculate monthly growth for bookings
+	monthlyGrowth := bis.calculateMonthlyBookingGrowth()
+	
+	// Calculate booking conversion rate (bookings to confirmed)
+	bookingConversionRate := 0.0
+	if totalBookings > 0 {
+		bookingConversionRate = (float64(confirmedBookings) / float64(totalBookings)) * 100
+	}
+	
+	// Calculate average booking time (from creation to confirmation)
+	var avgBookingTime float64
+	bis.db.Raw(`
+		SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (updated_at - created_at))/3600), 0)
+		FROM booking_requests
+		WHERE status = 'confirmed'
+		AND updated_at > created_at
+		AND created_at > NOW() - INTERVAL '30 days'
+	`).Scan(&avgBookingTime)
+	
+	// Get popular time slots from real data
+	popularTimeSlots := bis.GetPopularTimeSlots()
+
 	// Build metrics response
 	metrics := &DashboardMetrics{
-		PropertyMetrics: map[string]interface{}{
-			"total_properties": 125, // TODO: Query from Property model
-			"active_listings":  89,  // TODO: Query active listings
-			"pending_sales":    23,  // TODO: Query pending sales
-			"avg_price":        350000, // TODO: Calculate average price
-		},
+		PropertyMetrics: propertyMetrics,
 		BookingMetrics: BookingMetrics{
 			TotalBookings:      int(totalBookings),
 			ConfirmedBookings:  int(confirmedBookings),
@@ -470,16 +517,11 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 			CompletionRate:     completionRate,
 			AverageRating:      averageRating,
 			TotalRevenue:       int(totalRevenue),
-			MonthlyGrowth:      12.3, // TODO: Calculate from historical data
-			ConversionRate:     78.5, // TODO: Calculate booking conversion
-			AverageBookingTime: 25.5, // TODO: Calculate from booking data
+			MonthlyGrowth:      math.Round(monthlyGrowth*10) / 10,
+			ConversionRate:     math.Round(bookingConversionRate*10) / 10,
+			AverageBookingTime: math.Round(avgBookingTime*10) / 10,
 			BookingTrends:      bookingTrends,
-			PopularTimeSlots: []map[string]interface{}{
-				{"time": "10:00 AM", "bookings": 45},
-				{"time": "2:00 PM", "bookings": 52},
-				{"time": "4:00 PM", "bookings": 38},
-				{"time": "6:00 PM", "bookings": 41},
-			}, // TODO: Query from booking times
+			PopularTimeSlots:   popularTimeSlots,
 		},
 		LeadMetrics: LeadMetrics{
 			TotalLeads:          int(totalLeads),
@@ -571,4 +613,146 @@ func (bis *BusinessIntelligenceService) GetSystemHealthReport() (map[string]inte
 	}
 
 	return data, nil
+}
+
+// GetPropertyMetrics returns real property metrics from database
+func (bis *BusinessIntelligenceService) GetPropertyMetrics() map[string]interface{} {
+	var totalProperties int64
+	var activeListings int64
+	var pendingListings int64
+
+	bis.db.Model(&models.Property{}).Count(&totalProperties)
+	bis.db.Model(&models.Property{}).Where("status = ?", "active").Count(&activeListings)
+	bis.db.Model(&models.Property{}).Where("status = ?", "pending").Count(&pendingListings)
+
+	// Calculate monthly growth
+	var lastMonthCount int64
+	var thisMonthCount int64
+
+	now := time.Now()
+	thisMonthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	lastMonthStart := thisMonthStart.AddDate(0, -1, 0)
+
+	bis.db.Model(&models.Property{}).
+		Where("created_at >= ? AND created_at < ?", lastMonthStart, thisMonthStart).
+		Count(&lastMonthCount)
+
+	bis.db.Model(&models.Property{}).
+		Where("created_at >= ?", thisMonthStart).
+		Count(&thisMonthCount)
+
+	var monthlyGrowth float64
+	if lastMonthCount > 0 {
+		monthlyGrowth = float64(thisMonthCount-lastMonthCount) / float64(lastMonthCount) * 100
+	} else if thisMonthCount > 0 {
+		monthlyGrowth = 100.0
+	}
+
+	// Calculate conversion rate (leads to closed deals)
+	var totalLeads int64
+	var convertedLeads int64
+
+	bis.db.Table("contacts").Count(&totalLeads)
+	bis.db.Model(&models.ClosingPipeline{}).
+		Where("status IN ?", []string{"completed", "ready"}).
+		Count(&convertedLeads)
+
+	var conversionRate float64
+	if totalLeads > 0 {
+		conversionRate = float64(convertedLeads) / float64(totalLeads) * 100
+	}
+
+	// Calculate average price
+	var avgPrice float64
+	bis.db.Model(&models.Property{}).
+		Where("status = ? AND price > 0", "active").
+		Select("COALESCE(AVG(price), 0)").
+		Scan(&avgPrice)
+
+	return map[string]interface{}{
+		"total_properties": totalProperties,
+		"active_listings":  activeListings,
+		"pending_listings": pendingListings,
+		"monthly_growth":   math.Round(monthlyGrowth*10) / 10,
+		"conversion_rate":  math.Round(conversionRate*10) / 10,
+		"avg_price":        math.Round(avgPrice),
+	}
+}
+
+// GetPopularTimeSlots returns popular showing time slots from real booking data
+func (bis *BusinessIntelligenceService) GetPopularTimeSlots() []map[string]interface{} {
+	type TimeSlotCount struct {
+		Hour  int
+		Count int64
+	}
+
+	var results []TimeSlotCount
+
+	// Query booking times grouped by hour
+	bis.db.Raw(`
+		SELECT 
+			EXTRACT(HOUR FROM showing_date)::int as hour,
+			COUNT(*) as count
+		FROM bookings
+		WHERE showing_date IS NOT NULL
+			AND created_at > NOW() - INTERVAL '90 days'
+		GROUP BY hour
+		ORDER BY count DESC
+		LIMIT 5
+	`).Scan(&results)
+
+	// If no booking data, return empty array
+	if len(results) == 0 {
+		return []map[string]interface{}{}
+	}
+
+	slots := make([]map[string]interface{}, len(results))
+	for i, r := range results {
+		// Format hour as readable time
+		hour := r.Hour
+		var timeStr string
+
+		if hour == 0 {
+			timeStr = "12:00 AM"
+		} else if hour < 12 {
+			timeStr = fmt.Sprintf("%d:00 AM", hour)
+		} else if hour == 12 {
+			timeStr = "12:00 PM"
+		} else {
+			timeStr = fmt.Sprintf("%d:00 PM", hour-12)
+		}
+
+		slots[i] = map[string]interface{}{
+			"time":     timeStr,
+			"bookings": r.Count,
+		}
+	}
+
+	return slots
+}
+
+// calculateMonthlyBookingGrowth calculates month-over-month booking growth
+func (bis *BusinessIntelligenceService) calculateMonthlyBookingGrowth() float64 {
+	var lastMonthCount int64
+	var thisMonthCount int64
+
+	now := time.Now()
+	thisMonthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	lastMonthStart := thisMonthStart.AddDate(0, -1, 0)
+
+	bis.db.Table("booking_requests").
+		Where("created_at >= ? AND created_at < ?", lastMonthStart, thisMonthStart).
+		Count(&lastMonthCount)
+
+	bis.db.Table("booking_requests").
+		Where("created_at >= ?", thisMonthStart).
+		Count(&thisMonthCount)
+
+	if lastMonthCount > 0 {
+		return float64(thisMonthCount-lastMonthCount) / float64(lastMonthCount) * 100
+	} else if thisMonthCount > 0 {
+		return 100.0
+	}
+
+	return 0.0
 }
