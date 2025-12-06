@@ -413,7 +413,7 @@ log.Println("🔗 Webhook handlers initialized")
 	log.Println("✅ Consumer routes registered")
 
 	log.Println("🛣️ Registering admin routes...")
-	RegisterAdminRoutes(r, allHandlers, propertyHubAI)
+	RegisterAdminRoutes(r, allHandlers, propertyHubAI, authManager)
 	log.Println("✅ Admin routes registered")
 
 	log.Println("🛣️ Registering API routes...")
