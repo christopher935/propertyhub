@@ -177,6 +177,9 @@ class _BashSession:
         self._partial_error = ""
         self._session_id = session_id
         self._process = None
+        self._stdout_buffer = bytearray()
+        self._stderr_buffer = bytearray()
+        self._reader_tasks: list[asyncio.Task] = []
 
     @property
     def session_id(self) -> int:
@@ -204,8 +207,8 @@ class _BashSession:
             return True
             
         try:
-            if self._process.stdout._buffer:
-                output = self._process.stdout._buffer.decode(errors="replace")
+            if self._stdout_buffer:
+                output = self._stdout_buffer.decode(errors="replace")
                 self._partial_output = output
                 
                 if self._sentinel in output:
@@ -239,6 +242,26 @@ class _BashSession:
                 
         return '\n'.join(filtered_error)
 
+    async def _start_readers(self):
+        """Start background tasks to continuously read stdout/stderr into our buffers."""
+        async def read_stream(stream: asyncio.StreamReader, buffer: bytearray):
+            try:
+                while True:
+                    chunk = await stream.read(4096)
+                    if not chunk:
+                        break
+                    buffer.extend(chunk)
+            except asyncio.CancelledError:
+                pass
+            except Exception:
+                pass
+        
+        if self._process and self._process.stdout and self._process.stderr:
+            self._reader_tasks = [
+                asyncio.create_task(read_stream(self._process.stdout, self._stdout_buffer)),
+                asyncio.create_task(read_stream(self._process.stderr, self._stderr_buffer)),
+            ]
+
     async def start(self):
         """Start the bash session."""
         if self._started:
@@ -257,6 +280,7 @@ class _BashSession:
             )
 
             self._started = True
+            await self._start_readers()
                 
         except Exception as e:
             raise ToolError(f"Failed to start bash session: {str(e)}")
@@ -265,6 +289,10 @@ class _BashSession:
         """Terminate the bash shell."""
         if not self._started:
             return
+        
+        for task in self._reader_tasks:
+            task.cancel()
+        self._reader_tasks = []
             
         if self._process and self._process.returncode is None:
             try:
@@ -301,12 +329,12 @@ class _BashSession:
             )
         
         output = self._partial_output
-        if self._process.stdout._buffer:
-            output += self._process.stdout._buffer.decode(errors="replace")
+        if self._stdout_buffer:
+            output += self._stdout_buffer.decode(errors="replace")
             
         error = self._partial_error
-        if self._process.stderr._buffer:
-            error += self._process.stderr._buffer.decode(errors="replace")
+        if self._stderr_buffer:
+            error += self._stderr_buffer.decode(errors="replace")
             
         filtered_error = self._filter_error_output(error)
             
@@ -363,8 +391,8 @@ class _BashSession:
 cd "{base_dir}"
 echo '{self._sentinel}'
 """
-        self._process.stdout._buffer.clear()
-        self._process.stderr._buffer.clear()
+        self._stdout_buffer.clear()
+        self._stderr_buffer.clear()
         
         try:
             self._process.stdin.write(wrapped_command.encode())
@@ -387,7 +415,7 @@ echo '{self._sentinel}'
                 )
                 output = data.decode(errors="replace").replace(self._sentinel, "")
                 self._partial_output = output
-                error = self._process.stderr._buffer.decode(errors="replace")
+                error = self._stderr_buffer.decode(errors="replace")
                 self._partial_error = error
                 self._is_running_command = False
                 
@@ -398,16 +426,16 @@ echo '{self._sentinel}'
                 error = self._partial_error
                 
                 # Try to get any remaining data from buffers
-                if hasattr(self._process.stdout, '_buffer') and self._process.stdout._buffer:
+                if self._stdout_buffer:
                     try:
-                        remaining = self._process.stdout._buffer.decode(errors="replace")
+                        remaining = self._stdout_buffer.decode(errors="replace")
                         output += remaining
                     except Exception:
                         pass
                         
-                if hasattr(self._process.stderr, '_buffer') and self._process.stderr._buffer:
+                if self._stderr_buffer:
                     try:
-                        remaining = self._process.stderr._buffer.decode(errors="replace")
+                        remaining = self._stderr_buffer.decode(errors="replace")
                         error += remaining
                     except Exception:
                         pass
@@ -471,7 +499,7 @@ echo '{self._sentinel}'
                     if self._sentinel in accumulated:
                         output = accumulated.replace(self._sentinel, "")
                         self._partial_output = output
-                        error = self._process.stderr._buffer.decode(errors="replace")
+                        error = self._stderr_buffer.decode(errors="replace")
                         self._partial_error = error
                         self._is_running_command = False
                         break
@@ -479,7 +507,7 @@ echo '{self._sentinel}'
             except asyncio.TimeoutError:
                 output = ''.join(output_chunks)
                 self._partial_output = output
-                error = self._process.stderr._buffer.decode(errors="replace")
+                error = self._stderr_buffer.decode(errors="replace")
                 self._partial_error = error
         except Exception as e:
             # Catch any other unexpected errors
@@ -492,8 +520,8 @@ echo '{self._sentinel}'
         processed_output = output.rstrip('\n')
         filtered_error = self._filter_error_output(error)
 
-        self._process.stdout._buffer.clear()
-        self._process.stderr._buffer.clear()
+        self._stdout_buffer.clear()
+        self._stderr_buffer.clear()
 
         return CLIResult(output=processed_output, error=filtered_error)
 
@@ -525,8 +553,8 @@ cd \"{WORKSPACE_DIR}\"
 echo '{self._sentinel}'
 """
 
-        self._process.stdout._buffer.clear()
-        self._process.stderr._buffer.clear()
+        self._stdout_buffer.clear()
+        self._stderr_buffer.clear()
 
         self._process.stdin.write(wrapped_command.encode())
         await self._process.stdin.drain()
