@@ -16,7 +16,8 @@ import (
 type ApplicationWorkflowHandlers struct {
 	db                *gorm.DB
 	service           *services.ApplicationWorkflowService
-	behavioralService *services.BehavioralEventService  // ADDED: Behavioral tracking
+	behavioralService *services.BehavioralEventService
+	notificationHub   *services.AdminNotificationHub
 }
 
 // NewApplicationWorkflowHandlers creates new application workflow handlers
@@ -152,7 +153,13 @@ func (awh *ApplicationWorkflowHandlers) MoveApplicantToApplication(c *gin.Contex
 	var applicant models.ApplicationApplicant
 	var application models.ApplicationNumber
 	awh.db.First(&applicant, request.ApplicantID)
-	awh.db.First(&application, request.TargetApplicationID)
+	awh.db.Preload("PropertyApplicationGroup").First(&application, request.TargetApplicationID)
+	
+	if awh.notificationHub != nil && application.PropertyApplicationGroup != nil {
+		propertyAddress := application.PropertyApplicationGroup.PropertyAddress
+		applicantName := applicant.ApplicantName
+		awh.notificationHub.SendApplicationAlert(propertyAddress, applicantName, application.ID)
+	}
 	
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -392,6 +399,15 @@ func (awh *ApplicationWorkflowHandlers) ApproveApplication(c *gin.Context) {
 		return
 	}
 
+	if awh.notificationHub != nil {
+		var propertyGroup models.PropertyApplicationGroup
+		if err := awh.db.Preload("Property").First(&propertyGroup, appNumber.PropertyApplicationGroupID).Error; err == nil {
+			propertyAddress := propertyGroup.PropertyAddress
+			applicantName := fmt.Sprintf("Application %d", appNumber.ApplicationNumber)
+			awh.notificationHub.SendApplicationAlert(propertyAddress, applicantName, appNumber.ID)
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Application approved successfully",
@@ -511,4 +527,8 @@ func (awh *ApplicationWorkflowHandlers) RequestMoreInfo(c *gin.Context) {
 			"message":        request.Message,
 		},
 	})
+}
+
+func (awh *ApplicationWorkflowHandlers) SetNotificationHub(hub *services.AdminNotificationHub) {
+	awh.notificationHub = hub
 }
