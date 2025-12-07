@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"strconv"
 	"chrisgross-ctrl-project/internal/config"
+	"chrisgross-ctrl-project/internal/safety"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"github.com/twilio/twilio-go"
@@ -103,6 +104,12 @@ func NewBehavioralLeadScoringService() *BehavioralLeadScoringService {
 }
 
 func (es *EmailService) SendEmail(to, subject, content string, metadata map[string]interface{}) error {
+	controls := safety.GetSafetyControls()
+	if !controls.IsEmailSendingAllowed() {
+		log.Printf("🚫 Email blocked by safety controls: sending disabled")
+		return fmt.Errorf("email sending is disabled by safety controls")
+	}
+
 	if !es.isConfigured {
 		log.Printf("⚠️  Email not configured - would have sent: To=%s, Subject=%s", to, subject)
 		return fmt.Errorf("email service not configured")
@@ -139,6 +146,12 @@ func (es *EmailService) SendTemplateEmail(to, subject, template string, data map
 }
 
 func (ss *SMSService) SendSMS(to, content string, metadata map[string]interface{}) error {
+	controls := safety.GetSafetyControls()
+	if !controls.IsSMSSendingAllowed() {
+		log.Printf("🚫 SMS blocked by safety controls: sending disabled")
+		return fmt.Errorf("SMS sending is disabled by safety controls")
+	}
+
 	if !ss.isConfigured {
 		log.Printf("⚠️  SMS not configured - would have sent: To=%s, Content=%s", to, content)
 		return fmt.Errorf("SMS service not configured")
