@@ -420,23 +420,7 @@ class PropertyHubAdmin {
                 <div id="config-integrations" class="config-panel">
                     <h3>Integration Settings</h3>
                     <div class="config-form">
-                        <div class="integration-section">
-                            <h4>HAR MLS Integration</h4>
-                            <div class="form-group">
-                                <label>API Endpoint</label>
-                                <input type="text" class="form-control" value="${data.integrations.har.endpoint}" data-config="integrations.har.endpoint">
-                            </div>
-                            <div class="form-group">
-                                <label>Update Frequency (minutes)</label>
-                                <input type="number" class="form-control" value="${data.integrations.har.updateFrequency}" data-config="integrations.har.updateFrequency">
-                            </div>
-                            <div class="form-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" ${data.integrations.har.enabled ? 'checked' : ''} data-config="integrations.har.enabled">
-                                    Enable HAR Integration
-                                </label>
-                            </div>
-                        </div>
+                        <!-- HAR MLS Integration removed - HAR blocked access -->
 
                         <div class="integration-section">
                             <h4>Follow Up Boss Integration</h4>

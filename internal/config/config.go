@@ -30,9 +30,7 @@ type Config struct {
         // External services (all from database)
         FUBAPIKey     string
         FUBAPIURL     string
-        HARAPIKey     string
-        HARAPIURL     string
-        ScraperAPIKey string
+        ScraperAPIKey string // Generic scraper for property data (not HAR-specific)
 
         // TREC compliance (from database)
         TRECComplianceEnabled bool
@@ -115,9 +113,7 @@ func LoadConfig() *Config {
                 // External services (ALL from database)
                 FUBAPIKey:     dbSettings["FUB_API_KEY"],
                 FUBAPIURL:     getDbSetting(dbSettings, "FUB_API_URL", "https://api.followupboss.com"),
-                HARAPIKey:     dbSettings["HAR_API_KEY"],
-                HARAPIURL:     getDbSetting(dbSettings, "HAR_API_URL", "https://api.har.com"),
-                ScraperAPIKey: dbSettings["SCRAPER_API_KEY"],
+                ScraperAPIKey: dbSettings["SCRAPER_API_KEY"], // Generic scraper
 
                 // TREC compliance
                 TRECComplianceEnabled: getDbSettingBool(dbSettings, "TREC_COMPLIANCE_ENABLED", true),

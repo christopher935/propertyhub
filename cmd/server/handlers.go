@@ -41,10 +41,6 @@ type AllHandlers struct {
 	EmailSender           *handlers.EmailSenderHandlers
 	Unsubscribe           *handlers.UnsubscribeHandlers
 
-	// HAR Market
-	HARMarket             *handlers.HARMarketHandlers
-
-	// HAR Property Sync
 
 	// Lead Management
 	LeadReengagement      *handlers.LeadReengagementHandler

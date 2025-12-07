@@ -176,7 +176,7 @@ class PropertyHubAnalytics {
         this.trackEvent('market_data_accessed', {
             dataType: dataType,
             filters: filters,
-            source: 'HAR_MLS'
+            source: 'PropertyHub'
         });
     }
 

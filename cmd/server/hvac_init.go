@@ -13,12 +13,11 @@ func InitializeHVACSystem(db *gorm.DB, scraperAPIKey, fubAPIKey string) *jobs.Jo
 	log.Println("🌡️ Installing HVAC system (not activating)...")
 	
 	// Initialize services
-	harService := services.NewHARMarketScraper(db, scraperAPIKey)
 	fubService := services.NewEnhancedFUBIntegrationService(db, fubAPIKey)
 	biService := services.NewBusinessIntelligenceService(db)
 	
 	// Create JobManager (installed but not started)
-	jobManager := jobs.NewJobManager(db, harService, fubService, biService, nil)
+	jobManager := jobs.NewJobManager(db, nil, fubService, biService, nil)
 	
 	log.Println("✅ HVAC system installed (dormant)")
 	return jobManager
