@@ -287,6 +287,38 @@ log.Println("🔗 Webhook handlers initialized")
 	)
 	log.Println("🎯 Command Center handler initialized")
 
+	// Safety Management
+	safetyHandler := handlers.NewSafetyHandlers(gormDB)
+	log.Println("🔒 Safety handlers initialized")
+
+	// Availability Management
+	availabilityHandler := handlers.NewAvailabilityHandler(gormDB)
+	log.Println("📅 Availability handlers initialized")
+
+	// Central Property State
+	centralPropertyHandler := handlers.NewCentralPropertyHandler(gormDB, encryptionManager)
+	log.Println("🏠 Central property handlers initialized")
+
+	// Central Property Sync
+	centralPropertySyncHandler := handlers.NewCentralPropertySyncHandlers(gormDB)
+	log.Println("🔄 Central property sync handlers initialized")
+
+	// Daily Schedule
+	dailyScheduleHandler := handlers.NewDailyScheduleHandlers(gormDB)
+	log.Println("📆 Daily schedule handlers initialized")
+
+	// MFA Authentication
+	mfaHandler := handlers.NewMFAHandler(gormDB, authManager)
+	log.Println("🔐 MFA handlers initialized")
+
+	// Settings Management
+	settingsHandler := handlers.NewSettingsHandler(gormDB)
+	log.Println("⚙️ Settings handlers initialized")
+
+	// Validation
+	validationHandler := handlers.NewValidationHandler()
+	log.Println("✔️ Validation handlers initialized")
+
 	log.Println("✅ All enterprise handlers initialized successfully")
 
 	// Create handlers struct for route registration
@@ -322,6 +354,14 @@ log.Println("🔗 Webhook handlers initialized")
 		Webhook:               webhookHandler,
 		WebSocket:             webSocketHandler,
 		AdminNotification:     adminNotificationHandler,
+		Safety:                safetyHandler,
+		Availability:          availabilityHandler,
+		CentralProperty:       centralPropertyHandler,
+		CentralPropertySync:   centralPropertySyncHandler,
+		DailySchedule:         dailyScheduleHandler,
+		MFA:                   mfaHandler,
+		Settings:              settingsHandler,
+		Validation:            validationHandler,
 		DB:                    gormDB,
 	}
 	log.Println("📦 Handler struct initialized for route registration")
