@@ -494,10 +494,8 @@ log.Println("🔗 Webhook handlers initialized")
 	// ============================================================================
 
 	// Gin-compatible routes - can be registered directly
-	log.Println("🛣️ Registering email sender routes...")
-	handlers.RegisterEmailSenderRoutes(r, gormDB)
-	log.Println("✅ Email sender routes registered")
-
+	// NOTE: RegisterEmailSenderRoutes REMOVED - routes already exist in routes_admin.go and routes_api.go
+	
 	log.Println("🛣️ Registering central property sync routes...")
 	handlers.RegisterCentralPropertySyncRoutes(r, gormDB)
 	log.Println("✅ Central property sync routes registered")
