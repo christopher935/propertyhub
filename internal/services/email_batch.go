@@ -10,6 +10,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"chrisgross-ctrl-project/internal/utils"
+	"chrisgross-ctrl-project/internal/safety"
 )
 
 // EmailBatchService handles batched email processing
@@ -172,6 +173,13 @@ func (e *EmailBatchService) Stop() error {
 
 // QueueEmail adds an email to the processing queue
 func (e *EmailBatchService) QueueEmail(email EmailJob) error {
+	// Check safety controls before queuing
+	safetyControls := safety.GetSafetyControls()
+	if err := safetyControls.ValidateAction("send_email"); err != nil {
+		log.Printf("🚫 BLOCKED: Batch email to %v blocked by safety controls - %v", email.To, err)
+		return fmt.Errorf("email queueing blocked: %w", err)
+	}
+
 	email.ID = fmt.Sprintf("email_%d_%s", time.Now().UnixNano(), email.Subject[:utils.Min(10, len(email.Subject))])
 	email.CreatedAt = time.Now()
 

@@ -7,6 +7,7 @@ import (
 	"time"
 	
 	"chrisgross-ctrl-project/internal/models"
+	"chrisgross-ctrl-project/internal/safety"
 	"gorm.io/gorm"
 )
 
@@ -156,6 +157,17 @@ func (s *PropertyAlertsService) propertyMatchesPreferences(property models.Prope
 }
 
 func (s *PropertyAlertsService) sendPropertyAlert(property models.Property, pref AlertPreferences) error {
+	// Check safety controls before sending alert
+	safetyControls := safety.GetSafetyControls()
+	if err := safetyControls.ValidateAction("send_email"); err != nil {
+		log.Printf("🚫 BLOCKED: Property alert to %s blocked by safety controls - %v", pref.Email, err)
+		return fmt.Errorf("property alert blocked: %w", err)
+	}
+	if !safetyControls.IsAutomationAllowed() {
+		log.Printf("🚫 BLOCKED: Property alert automation disabled - %s", pref.Email)
+		return fmt.Errorf("automation is disabled")
+	}
+
 	alert := PropertyAlert{
 		PropertyID:        property.ID,
 		AlertPreferenceID: pref.ID,

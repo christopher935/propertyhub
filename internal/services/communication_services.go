@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"strconv"
 	"chrisgross-ctrl-project/internal/config"
+	"chrisgross-ctrl-project/internal/safety"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"github.com/twilio/twilio-go"
@@ -108,6 +109,13 @@ func (es *EmailService) SendEmail(to, subject, content string, metadata map[stri
 		return fmt.Errorf("email service not configured")
 	}
 
+	// Check safety controls before sending
+	safetyControls := safety.GetSafetyControls()
+	if err := safetyControls.ValidateAction("send_email"); err != nil {
+		log.Printf("🚫 BLOCKED: Email to %s blocked by safety controls - %v", to, err)
+		return fmt.Errorf("email sending blocked: %w", err)
+	}
+
 	from := mail.NewEmail(es.fromName, es.fromEmail)
 	toEmail := mail.NewEmail("", to)
 	message := mail.NewSingleEmail(from, subject, toEmail, content, content)
@@ -142,6 +150,13 @@ func (ss *SMSService) SendSMS(to, content string, metadata map[string]interface{
 	if !ss.isConfigured {
 		log.Printf("⚠️  SMS not configured - would have sent: To=%s, Content=%s", to, content)
 		return fmt.Errorf("SMS service not configured")
+	}
+
+	// Check safety controls before sending
+	safetyControls := safety.GetSafetyControls()
+	if err := safetyControls.ValidateAction("send_sms"); err != nil {
+		log.Printf("🚫 BLOCKED: SMS to %s blocked by safety controls - %v", to, err)
+		return fmt.Errorf("SMS sending blocked: %w", err)
 	}
 
 	params := &twilioApi.CreateMessageParams{}

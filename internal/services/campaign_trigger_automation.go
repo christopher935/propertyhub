@@ -8,6 +8,7 @@ import (
 
 	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"chrisgross-ctrl-project/internal/safety"
 )
 
 // CampaignTriggerAutomation handles automatic campaign triggering based on intelligence
@@ -197,6 +198,17 @@ func (cta *CampaignTriggerAutomation) RunAllTriggers() error {
 // Helper functions
 
 func (cta *CampaignTriggerAutomation) executeEmailCampaign(opp Opportunity, action OpportunityAction) error {
+	// Check safety controls before proceeding
+	safetyControls := safety.GetSafetyControls()
+	if err := safetyControls.ValidateAction("send_email"); err != nil {
+		log.Printf("🚫 BLOCKED: Campaign email to %s blocked by safety controls - %v", opp.LeadEmail, err)
+		return fmt.Errorf("campaign email blocked: %w", err)
+	}
+	if !safetyControls.IsAutomationAllowed() {
+		log.Printf("🚫 BLOCKED: Campaign automation disabled - %s", opp.LeadEmail)
+		return fmt.Errorf("automation is disabled")
+	}
+
 	// Build template data
 	templateData := map[string]interface{}{
 		"lead_name":       opp.LeadName,
