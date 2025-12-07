@@ -240,10 +240,12 @@ log.Println("🔗 Webhook handlers initialized")
 	emailService := services.NewEmailService(cfg, gormDB)
 	log.Println("📧 Email service initialized")
 	
-	_ = services.NewSMSService(cfg, gormDB)
+	smsService := services.NewSMSService(cfg, gormDB)
+	_ = smsService
 	log.Println("📱 SMS service initialized")
 	
-	_ = services.NewNotificationService(emailService, gormDB)
+	notificationService := services.NewNotificationService(emailService, gormDB)
+	_ = notificationService
 	log.Println("🔔 Notification service initialized")
 	
 	propertyAlertsHandler := handlers.NewPropertyAlertsHandler(gormDB, emailService)
