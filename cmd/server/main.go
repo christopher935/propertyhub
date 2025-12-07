@@ -139,6 +139,7 @@ emailSenderHandler := handlers.NewEmailSenderHandlers(gormDB)
 unsubscribeHandler := handlers.NewUnsubscribeHandlers(gormDB)
 
 // Email automation (only if Redis is available)
+var emailBatchService *services.EmailBatchService
 var emailAutomationHandler *handlers.EmailAutomationHandlers
 if redisClient != nil {
         // Create SMTP config
@@ -150,7 +151,7 @@ if redisClient != nil {
         }
 
         // Initialize email batch service
-        emailBatchService := services.NewEmailBatchService(redisClient, smtpConfig)
+        emailBatchService = services.NewEmailBatchService(redisClient, smtpConfig)
 
         // Initialize email automation handler
         emailAutomationHandler = handlers.NewEmailAutomationHandlers(gormDB, emailProcessor, emailBatchService)
@@ -196,6 +197,86 @@ log.Println("🔒 Security handlers initialized")
 webhookHandler := handlers.NewWebhookHandlers(gormDB)
 log.Println("🔗 Webhook handlers initialized")
 
+// ============================================================================
+// MISSING SERVICES INSTANTIATION (SCO-127)
+// ============================================================================
+
+// Helper services for automation
+leadService := services.NewLeadService()
+log.Println("👤 Lead service initialized")
+
+propertyService := services.NewPropertyService()
+log.Println("🏠 Property service initialized")
+
+// FUB Services (create in order due to dependencies)
+fubAPIClient := services.NewBehavioralFUBAPIClient(gormDB, cfg.FUBAPIKey)
+log.Println("🔗 FUB API client initialized")
+
+fubErrorHandler := services.NewFUBErrorHandler()
+log.Println("⚠️ FUB error handler initialized")
+
+var fubBatchService *services.FUBBatchService
+if redisClient != nil {
+	fubBatchService = services.NewFUBBatchService(gormDB, redisClient)
+	log.Println("📦 FUB batch service initialized")
+} else {
+	log.Println("⚠️ FUB batch service skipped - Redis not available")
+}
+
+fubBidirectionalSync := services.NewFUBBidirectionalSync(gormDB, cfg.FUBAPIKey)
+log.Println("🔄 FUB bidirectional sync initialized")
+
+fubBridge := services.NewBehavioralFUBBridge(gormDB, cfg.FUBAPIKey)
+log.Println("🌉 FUB behavioral bridge initialized")
+
+// Analytics Services (no dependencies on email/SMS)
+funnelAnalytics := services.NewFunnelAnalyticsService(gormDB)
+log.Println("📊 Funnel analytics initialized")
+
+var analyticsCacheService *services.AnalyticsCacheService
+var performanceMonitor *services.PerformanceMonitoringService
+if redisClient != nil {
+	analyticsCacheService = services.NewAnalyticsCacheService(redisClient, repos.Property, repos.Booking, repos.Admin)
+	log.Println("📊 Analytics cache service initialized")
+	
+	performanceMonitor = services.NewPerformanceMonitoringService(redisClient)
+	log.Println("📈 Performance monitoring initialized")
+} else {
+	log.Println("⚠️ Analytics cache and performance monitoring skipped - Redis not available")
+}
+
+// Routing and Scheduling Services
+leadRouting := services.NewLeadRoutingService()
+log.Println("🔀 Lead routing service initialized")
+
+dailySchedule := services.NewDailyScheduleService(gormDB)
+log.Println("📅 Daily schedule service initialized")
+
+// Campaign Services (will be initialized after scoringEngine and email/SMS services)
+var campaignTriggers *services.CampaignTriggerAutomation
+var eventOrchestrator *services.EventCampaignOrchestrator
+var relationshipEngine *services.RelationshipIntelligenceEngine
+var abandonmentRecovery *services.AbandonmentRecoveryService
+var leadSafetyFilter *services.LeadSafetyFilter
+
+// Suppress unused variable warnings for services used later
+_ = fubErrorHandler
+_ = fubBatchService
+_ = fubBidirectionalSync
+_ = fubBridge
+_ = funnelAnalytics
+_ = analyticsCacheService
+_ = performanceMonitor
+_ = leadRouting
+_ = dailySchedule
+_ = campaignTriggers
+_ = eventOrchestrator
+_ = leadSafetyFilter
+
+
+	// Property Matching (needed by campaign services and relationship engine)
+	propertyMatcher := services.NewPropertyMatchingService(gormDB)
+	log.Println("🔍 Property matching service initialized")
 
 	// PropertyHub AI Intelligence System
 	// PropertyHub AI Intelligence System with Redis Caching
@@ -210,15 +291,36 @@ log.Println("🔗 Webhook handlers initialized")
 	
 	scoringEngine := services.NewBehavioralScoringEngine(gormDB)
 	insightGenerator := services.NewInsightGeneratorService(gormDB, scoringEngine, biService)
+	
+	// Initialize relationship engine now that we have scoringEngine
+	relationshipEngine = services.NewRelationshipIntelligenceEngine(gormDB, scoringEngine)
+	relationshipEngine.SetFunnelAnalytics(funnelAnalytics)
+	relationshipEngine.SetPropertyMatcher(propertyMatcher)
+	relationshipEngine.SetInsightGenerator(insightGenerator)
+	log.Println("🧠 Relationship intelligence engine initialized")
+	
+	// Initialize campaign services now that we have all dependencies
+	if emailBatchService != nil {
+		campaignTriggers = services.NewCampaignTriggerAutomation(gormDB, emailBatchService, relationshipEngine, propertyMatcher, abandonmentRecovery)
+		log.Println("🎯 Campaign trigger automation initialized")
+		
+		// SMSEmailAutomationService for EventCampaignOrchestrator
+		smsEmailAutomation := services.NewSMSEmailAutomationService(gormDB)
+		eventOrchestrator = services.NewEventCampaignOrchestrator(gormDB, smsEmailAutomation)
+		log.Println("📡 Event campaign orchestrator initialized")
+	} else {
+		log.Println("⚠️ Campaign services skipped - email batch service not available")
+	}
+	
 	propertyHubAI := services.NewSpiderwebAIOrchestrator(
 		gormDB,
 		scoringEngine,
 		insightGenerator,
-		nil,
-		nil,
+		emailBatchService,
+		abandonmentRecovery,
 		intelligenceCache,
 	)
-	log.Println("✅ PropertyHub AI System initialized")
+	log.Println("✅ PropertyHub AI System initialized (with email batch and abandonment recovery)")
 	
 	dashboardStatsService := services.NewDashboardStatsService(gormDB, propertyHubAI, intelligenceCache)
 	log.Println("✅ Dashboard stats service initialized")
@@ -241,12 +343,21 @@ log.Println("🔗 Webhook handlers initialized")
 	log.Println("📧 Email service initialized")
 	
 	smsService := services.NewSMSService(cfg, gormDB)
-	_ = smsService
 	log.Println("📱 SMS service initialized")
 	
 	notificationService := services.NewNotificationService(emailService, gormDB)
-	_ = notificationService
 	log.Println("🔔 Notification service initialized")
+	
+	// AI/Automation Services (depend on email/SMS/notification services)
+	analyticsAutomationService := services.NewAnalyticsAutomationService(emailService, smsService, leadService, notificationService)
+	log.Println("🤖 Analytics automation service initialized")
+	
+	abandonmentRecovery = services.NewAbandonmentRecoveryService(emailService, smsService, analyticsAutomationService, leadService, propertyService)
+	log.Println("🔄 Abandonment recovery service initialized")
+	
+	// Safety Services (depend on FUB API client)
+	leadSafetyFilter = services.NewLeadSafetyFilter(gormDB, fubAPIClient)
+	log.Println("🛡️ Lead safety filter initialized")
 	
 	propertyAlertsHandler := handlers.NewPropertyAlertsHandler(gormDB, emailService)
 	log.Println("🔔 Property alerts handler initialized")
@@ -277,7 +388,6 @@ log.Println("🔗 Webhook handlers initialized")
 	log.Println("📝 Application workflow handler wired to notifications")
 
 	// Command Center - AI-driven actionable insights
-	propertyMatcher := services.NewPropertyMatchingService(gormDB)
 	fubIntegrationService := services.NewBehavioralFUBIntegrationService(gormDB, cfg.FUBAPIKey)
 	commandCenterHandler := handlers.NewCommandCenterHandlers(
 		gormDB,
