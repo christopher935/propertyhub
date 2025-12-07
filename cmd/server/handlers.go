@@ -77,6 +77,31 @@ type AllHandlers struct {
 	// Admin Notifications
 	AdminNotification     *handlers.AdminNotificationHandler
 
+	// Safety
+	Safety                *handlers.SafetyHandlers
+
+	// Availability
+	Availability          *handlers.AvailabilityHandler
+
+	// Central Property
+	CentralProperty       *handlers.CentralPropertyHandler
+	CentralPropertySync   *handlers.CentralPropertySyncHandlers
+
+	// Daily Schedule
+	DailySchedule         *handlers.DailyScheduleHandlers
+
+	// MFA
+	MFA                   *handlers.MFAHandler
+
+	// Settings
+	Settings              *handlers.SettingsHandler
+
+	// Validation
+	Validation            *handlers.ValidationHandler
+
+	// Setup
+	Setup                 *handlers.SetupHandlers
+
 	// Database (for inline handlers that need it)
 	DB                    *gorm.DB
 	
