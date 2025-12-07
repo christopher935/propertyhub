@@ -489,6 +489,53 @@ log.Println("🔗 Webhook handlers initialized")
 	RegisterHealthRoutes(r, gormDB, authManager, encryptionManager)
 	log.Println("✅ Health check and error handlers registered")
 
+	// ============================================================================
+	// ADDITIONAL ROUTE REGISTRATIONS - Previously Missing
+	// ============================================================================
+
+	// Gin-compatible routes - can be registered directly
+	log.Println("🛣️ Registering email sender routes...")
+	handlers.RegisterEmailSenderRoutes(r, gormDB)
+	log.Println("✅ Email sender routes registered")
+
+	log.Println("🛣️ Registering central property sync routes...")
+	handlers.RegisterCentralPropertySyncRoutes(r, gormDB)
+	log.Println("✅ Central property sync routes registered")
+
+	// http.ServeMux-based routes - need to be wrapped for Gin
+	log.Println("🛣️ Registering additional HTTP routes (ServeMux-based)...")
+	mux := http.NewServeMux()
+	
+	// Register ServeMux-based routes
+	handlers.RegisterSafetyRoutes(mux, gormDB)
+	log.Println("✅ Safety routes registered to ServeMux")
+	
+	handlers.RegisterAvailabilityRoutes(mux, gormDB)
+	log.Println("✅ Availability routes registered to ServeMux")
+	
+	handlers.RegisterCentralPropertyRoutes(mux, gormDB, encryptionManager)
+	log.Println("✅ Central property routes registered to ServeMux")
+	
+	handlers.RegisterMFARoutes(mux, gormDB, authManager)
+	log.Println("✅ MFA routes registered to ServeMux")
+	
+	handlers.RegisterPropertyCRUDRoutes(mux, gormDB)
+	log.Println("✅ Property CRUD routes registered to ServeMux")
+	
+	handlers.RegisterSecurityMiddlewareRoutes(mux, gormDB, authManager)
+	log.Println("✅ Security middleware routes registered to ServeMux")
+	
+	setupService := services.NewSetupService()
+	handlers.RegisterSetupRoutes(mux, setupService)
+	log.Println("✅ Setup routes registered to ServeMux")
+	
+	handlers.RegisterValidationRoutes(mux)
+	log.Println("✅ Validation routes registered to ServeMux")
+	
+	// Mount ServeMux to Gin using NoRoute handler
+	r.NoRoute(gin.WrapH(mux))
+	log.Println("✅ All ServeMux routes mounted to Gin router")
+
 
 	// Start enterprise system
         port := os.Getenv("PORT")
