@@ -2,6 +2,8 @@
 <html lang="en">
 {{template "_head.html" .}}
 <body>
+    <link rel="stylesheet" href="/static/css/password-strength.css">
+    <script src="/static/js/mfa-prompt.js"></script>
     <div class="admin-layout" x-data="dashboardData()" x-init="init()">
         {{template "_sidebar.html" .}}
         
@@ -9,6 +11,22 @@
             {{template "_topbar.html" .}}
             
             <div class="admin-content">
+                <!-- MFA Enrollment Prompt -->
+                <div x-data="mfaPromptData()" x-init="init()">
+                    <div class="mfa-prompt" x-show="!dismissed && !hasMFA">
+                        <div class="mfa-prompt-icon">🔐</div>
+                        <div class="mfa-prompt-content">
+                            <h3>Secure Your Account</h3>
+                            <p>Enable two-factor authentication for extra protection against unauthorized access.</p>
+                            <div class="mfa-prompt-actions">
+                                <a href="/admin/settings?tab=security" class="btn btn-primary">Enable 2FA</a>
+                                <button class="btn btn-outline" @click="remindLater()">Remind Me Later</button>
+                            </div>
+                        </div>
+                        <button class="mfa-prompt-close" @click="dismissMFA()">×</button>
+                    </div>
+                </div>
+
                 <section class="dashboard-section dashboard-critical" x-show="criticalStats.pendingBookings > 0 || criticalStats.pendingApplications > 0 || criticalStats.alerts > 0">
                     <div class="critical-actions-bar">
                         <div class="critical-item" x-show="criticalStats.pendingBookings > 0">

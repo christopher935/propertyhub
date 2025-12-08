@@ -3,6 +3,9 @@
 {{template "_head.html" .}}
 <body>
     <link rel="stylesheet" href="/static/css/settings-page.css">
+    <link rel="stylesheet" href="/static/css/password-strength.css">
+    <script src="/static/js/password-strength.js"></script>
+    <script src="/static/js/mfa-prompt.js"></script>
     <div class="admin-layout">
         {{template "_sidebar.html" .}}
         
@@ -115,6 +118,37 @@
                         <div class="settings-card-header">
                             <div class="section-label admin-section-label">
                               <span class="section-label-line"></span>
+                              <span class="section-label-text">Two-Factor Authentication</span>
+                              <span class="section-label-line"></span>
+                            </div>
+                            <p class="settings-card-subtitle">Add an extra layer of security to your account</p>
+                        </div>
+                        <div class="settings-card-body" x-data="mfaStatusData()">
+                            <div x-show="loading" class="d-flex justify-center p-6">
+                                <div class="loading"></div>
+                            </div>
+                            
+                            <div x-show="!loading">
+                                <div class="mfa-status-section" :class="mfaEnabled ? 'enabled' : 'disabled'">
+                                    <div class="mfa-status-icon" x-text="mfaEnabled ? '✓' : '⚠'"></div>
+                                    <div class="mfa-status-content">
+                                        <h4 x-text="mfaEnabled ? 'Two-Factor Authentication Enabled' : 'Two-Factor Authentication Disabled'"></h4>
+                                        <p x-show="mfaEnabled" x-text="'Backup codes remaining: ' + backupCodesRemaining"></p>
+                                        <p x-show="!mfaEnabled">Protect your account with an additional layer of security</p>
+                                    </div>
+                                    <div class="mfa-status-actions">
+                                        <a x-show="!mfaEnabled" href="/admin/mfa-setup" class="btn btn-primary">Enable 2FA</a>
+                                        <a x-show="mfaEnabled" href="/admin/mfa-manage" class="btn btn-outline">Manage</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <div class="section-label admin-section-label">
+                              <span class="section-label-line"></span>
                               <span class="section-label-text">Change Password</span>
                               <span class="section-label-line"></span>
                             </div>
@@ -128,10 +162,20 @@
                                 <input type="password" id="current-password" name="current_password" required>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group" x-data="passwordStrength()">
                                 <label for="new-password">New Password</label>
-                                <input type="password" id="new-password" name="new_password" required>
-                                <p class="form-help">Minimum 8 characters</p>
+                                <input type="password" id="new-password" name="new_password" required x-model="password" @input="checkStrength()">
+                                <div class="strength-meter">
+                                    <div class="strength-bar" :style="'width: ' + strengthPercent + '%'" :class="strengthClass"></div>
+                                </div>
+                                <span class="strength-label" x-text="strengthLabel" x-show="strengthLabel"></span>
+                                <ul class="strength-requirements">
+                                    <li :class="{ 'met': hasLength }">At least 8 characters</li>
+                                    <li :class="{ 'met': hasLower }">Lowercase letter</li>
+                                    <li :class="{ 'met': hasUpper }">Uppercase letter</li>
+                                    <li :class="{ 'met': hasNumber }">Number</li>
+                                    <li :class="{ 'met': hasSpecial }">Special character (!@#$%^&*)</li>
+                                </ul>
                             </div>
 
                             <button type="submit" class="btn btn-primary">Change Password</button>
