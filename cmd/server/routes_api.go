@@ -3,6 +3,7 @@ package main
 import (
 	"chrisgross-ctrl-project/internal/handlers"
 	"chrisgross-ctrl-project/internal/middleware"
+	"chrisgross-ctrl-project/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,6 +32,55 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/stats/hot", h.TieredStats.GetHotStats)
 	api.GET("/stats/warm", h.TieredStats.GetWarmStats)
 	api.GET("/stats/daily", h.TieredStats.GetDailyStats)
+	
+	// Additional stats endpoints for admin dashboard
+	api.GET("/stats/critical", func(c *gin.Context) {
+		var pendingBookings int64
+		var pendingApplications int64
+		h.DB.Model(&models.BookingRequest{}).Where("status = ?", "pending").Count(&pendingBookings)
+		h.DB.Model(&models.ApplicationNumber{}).Where("status = ?", "pending").Count(&pendingApplications)
+		
+		c.JSON(200, gin.H{
+			"pending_bookings":      pendingBookings,
+			"pending_applications":  pendingApplications,
+			"system_alerts":         0,
+		})
+	})
+	
+	api.GET("/stats/key-metrics", func(c *gin.Context) {
+		var totalLeads int64
+		var hotLeads int64
+		var warmLeads int64
+		var confirmedBookings int64
+		h.DB.Table("leads").Where("status = ?", "active").Count(&totalLeads)
+		h.DB.Table("leads").Where("temperature = ?", "hot").Count(&hotLeads)
+		h.DB.Table("leads").Where("temperature = ?", "warm").Count(&warmLeads)
+		h.DB.Model(&models.BookingRequest{}).Where("status = ?", "confirmed").Count(&confirmedBookings)
+		
+		c.JSON(200, gin.H{
+			"active_leads":        totalLeads,
+			"active_leads_trend":  0,
+			"conversion_rate":     0,
+			"revenue_mtd":         0,
+			"revenue_trend":       0,
+			"bookings_week":       confirmedBookings,
+			"confirmed_bookings":  confirmedBookings,
+			"hot_leads":           hotLeads,
+			"warm_leads":          warmLeads,
+		})
+	})
+	
+	api.GET("/stats/opportunities", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"opportunities": []gin.H{},
+		})
+	})
+	
+	api.GET("/stats/activity", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"activities": []gin.H{},
+		})
+	})
 
 	// Dashboard API - Real-time dashboard widgets
 	api.GET("/dashboard/properties", h.Dashboard.GetPropertySummary)
@@ -214,6 +264,23 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/alerts/preferences", h.PropertyAlerts.GetAlertPreferences)
 	api.PUT("/alerts/preferences", h.PropertyAlerts.UpdateAlertPreferences)
 	api.POST("/alerts/unsubscribe", h.PropertyAlerts.UnsubscribeFromAlerts)
+	
+	// API v1 Aliases - for backward compatibility with frontend JavaScript
+	v1 := api.Group("/v1")
+	{
+		v1.GET("/properties", h.Properties.GetPropertiesGin)
+		v1.GET("/properties/:id", h.Properties.GetPropertyByIDGin)
+		v1.POST("/properties/search", h.Properties.SearchPropertiesPost)
+		v1.POST("/properties/save", h.SavedProperties.SaveProperty)
+		v1.DELETE("/properties/save/:id", h.SavedProperties.UnsaveProperty)
+		v1.GET("/properties/saved", h.SavedProperties.GetSavedProperties)
+		v1.GET("/properties/:id/is-saved", h.SavedProperties.CheckIfSaved)
+		v1.GET("/properties/:id/similar", h.Recommendations.GetSimilarProperties)
+		v1.POST("/bookings", middleware.BookingRateLimiter.RateLimit(), h.Booking.CreateBooking)
+		v1.GET("/bookings/:id", h.Booking.GetBooking)
+		v1.POST("/bookings/:id/cancel", h.Booking.CancelBooking)
+		v1.GET("/bookings", h.Booking.ListBookings)
+	}
 	
 	// Live Activity API (Admin Real-Time)
 	api.GET("/admin/live-activity", h.LiveActivity.GetLiveActivity)
