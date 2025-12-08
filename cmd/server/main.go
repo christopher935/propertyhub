@@ -633,7 +633,7 @@ _ = leadSafetyFilter
 
 	// Register all routes
 	log.Println("🛣️ Registering consumer routes...")
-	RegisterConsumerRoutes(r, allHandlers)
+	RegisterConsumerRoutes(r, allHandlers, cfg)
 	log.Println("✅ Consumer routes registered")
 
 	log.Println("🛣️ Registering admin routes...")

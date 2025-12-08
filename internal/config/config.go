@@ -10,140 +10,158 @@ import (
 )
 
 type Config struct {
-	// Database configuration (bootstrap only)
-	DatabaseURL      string
-	DatabaseMaxConns int
-	DatabaseTimeout  time.Duration
+        // Database configuration (bootstrap only)
+        DatabaseURL      string
+        DatabaseMaxConns int
+        DatabaseTimeout  time.Duration
 
-	// Server configuration (bootstrap only)
-	Port        string
-	Environment string
-	LogLevel    string
+        // Server configuration (bootstrap only)
+        Port        string
+        Environment string
+        LogLevel    string
 
-	// Everything else from database
-	JWTSecret          string
-	EncryptionKey      string
-	SessionTimeout     time.Duration
-	MFARequired        bool
-	RateLimitPerMinute int
+        // Everything else from database
+        JWTSecret          string
+        EncryptionKey      string
+        SessionTimeout     time.Duration
+        MFARequired        bool
+        RateLimitPerMinute int
 
-	// External services (all from database)
-	FUBAPIKey     string
-	FUBAPIURL     string
-	ScraperAPIKey string // Generic scraper for property data (not HAR-specific)
+        // External services (all from database)
+        FUBAPIKey     string
+        FUBAPIURL     string
+        ScraperAPIKey string // Generic scraper for property data (not HAR-specific)
 
-	// TREC compliance (from database)
-	TRECComplianceEnabled bool
-	AuditLogRetentionDays int
+        // TREC compliance (from database)
+        TRECComplianceEnabled bool
+        AuditLogRetentionDays int
 
-	// Redis configuration (from database)
-	RedisURL      string
-	RedisPassword string
-	RedisDB       int
+        // Redis configuration (from database)
+        RedisURL      string
+        RedisPassword string
+        RedisDB       int
 
-	// Email configuration (from database)
-	SMTPHost     string
-	SMTPPort     int
-	SMTPUsername string
-	SMTPPassword string
+        // Email configuration (from database)
+        SMTPHost     string
+        SMTPPort     int
+        SMTPUsername string
+        SMTPPassword string
 
-	// Email configuration (from database)
-	EmailFromAddress string
-	EmailFromName    string
+        // SendGrid configuration (from database)
+        SendGridAPIKey    string
+        EmailFromAddress  string
+        EmailFromName     string
 
-	// Business (from database)
-	BusinessName    string
-	BusinessPhone   string
-	BusinessEmail   string
-	BusinessAddress string
-	TRECLicense     string
-}
+        // Features (from database)
+        TwilioAccountSID string
+        TwilioAuthToken  string
+        TwilioPhoneNumber string
+
+        // Business (from database)
+        BusinessName    string
+        BusinessPhone   string
+        BusinessEmail   string
+        BusinessAddress string
+        TRECLicense     string
+
+        // reCAPTCHA (from database)
+        RecaptchaSiteKey   string
+        RecaptchaSecretKey string}
 
 var AppConfig *Config
 
 func LoadConfig() *Config {
-	log.Printf("🔧 DEBUG: LoadConfig called")
+        log.Printf("🔧 DEBUG: LoadConfig called")
+        
+        // Initialize database connection for config loading
+        dbURL := os.Getenv("DATABASE_URL")
+        if dbURL == "" {
+                log.Fatal("❌ DATABASE_URL environment variable required for bootstrap")
+        }
+        log.Printf("🔧 DEBUG: DATABASE_URL loaded from env")
 
-	// Initialize database connection for config loading
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		log.Fatal("❌ DATABASE_URL environment variable required for bootstrap")
-	}
-	log.Printf("🔧 DEBUG: DATABASE_URL loaded from env")
+        // Load all settings from database
+        dbSettings := loadAllDatabaseSettings(dbURL)
+        log.Printf("🔧 DEBUG: loadAllDatabaseSettings returned %d settings", len(dbSettings))
+        
+        // Debug: Print JWT_SECRET specifically
+        if jwtSecret, exists := dbSettings["JWT_SECRET"]; exists {
+                if len(jwtSecret) > 10 {
+                        log.Printf("🔧 DEBUG: JWT_SECRET found in settings: %s...", jwtSecret[:10])
+                } else {
+                        log.Printf("🔧 DEBUG: JWT_SECRET found in settings: %s", jwtSecret)
+                }
+        } else {
+                log.Printf("❌ DEBUG: JWT_SECRET NOT found in settings")
+        }
 
-	// Load all settings from database
-	dbSettings := loadAllDatabaseSettings(dbURL)
-	log.Printf("🔧 DEBUG: loadAllDatabaseSettings returned %d settings", len(dbSettings))
+        config := &Config{
+                // Bootstrap from environment (minimum required)
+                DatabaseURL: dbURL,
+                Port:        getEnv("PORT", "8080"),
+                Environment: getEnv("ENVIRONMENT", "production"),
+                LogLevel:    getEnv("LOG_LEVEL", "info"),
 
-	// Debug: Print JWT_SECRET specifically
-	if jwtSecret, exists := dbSettings["JWT_SECRET"]; exists {
-		if len(jwtSecret) > 10 {
-			log.Printf("🔧 DEBUG: JWT_SECRET found in settings: %s...", jwtSecret[:10])
-		} else {
-			log.Printf("🔧 DEBUG: JWT_SECRET found in settings: %s", jwtSecret)
-		}
-	} else {
-		log.Printf("❌ DEBUG: JWT_SECRET NOT found in settings")
-	}
+                // Database connection settings
+                DatabaseMaxConns: getDbSettingInt(dbSettings, "DATABASE_MAX_CONNS", 25),
+                DatabaseTimeout:  time.Duration(getDbSettingInt(dbSettings, "DATABASE_TIMEOUT_SECONDS", 30)) * time.Second,
 
-	config := &Config{
-		// Bootstrap from environment (minimum required)
-		DatabaseURL: dbURL,
-		Port:        getEnv("PORT", "8080"),
-		Environment: getEnv("ENVIRONMENT", "production"),
-		LogLevel:    getEnv("LOG_LEVEL", "info"),
+                // Security (ALL from database)
+                JWTSecret:          dbSettings["JWT_SECRET"],
+                EncryptionKey:      dbSettings["ENCRYPTION_KEY"],
+                SessionTimeout:     time.Duration(getDbSettingInt(dbSettings, "SESSION_TIMEOUT_MINUTES", 60)) * time.Minute,
+                MFARequired:        getDbSettingBool(dbSettings, "MFA_REQUIRED", false),
+                RateLimitPerMinute: getDbSettingInt(dbSettings, "RATE_LIMIT_REQUESTS_PER_MINUTE", 100),
 
-		// Database connection settings
-		DatabaseMaxConns: getDbSettingInt(dbSettings, "DATABASE_MAX_CONNS", 25),
-		DatabaseTimeout:  time.Duration(getDbSettingInt(dbSettings, "DATABASE_TIMEOUT_SECONDS", 30)) * time.Second,
+                // External services (ALL from database)
+                FUBAPIKey:     dbSettings["FUB_API_KEY"],
+                FUBAPIURL:     getDbSetting(dbSettings, "FUB_API_URL", "https://api.followupboss.com"),
+                ScraperAPIKey: dbSettings["SCRAPER_API_KEY"], // Generic scraper
 
-		// Security (ALL from database)
-		JWTSecret:          dbSettings["JWT_SECRET"],
-		EncryptionKey:      dbSettings["ENCRYPTION_KEY"],
-		SessionTimeout:     time.Duration(getDbSettingInt(dbSettings, "SESSION_TIMEOUT_MINUTES", 60)) * time.Minute,
-		MFARequired:        getDbSettingBool(dbSettings, "MFA_REQUIRED", false),
-		RateLimitPerMinute: getDbSettingInt(dbSettings, "RATE_LIMIT_REQUESTS_PER_MINUTE", 100),
+                // TREC compliance
+                TRECComplianceEnabled: getDbSettingBool(dbSettings, "TREC_COMPLIANCE_ENABLED", true),
+                AuditLogRetentionDays: getDbSettingInt(dbSettings, "AUDIT_LOG_RETENTION_DAYS", 365),
 
-		// External services (ALL from database)
-		FUBAPIKey:     dbSettings["FUB_API_KEY"],
-		FUBAPIURL:     getDbSetting(dbSettings, "FUB_API_URL", "https://api.followupboss.com"),
-		ScraperAPIKey: dbSettings["SCRAPER_API_KEY"], // Generic scraper
+                // Redis
+                RedisURL:      getDbSetting(dbSettings, "REDIS_URL", "localhost:6379"),
+                RedisPassword: dbSettings["REDIS_PASSWORD"],
+                RedisDB:       getDbSettingInt(dbSettings, "REDIS_DB", 0),
 
-		// TREC compliance
-		TRECComplianceEnabled: getDbSettingBool(dbSettings, "TREC_COMPLIANCE_ENABLED", true),
-		AuditLogRetentionDays: getDbSettingInt(dbSettings, "AUDIT_LOG_RETENTION_DAYS", 365),
+                // Email
+                SMTPHost:     getDbSetting(dbSettings, "SMTP_HOST", "localhost"),
+                SMTPPort:     getDbSettingInt(dbSettings, "SMTP_PORT", 587),
+                SMTPUsername: dbSettings["SMTP_USERNAME"],
+                SMTPPassword: dbSettings["SMTP_PASSWORD"],
 
-		// Redis
-		RedisURL:      getDbSetting(dbSettings, "REDIS_URL", "localhost:6379"),
-		RedisPassword: dbSettings["REDIS_PASSWORD"],
-		RedisDB:       getDbSettingInt(dbSettings, "REDIS_DB", 0),
+                // SendGrid
+                SendGridAPIKey:   dbSettings["SENDGRID_API_KEY"],
+                EmailFromAddress: getDbSetting(dbSettings, "EMAIL_FROM_ADDRESS", "noreply@landlordsoftexas.com"),
+                EmailFromName:    getDbSetting(dbSettings, "EMAIL_FROM_NAME", "Landlords of Texas"),
 
-		// Email
-		SMTPHost:     getDbSetting(dbSettings, "SMTP_HOST", "localhost"),
-		SMTPPort:     getDbSettingInt(dbSettings, "SMTP_PORT", 587),
-		SMTPUsername: dbSettings["SMTP_USERNAME"],
-		SMTPPassword: dbSettings["SMTP_PASSWORD"],
+                // Twilio
+                TwilioAccountSID:  dbSettings["TWILIO_ACCOUNT_SID"],
+                TwilioAuthToken:   dbSettings["TWILIO_AUTH_TOKEN"],
+                TwilioPhoneNumber: dbSettings["TWILIO_PHONE_NUMBER"],
 
-		// Email settings
-		EmailFromAddress: getDbSetting(dbSettings, "EMAIL_FROM_ADDRESS", "info@llotschedule.online"),
-		EmailFromName:    getDbSetting(dbSettings, "EMAIL_FROM_NAME", "PropertyHub"),
+                // Business info
+                BusinessName:    getDbSetting(dbSettings, "BUSINESS_NAME", "PropertyHub"),
+                BusinessPhone:   getDbSetting(dbSettings, "BUSINESS_PHONE", "(713) 555-0123"),
+                BusinessEmail:   getDbSetting(dbSettings, "BUSINESS_EMAIL", "info@propertyhub.com"),
+                BusinessAddress: getDbSetting(dbSettings, "BUSINESS_ADDRESS", "Houston, TX"),
+                TRECLicense:     getDbSetting(dbSettings, "TREC_LICENSE", "#625244"),
 
-		// Business info
-		BusinessName:    getDbSetting(dbSettings, "BUSINESS_NAME", "PropertyHub"),
-		BusinessPhone:   getDbSetting(dbSettings, "BUSINESS_PHONE", "(713) 555-0123"),
-		BusinessEmail:   getDbSetting(dbSettings, "BUSINESS_EMAIL", "info@propertyhub.com"),
-		BusinessAddress: getDbSetting(dbSettings, "BUSINESS_ADDRESS", "Houston, TX"),
-		TRECLicense:     getDbSetting(dbSettings, "TREC_LICENSE", "#625244"),
-	}
+                // reCAPTCHA
+                RecaptchaSiteKey:   dbSettings["RECAPTCHA_SITE_KEY"],
+                RecaptchaSecretKey: dbSettings["RECAPTCHA_SECRET_KEY"],
+        }
 
-	if len(config.JWTSecret) > 10 {
-		log.Printf("🔧 DEBUG: Config struct created with JWT: %s...", config.JWTSecret[:10])
-	} else {
-		log.Printf("🔧 DEBUG: Config struct created with JWT: %s", config.JWTSecret)
-	}
-	AppConfig = config
-	return config
-}
+        if len(config.JWTSecret) > 10 {
+                log.Printf("🔧 DEBUG: Config struct created with JWT: %s...", config.JWTSecret[:10])
+        } else {
+                log.Printf("🔧 DEBUG: Config struct created with JWT: %s", config.JWTSecret)
+        }
+        AppConfig = config
+        return config}
 
 func loadAllDatabaseSettings(dbURL string) map[string]string {
 	log.Printf("🔧 DEBUG: Starting loadAllDatabaseSettings")
