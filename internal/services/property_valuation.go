@@ -20,7 +20,7 @@ type PropertyValuationService struct {
 	config          *config.Config
 	db              *gorm.DB
 	scraperService  *scraper.ScraperService
-	harScraper      *HARMarketScraper
+	// harScraper removed - HAR blocked access
 	marketDataCache map[string]*MarketData
 	cacheTTL        time.Duration
 }
@@ -116,7 +116,7 @@ type MarketData struct {
 }
 
 // NewPropertyValuationService creates a new property valuation service
-func NewPropertyValuationService(config *config.Config, db *gorm.DB, scraperService *scraper.ScraperService, harScraper *HARMarketScraper) *PropertyValuationService {
+func NewPropertyValuationService(config *config.Config, db *gorm.DB, scraperService *scraper.ScraperService, harScraper interface{}) *PropertyValuationService {
 	return &PropertyValuationService{
 		config:          config,
 		db:              db,

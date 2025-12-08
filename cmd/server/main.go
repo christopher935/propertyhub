@@ -70,14 +70,11 @@ func main() {
 
         // Initialize scraper service (required for valuation)
         var scraperService *scraper.ScraperService
-        var harScraper *services.HARMarketScraper
         var propertyValuationService *services.PropertyValuationService
         if cfg.ScraperAPIKey != "" {
                 scraperService = scraper.NewScraperService(cfg)
-                harScraper = services.NewHARMarketScraper(gormDB, cfg.ScraperAPIKey)
-                propertyValuationService = services.NewPropertyValuationService(cfg, gormDB, scraperService, harScraper)
+                propertyValuationService = services.NewPropertyValuationService(cfg, gormDB, scraperService, nil)
                 log.Println("🕷️ Enterprise scraper service initialized")
-                log.Println("📊 Enterprise HAR market scraper initialized")
                 log.Println("💰 Enterprise property valuation initialized")
         }
 // ============================================================================
@@ -164,9 +161,7 @@ if redisClient != nil {
 gormDB.AutoMigrate(&models.EmailEvent{}, &models.Campaign{}, &models.EmailBatch{}, &models.EmailTemplate{})
 log.Println("✅ Email automation models migrated")
 
-// HAR Market & Reports
-harMarketHandler := handlers.NewHARMarketHandlers(gormDB, cfg.ScraperAPIKey)
-log.Println("🏘️ HAR market handlers initialized")
+// HAR Market removed - HAR blocked access
 
 // Lead Management & Reengagement
 leadReengagementHandler := handlers.NewLeadReengagementHandler(gormDB, encryptionManager)
@@ -450,7 +445,7 @@ _ = leadSafetyFilter
 		DataMigration:         dataMigrationHandler,
 		EmailSender:           emailSenderHandler,
 		Unsubscribe:           unsubscribeHandler,
-		HARMarket:             harMarketHandler,
+		// HARMarket removed - HAR blocked access
 		LeadReengagement:      leadReengagementHandler,
 		LeadsList:             leadsListHandler,
 		Team:                  teamHandler,
