@@ -1,4 +1,4 @@
-<aside class="admin-sidebar">
+<aside class="admin-sidebar" x-data="sidebarToggle()" :class="{ 'open': sidebarOpen }">
     <div class="sidebar-header">
         <a href="/admin/dashboard" class="sidebar-logo">
             <div class="sidebar-logo-icon">PH</div>
@@ -6,7 +6,7 @@
         </a>
     </div>
     
-    <nav class="admin-sidebar-nav">
+    <nav class="admin-sidebar-nav" @click.away="closeSidebar">
         <div class="nav-section">
             <a href="/admin/dashboard" class="nav-section-header {{if eq .ActivePage "dashboard"}}active{{end}}">
                 <div class="nav-section-icon">

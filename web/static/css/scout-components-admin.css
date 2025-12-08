@@ -1,4 +1,4 @@
-/* ============================================
+/* =====================================
    ADMIN PAGE LAYOUT
    ============================================ */
 
@@ -30,7 +30,7 @@
   padding: var(--space-6);
 }
 
-/* ============================================
+/* =====================================
    VISITOR COUNTER - Real-time Active Visitors
    ============================================ */
 
@@ -201,7 +201,7 @@
   }
 }
 
-/* ============================================
+/* =====================================
    SETTINGS TABS
    ============================================ */
 
@@ -286,7 +286,7 @@
     margin-top: var(--space-6);
 }
 
-/* ============================================
+/* =====================================
    SETTINGS CARDS
    ============================================ */
 
@@ -347,7 +347,7 @@
   .settings-row { grid-template-columns: 1fr; gap: var(--space-2); }
 }
 
-/* ============================================
+/* =====================================
    SCOUT DESIGN SYSTEM - COMPONENT STYLES
    PropertyHub Enterprise Real Estate Platform
    ============================================ */
@@ -1120,7 +1120,7 @@ select.form-control {
   background-color: var(--color-danger);
 }
 
-/* ========================================
+/* =================================
    PROPERTIES PAGE COMPONENTS
    ======================================== */
         :root {
@@ -1725,7 +1725,7 @@ select.form-control {
             margin: 0 var(--space-3);
         }
 
-/* ============================================
+/* =====================================
    TAB 2: PERFORMANCE TAB STYLES
    ============================================ */
         .ai-narration {
@@ -2068,7 +2068,7 @@ select.form-control {
             position: relative;
         }
 
-/* ============================================
+/* =====================================
    TAB 3: SHOWING CALENDAR TAB STYLES
    ============================================ */
         .ai-narration {
@@ -3009,7 +3009,7 @@ select.form-control {
             height: 100%;
         }
 
-/* ============================================
+/* =====================================
    TAB 4: HAR SYNC TAB STYLES
    ============================================ */
         .sync-section {
@@ -3205,7 +3205,7 @@ select.form-control {
             color: #7e22ce;
         }
 
-/* ============================================
+/* =====================================
    TAB 5: PRE-LISTING TAB STYLES
    ============================================ */
 
@@ -3738,7 +3738,7 @@ select.form-control {
             border: 1px solid var(--color-gray-300);
         }
 
-/* ============================================
+/* =====================================
    TAB 6: VALUATIONS TAB STYLES
    ============================================ */
         .valuation-search {
@@ -3823,7 +3823,7 @@ select.form-control {
         }
 
 
-/* ========================================
+/* =================================
    APPLICATION WORKFLOW KANBAN STYLES
    ======================================== */
 
@@ -4571,7 +4571,7 @@ select.form-control {
   width: 48px;
   height: 48px;
 }
-/* ========================================
+/* =================================
    LAYER 2: BEHAVIORAL EXCELLENCE
    Button Hover States Fix
    Date: November 14, 2025
@@ -5153,7 +5153,7 @@ select.form-control {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(212, 175, 55, 0.3);
 }
-/* ========================================
+/* =================================
    PROPERTIES & SHOWINGS - CONSISTENCY FIXES
    Unifying all tabs with Dashboard design system
    ======================================== */
@@ -5322,7 +5322,7 @@ table thead th {
 }
 
 
-/* ============================================
+/* =====================================
    FRIDAY REPORT STYLES
    ============================================ */
 
@@ -5460,7 +5460,7 @@ canvas.chart-lg {
     width: 100% !important;
 }
 
-/* ============================================
+/* =====================================
    FORM ELEMENTS - ADMIN
    ============================================ */
 
@@ -5491,7 +5491,7 @@ canvas.chart-lg {
   cursor: not-allowed;
 }
 
-/* ============================================
+/* =====================================
    TOGGLE SWITCH
    ============================================ */
 
@@ -5539,7 +5539,7 @@ canvas.chart-lg {
   transform: translateX(22px);
 }
 
-/* ============================================
+/* =====================================
    COMMUNICATION CENTER
    ============================================ */
 
@@ -5651,7 +5651,7 @@ canvas.chart-lg {
   .comm-stats { grid-template-columns: 1fr; }
 }
 
-/* ============================================
+/* =====================================
    SYSTEM SETTINGS TABLES
    ============================================ */
 
@@ -5757,7 +5757,7 @@ canvas.chart-lg {
   background: var(--gray-50);
 }
 
-/* ============================================
+/* =====================================
    PROFILE PHOTO UPLOAD
    ============================================ */
 
@@ -5798,7 +5798,7 @@ canvas.chart-lg {
   gap: var(--space-2);
 }
 
-/* ============================================
+/* =====================================
    SECURITY SETTINGS
    ============================================ */
 
@@ -5851,7 +5851,7 @@ canvas.chart-lg {
   color: var(--gray-400);
 }
 
-/* ============================================
+/* =====================================
    ADMIN CONTENT OVERRIDES
    ============================================ */
 
@@ -5922,7 +5922,7 @@ canvas.chart-lg {
   font-weight: var(--font-weight-semibold);
 }
 
-/* ============================================
+/* =====================================
    PROPERTYHUB DESIGN SYSTEM V2
    ADMIN LEAD MANAGEMENT & PROPERTY LIST
    ============================================ */
@@ -6382,7 +6382,7 @@ canvas.chart-lg {
 }
 }
 
-/* ============================================
+/* =====================================
    ADMIN SIDEBAR NAVIGATION - DESIGN SYSTEM V2
    ============================================ */
 
@@ -6421,7 +6421,7 @@ canvas.chart-lg {
     margin-left: auto;
 }
 
-/* ============================================
+/* =====================================
    TOAST NOTIFICATIONS - DESIGN SYSTEM V2
    ============================================ */
 
@@ -6520,7 +6520,7 @@ canvas.chart-lg {
     }
 }
 
-/* ============================================
+/* =====================================
    BUTTON LOADING STATES
    ============================================ */
 
@@ -6550,7 +6550,7 @@ canvas.chart-lg {
     }
 }
 
-/* ============================================
+/* =====================================
    REMOVE FORBIDDEN ANIMATIONS
    ============================================ */
 
@@ -6567,7 +6567,7 @@ canvas.chart-lg {
 }
 
 
-/* ============================================
+/* =====================================
    ADMIN UX ENHANCEMENTS
    ============================================ */
 
@@ -6806,7 +6806,7 @@ canvas.chart-lg {
     }
 }
 
-/* ========================================================================
+/* =================================================================
    AI BEHAVIORAL SCORING STYLES
    ======================================================================== */
 
@@ -6922,7 +6922,7 @@ opacity: 0.7;
 }
 }
 
-/* ============================================
+/* =====================================
    SIMPLIFIED DASHBOARD STYLES
    ============================================ */
 
@@ -7371,7 +7371,7 @@ opacity: 0.7;
   transition: all 0.2s ease;
 }
 
-/* ============================================
+/* =====================================
    ADMIN SECTION LABELS
    ============================================ */
 
@@ -7379,7 +7379,7 @@ opacity: 0.7;
   color: var(--navy-primary);
 }
 
-/* ============================================
+/* =====================================
    VALUATIONS & PRE-LISTING SECTIONS
    ============================================ */
 
@@ -7543,7 +7543,7 @@ opacity: 0.7;
   font-size: var(--font-size-xl);
 }
 
-/* ============================================
+/* =====================================
    BULK OPERATIONS COMPONENTS
    ============================================ */
 
@@ -7753,3 +7753,182 @@ opacity: 0.7;
 
 .bulk-modal .modal-actions .btn-primary:hover {
   background: var(--gold-dark);
+
+   MOBILE RESPONSIVE STYLES - DASHBOARD
+   ============================================ */
+
+/* Touch-friendly button sizing */
+@media (max-width: 768px) {
+  .btn, .session-action-btn, .admin-user-menu {
+    min-height: 44px;
+    min-width: 44px;
+    padding: var(--space-2-5) var(--space-4);
+  }
+  
+  .btn-sm {
+    min-height: 36px;
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+/* Dashboard Section Responsive */
+@media (max-width: 768px) {
+  .dashboard-section {
+    margin-bottom: var(--space-6);
+  }
+  
+  .dashboard-critical {
+    margin-left: -var(--space-3);
+    margin-right: -var(--space-3);
+    border-radius: 0;
+  }
+  
+  .critical-actions-bar {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .critical-item {
+    width: 100%;
+  }
+}
+
+/* Stats Grid Responsive - Already handled in scout-layouts.css */
+
+/* Opportunity Cards Mobile */
+@media (max-width: 768px) {
+  .opportunity-card {
+    padding: var(--space-3);
+  }
+  
+  .opportunity-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+  
+  .opportunity-badges {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  
+  .opportunity-actions {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  
+  .opportunity-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Charts Mobile Responsive */
+@media (max-width: 768px) {
+  .chart-card {
+    padding: var(--space-4);
+  }
+  
+  .chart-card-body {
+    height: 250px;
+  }
+  
+  .chart-canvas {
+    max-height: 250px;
+  }
+  
+  /* Hide secondary chart on very small screens */
+  .charts-grid-2 .chart-card:nth-child(2) {
+    display: none;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  /* Show both charts on medium tablets */
+  .charts-grid-2 .chart-card:nth-child(2) {
+    display: block;
+  }
+}
+
+/* Activity Feed Mobile */
+@media (max-width: 768px) {
+  .activity-item-compact {
+    padding: var(--space-2);
+  }
+  
+  .activity-icon-compact {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .activity-title-compact {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* System Status Mobile */
+@media (max-width: 768px) {
+  .system-status-indicator {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-2);
+  }
+  
+  .status-content {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+  }
+  
+  .status-details {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Section Labels Mobile */
+@media (max-width: 768px) {
+  .admin-section-label {
+    font-size: var(--font-size-sm);
+  }
+  
+  .section-label-text {
+    padding: 0 var(--space-2);
+  }
+}
+
+/* Toast Notifications Mobile */
+@media (max-width: 768px) {
+  .toast-container {
+    left: var(--space-2);
+    right: var(--space-2);
+    bottom: var(--space-2);
+    top: auto;
+  }
+  
+  .toast {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* Critical Actions Bar Mobile */
+@media (max-width: 640px) {
+  .critical-actions-bar {
+    padding: var(--space-3);
+  }
+  
+  .critical-item {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: var(--space-3);
+  }
+  
+  .critical-count {
+    font-size: var(--font-size-xl);
+  }
+  
+  .critical-label {
+    font-size: var(--font-size-sm);
+  }
+}

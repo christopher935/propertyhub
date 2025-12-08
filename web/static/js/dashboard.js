@@ -744,6 +744,34 @@ function liveActivityFeed() {
                 this.ws.close();
                 this.ws = null;
             }
+
+function sidebarToggle() {
+    return {
+        sidebarOpen: false,
+        
+        init() {
+            this.$watch('sidebarOpen', (value) => {
+                if (value) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            });
+            
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) {
+                    this.sidebarOpen = false;
+                    document.body.style.overflow = '';
+                }
+            });
+        },
+        
+        toggleSidebar() {
+            this.sidebarOpen = !this.sidebarOpen;
+        },
+        
+        closeSidebar() {
+            this.sidebarOpen = false;
         }
     };
 }
