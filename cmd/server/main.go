@@ -43,6 +43,54 @@ func main() {
         // Initialize SQL database for auth manager
         sqlDB, _ := gormDB.DB()
 
+        // ============================================================================
+        // DATABASE MIGRATIONS - Run BEFORE any handlers are initialized
+        // ============================================================================
+        log.Println("🔄 Running comprehensive database migrations...")
+        
+        // Run core model migrations from models.AutoMigrate()
+        if err := models.AutoMigrate(gormDB); err != nil {
+                log.Fatalf("❌ Core model migration failed: %v", err)
+        }
+        
+        // Migrate additional critical models not in models.AutoMigrate()
+        additionalModels := []interface{}{
+                // Core Models
+                &models.AdminUser{},
+                &models.Lead{},
+                &models.Contact{},
+                &models.ClosingPipeline{},
+                &models.WebhookEvent{},
+                &models.PriceChangeEvent{},
+                
+                // Behavioral Models
+                &models.BehavioralEvent{},
+                &models.BehavioralSession{},
+                &models.BehavioralScore{},
+                
+                // Application Workflow
+                &models.PropertyApplicationGroup{},
+                &models.ApplicationNumber{},
+                &models.ApplicationApplicant{},
+                
+                // Email/Notification Models
+                &models.EmailEvent{},
+                &models.Campaign{},
+                &models.EmailBatch{},
+                &models.EmailTemplate{},
+                &models.TrustedEmailSender{},
+                &models.EmailProcessingRule{},
+                &models.EmailProcessingLog{},
+                &models.IncomingEmail{},
+        }
+        
+        for _, model := range additionalModels {
+                if err := gormDB.AutoMigrate(model); err != nil {
+                        log.Printf("⚠️ Warning: Migration failed for %T: %v", model, err)
+                }
+        }
+        log.Println("✅ All database migrations completed")
+
         // Initialize enterprise authentication manager
         authManager := auth.NewSimpleAuthManager(sqlDB)
         log.Println("🔐 Enterprise authentication initialized")
@@ -56,10 +104,6 @@ func main() {
           // Initialize repositories  
         repos := repositories.NewRepositories(gormDB)
         log.Println("📚 Enterprise repositories initialized")
-
-        // Migrate email automation models
-        gormDB.AutoMigrate(&models.EmailEvent{}, &models.Campaign{}, &models.EmailBatch{}, &models.EmailTemplate{})
-        log.Println("✅ Email automation models migrated")
 
         // Initialize email processor
         emailProcessor := services.NewEmailProcessor(gormDB)
@@ -153,10 +197,6 @@ if redisClient != nil {
 } else {
         log.Println("📧 Email senders initialized (automation disabled - Redis not available)")
 }
-
-// Migrate email automation models
-gormDB.AutoMigrate(&models.EmailEvent{}, &models.Campaign{}, &models.EmailBatch{}, &models.EmailTemplate{})
-log.Println("✅ Email automation models migrated")
 
 // HAR Market removed - HAR blocked access
 
