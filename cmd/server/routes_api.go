@@ -290,4 +290,9 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 			"message": "Lead added successfully",
 		})
 	})
+
+	// ============================================================================
+	// COOKIE CONSENT API - GDPR/CCPA Compliance
+	// ============================================================================
+	api.POST("/cookie-consent", middleware.CookieConsentHandler)
 }
