@@ -8,9 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 {% endblock %}
 
-{% block layout_data %}
-
-{% endblock %}
+{% block layout_data %}x-data="propertyListData()" x-init="init()" @keydown.escape="closeBulkModal()"{% endblock %}
 
 {% block content %}
 <div class="tab-nav">

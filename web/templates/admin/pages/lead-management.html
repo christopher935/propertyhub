@@ -1,8 +1,6 @@
 {% extends "layouts/admin-base.html" %}
 
-{% block layout_data %}
-
-{% endblock %}
+{% block layout_data %}x-data="leadManagementData()" x-init="init()" @keydown.escape="closeBulkModal()"{% endblock %}
 
 {% block content %}
 <div class="section">
