@@ -164,6 +164,9 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 		admin.GET("/behavioral-intelligence", h.Behavioral.BehavioralIntelligencePage)
 		admin.GET("/email-senders", h.EmailSender.AdminEmailSendersPage)
 		admin.GET("/command-center", h.CommandCenter.RenderPage)
+		admin.GET("/friday-report", func(c *gin.Context) {
+			c.HTML(200, "friday-report.html", gin.H{"Title": "Friday Report"})
+		})
 
 		// Customer Feedback
 		admin.GET("/customer-feedback", func(c *gin.Context) {

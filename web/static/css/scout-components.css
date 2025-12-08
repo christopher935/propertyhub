@@ -3484,48 +3484,251 @@ body.page-analytics {
     gap: var(--space-4);
     padding: var(--space-4);
     background: var(--white);
-    border: 1px solid var(--gray-200);
+    border: 2px solid var(--gray-200);
     border-radius: var(--radius-lg);
     margin-bottom: var(--space-3);
-    transition: border-color 0.2s ease, background 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
     cursor: pointer;
+    position: relative;
 }
 
 .requirement-item:hover {
     border-color: var(--gray-300);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .requirement-item.checked {
-    border-color: var(--success);
-    background: var(--success-light);
+    border-color: var(--gold-primary);
+    background: rgba(184, 134, 11, 0.03);
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(184, 134, 11, 0.2);
 }
 
 .requirement-checkbox {
-    width: 24px;
-    height: 24px;
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.requirement-checkmark {
+    width: 32px;
+    height: 32px;
     border: 2px solid var(--gray-300);
     border-radius: var(--radius-base);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    cursor: pointer;
+    transition: all 0.3s ease;
     flex-shrink: 0;
+    background: var(--white);
 }
 
-.requirement-item.checked .requirement-checkbox {
-    background: var(--success);
-    border-color: var(--success);
-    color: var(--white);
-}
-
-.requirement-checkmark {
-    display: none;
+.requirement-checkmark svg {
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
 }
 
 .requirement-item.checked .requirement-checkmark {
-    display: block;
-    color: var(--white);
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+}
+
+.requirement-item.checked .requirement-checkmark svg {
+    opacity: 1;
+    transform: scale(1);
+    animation: checkPop 0.3s ease-out;
+    color: var(--navy-dark);
+}
+
+@keyframes checkPop {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.requirement-icon {
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.requirement-item:hover .requirement-icon {
+    transform: translateY(-2px);
+}
+
+.requirement-item.checked .requirement-icon {
+    filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .requirement-item,
+    .requirement-checkmark,
+    .requirement-checkmark svg,
+    .requirement-icon {
+        transition: none;
+        animation: none;
+    }
+    
+    .requirement-item:hover,
+    .requirement-item.checked {
+        transform: none;
+    }
+    
+    .requirement-item:hover .requirement-icon {
+        transform: none;
+    }
+}
+
+/* Requirements Progress Indicator */
+.requirements-progress-container {
+    background: linear-gradient(135deg, rgba(184, 134, 11, 0.05) 0%, rgba(184, 134, 11, 0.02) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-6);
+}
+
+.requirements-progress {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.progress-text {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--navy-primary);
+    margin-bottom: var(--space-3);
+    min-height: 24px;
+    transition: all 0.3s ease;
+}
+
+.progress-bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+    border-radius: var(--radius-full);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: 0 0 10px rgba(184, 134, 11, 0.3);
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.progress-count {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    text-align: center;
+    font-weight: var(--font-weight-medium);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .progress-fill {
+        transition: none;
+    }
+    
+    .progress-fill::after {
+        animation: none;
+    }
+}
+
+/* Requirement Note Section */
+.requirement-note {
+    margin-top: var(--space-5);
+}
+
+.note-header {
+    cursor: pointer;
+    user-select: none;
+    border-radius: var(--radius-base);
+    outline: none;
+    transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.note-header:hover {
+    opacity: 0.8;
+}
+
+.note-header:focus {
+    outline: 2px solid var(--gold-primary);
+    outline-offset: 2px;
+}
+
+.note-header:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.note-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    position: relative;
+}
+
+.note-toggle {
+    margin-left: auto;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--gold-primary);
+    transition: transform 0.2s ease;
+}
+
+.note-content {
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .requirement-note {
+        margin-top: var(--space-4);
+    }
+    
+    .note-header {
+        padding: var(--space-2);
+    }
+    
+    .note-header:focus {
+        outline-offset: 1px;
+    }
+}
+
+/* Focus states for requirement items */
+.requirement-item:focus-within {
+    outline: 2px solid var(--gold-primary);
+    outline-offset: 2px;
+}
+
+.requirement-item:focus-within:not(:focus-visible) {
+    outline: none;
+}
+
+.requirement-checkbox:focus + .requirement-checkmark {
+    box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.2);
 }
 
 /* 9. Step Actions */
@@ -3536,6 +3739,16 @@ body.page-analytics {
     margin-top: var(--space-6);
     padding-top: var(--space-6);
     border-top: 1px solid var(--gray-200);
+}
+
+.step-actions .btn-primary.success-animation {
+    animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(184, 134, 11, 0.7); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(184, 134, 11, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(184, 134, 11, 0); }
 }
 
 /* 10. Datetime Selector Layout */

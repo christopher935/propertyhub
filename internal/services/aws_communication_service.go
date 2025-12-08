@@ -9,8 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
-	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+	sestypes "github.com/aws/aws-sdk-go-v2/service/ses/types"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	snstypes "github.com/aws/aws-sdk-go-v2/service/sns/types"
 )
 
 // AWSCommunicationService handles email (SES) and SMS (SNS) via AWS
@@ -23,7 +24,7 @@ type AWSCommunicationService struct {
 }
 
 // NewAWSCommunicationService creates a new AWS communication service
-func NewAWSCommunicationService() (*AWSCommunicationService, error) {
+func NewAWSCommunicationService(fromEmail, senderID string) (*AWSCommunicationService, error) {
 	// Check if AWS credentials are configured
 	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	if accessKey == "" {
@@ -31,23 +32,31 @@ func NewAWSCommunicationService() (*AWSCommunicationService, error) {
 		return &AWSCommunicationService{enabled: false}, nil
 	}
 
-	// Load AWS configuration
+	// Load AWS configuration with us-east-2 region for llotschedule.online
 	cfg, err := config.LoadDefaultConfig(context.Background(),
-		config.WithRegion(getEnvOrDefault("AWS_REGION", "us-east-1")),
+		config.WithRegion(getEnvOrDefault("AWS_REGION", "us-east-2")),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("unable to load AWS SDK config: %w", err)
 	}
 
+	// Use provided email/senderID or fall back to defaults
+	if fromEmail == "" {
+		fromEmail = "info@llotschedule.online"
+	}
+	if senderID == "" {
+		senderID = "PropertyHub"
+	}
+
 	service := &AWSCommunicationService{
 		sesClient: ses.NewFromConfig(cfg),
 		snsClient: sns.NewFromConfig(cfg),
-		fromEmail: getEnvOrDefault("SES_FROM_EMAIL", "noreply@landlords-of-texas.com"),
-		senderID:  getEnvOrDefault("SNS_SENDER_ID", "PropertyHub"),
+		fromEmail: fromEmail,
+		senderID:  senderID,
 		enabled:   true,
 	}
 
-	log.Println("✅ AWS Communication Service initialized (SES + SNS)")
+	log.Printf("✅ AWS Communication Service initialized (SES + SNS) with from=%s", fromEmail)
 	return service, nil
 }
 
@@ -59,33 +68,33 @@ func (svc *AWSCommunicationService) SendEmail(to, subject, bodyHTML, bodyText st
 	}
 
 	input := &ses.SendEmailInput{
-		Destination: &types.Destination{
+		Destination: &sestypes.Destination{
 			ToAddresses: []string{to},
 		},
-		Message: &types.Message{
-			Subject: &types.Content{
+		Message: &sestypes.Message{
+			Subject: &sestypes.Content{
 				Data: aws.String(subject),
 			},
-			Body: &types.Body{},
+			Body: &sestypes.Body{},
 		},
 		Source: aws.String(svc.fromEmail),
 	}
 
 	// Add HTML body if provided
 	if bodyHTML != "" {
-		input.Message.Body.Html = &types.Content{
+		input.Message.Body.Html = &sestypes.Content{
 			Data: aws.String(bodyHTML),
 		}
 	}
 
 	// Add text body (required fallback)
 	if bodyText != "" {
-		input.Message.Body.Text = &types.Content{
+		input.Message.Body.Text = &sestypes.Content{
 			Data: aws.String(bodyText),
 		}
 	} else {
 		// Strip HTML tags for text version (basic fallback)
-		input.Message.Body.Text = &types.Content{
+		input.Message.Body.Text = &sestypes.Content{
 			Data: aws.String(stripHTMLBasic(bodyHTML)),
 		}
 	}
@@ -108,7 +117,7 @@ func (svc *AWSCommunicationService) SendBulkEmail(recipients []string, subject, 
 	}
 
 	successCount := 0
-	
+
 	// AWS SES supports bulk send but we'll send individually for better error tracking
 	// For production scale, use SES SendBulkTemplatedEmail instead
 	for _, recipient := range recipients {
@@ -118,7 +127,7 @@ func (svc *AWSCommunicationService) SendBulkEmail(recipients []string, subject, 
 			continue
 		}
 		successCount++
-		
+
 		// Rate limiting: AWS SES typically allows 14 emails/second
 		// Add small delay if sending to many recipients
 		if len(recipients) > 100 {
@@ -140,14 +149,14 @@ func (svc *AWSCommunicationService) SendSMS(to, message string) error {
 	input := &sns.PublishInput{
 		Message:     aws.String(message),
 		PhoneNumber: aws.String(to),
-		MessageAttributes: map[string]types.MessageAttributeValue{
+		MessageAttributes: map[string]snstypes.MessageAttributeValue{
 			"AWS.SNS.SMS.SenderID": {
 				DataType:    aws.String("String"),
 				StringValue: aws.String(svc.senderID),
 			},
 			"AWS.SNS.SMS.SMSType": {
 				DataType:    aws.String("String"),
-				StringValue: aws.String("Transactional"), // Transactional = high priority
+				StringValue: aws.String("Transactional"),
 			},
 		},
 	}
@@ -170,7 +179,7 @@ func (svc *AWSCommunicationService) SendBulkSMS(recipients []string, message str
 	}
 
 	successCount := 0
-	
+
 	for _, recipient := range recipients {
 		err := svc.SendSMS(recipient, message)
 		if err != nil {

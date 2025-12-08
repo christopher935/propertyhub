@@ -73,7 +73,7 @@ func main() {
         var propertyValuationService *services.PropertyValuationService
         if cfg.ScraperAPIKey != "" {
                 scraperService = scraper.NewScraperService(cfg)
-                propertyValuationService = services.NewPropertyValuationService(cfg, gormDB, scraperService, nil)
+                propertyValuationService = services.NewPropertyValuationService(cfg, gormDB, scraperService)
                 log.Println("🕷️ Enterprise scraper service initialized")
                 log.Println("💰 Enterprise property valuation initialized")
         }
@@ -367,6 +367,30 @@ _ = leadSafetyFilter
 	webSocketHandler := handlers.NewWebSocketHandler(gormDB, dashboardStatsService)
 	log.Println("🔌 WebSocket handler initialized")
 
+	// Initialize Activity Broadcasting for real-time admin feed
+	activityBroadcastService := services.NewActivityBroadcastService(gormDB)
+	activityHubAdapter := handlers.NewActivityHubAdapter(webSocketHandler.GetActivityHub())
+	activityBroadcastService.SetBroadcaster(activityHubAdapter)
+	log.Println("📡 Activity broadcast service initialized and wired to WebSocket")
+
+	// Start periodic active count broadcasting
+	go func() {
+		ticker := time.NewTicker(15 * time.Second)
+		defer ticker.Stop()
+		
+		for range ticker.C {
+			var count int64
+			gormDB.Raw("SELECT COUNT(DISTINCT id) FROM behavioral_sessions WHERE end_time IS NULL AND start_time >= NOW() - INTERVAL '15 minutes'").Scan(&count)
+			activityHubAdapter.BroadcastActiveCount(int(count))
+		}
+	}()
+	log.Println("⏰ Periodic active count broadcasting started (15 second interval)")
+
+	// Initialize Behavioral Event Service and Handler
+	behavioralEventService := services.NewBehavioralEventService(gormDB)
+	behavioralEventHandler := handlers.NewBehavioralEventHandler(gormDB, behavioralEventService, activityBroadcastService)
+	log.Println("🧠 Behavioral event handler initialized with activity broadcasting")
+
 	adminNotificationHub := services.NewAdminNotificationHub(gormDB)
 	log.Println("🔔 Admin notification hub initialized")
 
@@ -437,6 +461,7 @@ _ = leadSafetyFilter
 		ApplicationWorkflow:   applicationWorkflowHandler,
 		ClosingPipeline:       closingPipelineHandler,
 		Behavioral:            behavioralHandler,
+		BehavioralEvent:       behavioralEventHandler,
 		InsightsAPI:           handlers.NewInsightsAPIHandlers(insightGenerator),
 		ContextFUB:            contextFUBHandler,
 		CommandCenter:         commandCenterHandler,

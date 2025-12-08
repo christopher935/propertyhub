@@ -30,7 +30,7 @@ func NewPreListingHandlers(db *gorm.DB, config *config.Config, scraperService *s
 	// harScraper removed - HAR blocked access
 	return &PreListingHandlers{
 		db:                db,
-		valuationService:  services.NewPropertyValuationService(config, db, scraperService, nil),
+		valuationService:  services.NewPropertyValuationService(config, db, scraperService),
 		preListingService: services.NewPreListingService(db),
 		emailProcessor:    services.NewEmailProcessor(db),
 		config:            config,

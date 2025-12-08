@@ -41,6 +41,27 @@ type WebSocketHub struct {
 	statsService *services.DashboardStatsService
 }
 
+type ActivityEvent struct {
+	Type        string                 `json:"type"`
+	SessionID   string                 `json:"session_id"`
+	UserID      int64                  `json:"user_id,omitempty"`
+	UserEmail   string                 `json:"user_email,omitempty"`
+	PropertyID  *int64                 `json:"property_id,omitempty"`
+	Details     string                 `json:"details"`
+	Timestamp   time.Time              `json:"timestamp"`
+	Score       int                    `json:"score,omitempty"`
+	EventData   map[string]interface{} `json:"event_data,omitempty"`
+}
+
+type ActivityHub struct {
+	clients    map[*WebSocketClient]bool
+	broadcast  chan ActivityEvent
+	register   chan *WebSocketClient
+	unregister chan *WebSocketClient
+	mu         sync.RWMutex
+	db         *gorm.DB
+}
+
 func NewWebSocketHub(statsService *services.DashboardStatsService) *WebSocketHub {
 	hub := &WebSocketHub{
 		clients:      make(map[*WebSocketClient]bool),
@@ -193,12 +214,17 @@ func (c *WebSocketClient) writePump() {
 }
 
 type WebSocketHandler struct {
-	hub *WebSocketHub
+	hub         *WebSocketHub
+	activityHub *ActivityHub
 }
 
 func NewWebSocketHandler(db *gorm.DB, statsService *services.DashboardStatsService) *WebSocketHandler {
 	hub := NewWebSocketHub(statsService)
-	return &WebSocketHandler{hub: hub}
+	activityHub := NewActivityHub(db)
+	return &WebSocketHandler{
+		hub:         hub,
+		activityHub: activityHub,
+	}
 }
 
 func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
@@ -222,4 +248,104 @@ func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 
 func (h *WebSocketHandler) GetHub() *WebSocketHub {
 	return h.hub
+}
+
+func NewActivityHub(db *gorm.DB) *ActivityHub {
+	hub := &ActivityHub{
+		clients:    make(map[*WebSocketClient]bool),
+		broadcast:  make(chan ActivityEvent, 256),
+		register:   make(chan *WebSocketClient),
+		unregister: make(chan *WebSocketClient),
+		db:         db,
+	}
+	go hub.run()
+	return hub
+}
+
+func (h *ActivityHub) run() {
+	for {
+		select {
+		case client := <-h.register:
+			h.mu.Lock()
+			h.clients[client] = true
+			h.mu.Unlock()
+			log.Printf("Activity client registered. Total clients: %d", len(h.clients))
+
+		case client := <-h.unregister:
+			h.mu.Lock()
+			if _, ok := h.clients[client]; ok {
+				delete(h.clients, client)
+				close(client.send)
+			}
+			h.mu.Unlock()
+			log.Printf("Activity client unregistered. Total clients: %d", len(h.clients))
+
+		case event := <-h.broadcast:
+			h.mu.RLock()
+			message := WebSocketMessage{
+				Type: "activity_event",
+				Data: map[string]interface{}{
+					"event": event,
+				},
+			}
+			for client := range h.clients {
+				select {
+				case client.send <- message:
+				default:
+					close(client.send)
+					delete(h.clients, client)
+				}
+			}
+			h.mu.RUnlock()
+		}
+	}
+}
+
+func (h *ActivityHub) BroadcastEvent(event ActivityEvent) {
+	h.broadcast <- event
+}
+
+func (h *ActivityHub) BroadcastActiveCount(count int) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	
+	message := WebSocketMessage{
+		Type: "active_count",
+		Data: map[string]interface{}{
+			"count":     count,
+			"timestamp": time.Now().Unix(),
+		},
+	}
+	
+	for client := range h.clients {
+		select {
+		case client.send <- message:
+		default:
+			close(client.send)
+			delete(h.clients, client)
+		}
+	}
+}
+
+func (h *WebSocketHandler) HandleAdminActivityFeed(c *gin.Context) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Printf("WebSocket upgrade error: %v", err)
+		return
+	}
+	
+	client := &WebSocketClient{
+		conn: conn,
+		send: make(chan WebSocketMessage, 256),
+		hub:  h.hub,
+	}
+	
+	h.activityHub.register <- client
+	
+	go client.writePump()
+	go client.readPump()
+}
+
+func (h *WebSocketHandler) GetActivityHub() *ActivityHub {
+	return h.activityHub
 }
