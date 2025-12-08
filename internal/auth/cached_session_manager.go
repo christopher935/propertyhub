@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"chrisgross-ctrl-project/internal/models"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -30,7 +31,7 @@ func NewCachedSessionManager(authManager *SimpleAuthManager, redisClient *redis.
 }
 
 // ValidateSessionToken validates session with Redis caching (90% performance improvement)
-func (csm *CachedSessionManager) ValidateSessionToken(sessionToken string) (*AdminUser, error) {
+func (csm *CachedSessionManager) ValidateSessionToken(sessionToken string) (*models.AdminUser, error) {
 	if sessionToken == "" {
 		return nil, fmt.Errorf("session token required")
 	}
@@ -110,7 +111,7 @@ func (csm *CachedSessionManager) InvalidateSession(sessionToken string) error {
 }
 
 // GetUserByID with caching
-func (csm *CachedSessionManager) GetUserByID(userID string) (*AdminUser, error) {
+func (csm *CachedSessionManager) GetUserByID(userID string) (*models.AdminUser, error) {
 	ctx := context.Background()
 	cacheKey := fmt.Sprintf("user:%s", userID)
 
@@ -138,13 +139,13 @@ func (csm *CachedSessionManager) GetUserByID(userID string) (*AdminUser, error) 
 
 // Helper methods
 
-func (csm *CachedSessionManager) getCachedUser(ctx context.Context, cacheKey string) (*AdminUser, error) {
+func (csm *CachedSessionManager) getCachedUser(ctx context.Context, cacheKey string) (*models.AdminUser, error) {
 	result, err := csm.redis.Get(ctx, cacheKey).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	var user AdminUser
+	var user models.AdminUser
 	if err := json.Unmarshal([]byte(result), &user); err != nil {
 		return nil, err
 	}
@@ -152,7 +153,7 @@ func (csm *CachedSessionManager) getCachedUser(ctx context.Context, cacheKey str
 	return &user, nil
 }
 
-func (csm *CachedSessionManager) cacheUser(ctx context.Context, cacheKey string, user *AdminUser) error {
+func (csm *CachedSessionManager) cacheUser(ctx context.Context, cacheKey string, user *models.AdminUser) error {
 	userData, err := json.Marshal(user)
 	if err != nil {
 		return err
@@ -241,13 +242,13 @@ func (csm *CachedSessionManager) WarmupCache() error {
 // Batch operations for efficiency
 
 // ValidateMultipleSessions validates multiple sessions efficiently
-func (csm *CachedSessionManager) ValidateMultipleSessions(sessionTokens []string) (map[string]*AdminUser, error) {
+func (csm *CachedSessionManager) ValidateMultipleSessions(sessionTokens []string) (map[string]*models.AdminUser, error) {
 	if len(sessionTokens) == 0 {
-		return make(map[string]*AdminUser), nil
+		return make(map[string]*models.AdminUser), nil
 	}
 
 	ctx := context.Background()
-	results := make(map[string]*AdminUser)
+	results := make(map[string]*models.AdminUser)
 
 	// Batch check cache
 	cacheKeys := make([]string, len(sessionTokens))
@@ -255,12 +256,11 @@ func (csm *CachedSessionManager) ValidateMultipleSessions(sessionTokens []string
 		cacheKeys[i] = fmt.Sprintf("session:%s", token)
 	}
 
-	// Get cached results
 	cachedResults, err := csm.redis.MGet(ctx, cacheKeys...).Result()
 	if err == nil {
 		for i, result := range cachedResults {
 			if result != nil {
-				var user AdminUser
+				var user models.AdminUser
 				if json.Unmarshal([]byte(result.(string)), &user) == nil {
 					results[sessionTokens[i]] = &user
 				}
@@ -282,12 +282,12 @@ func (csm *CachedSessionManager) ValidateMultipleSessions(sessionTokens []string
 }
 
 // GenerateSessionToken delegates to underlying auth manager
-func (csm *CachedSessionManager) GenerateSessionToken(user *AdminUser) (string, time.Time, error) {
+func (csm *CachedSessionManager) GenerateSessionToken(user *models.AdminUser) (string, time.Time, error) {
 	return csm.authManager.GenerateSessionToken(user)
 }
 
 // CreateSession creates a session for a user (interface compatibility)
-func (csm *CachedSessionManager) CreateSession(user *AdminUser) (string, error) {
+func (csm *CachedSessionManager) CreateSession(user *models.AdminUser) (string, error) {
 	token, _, err := csm.authManager.GenerateSessionToken(user)
 	return token, err
 }
@@ -304,12 +304,12 @@ func (csm *CachedSessionManager) RefreshSession(token string) (string, error) {
 }
 
 // GetAllUsers returns all admin users (delegates to auth manager)
-func (csm *CachedSessionManager) GetAllUsers() ([]*AdminUser, error) {
+func (csm *CachedSessionManager) GetAllUsers() ([]*models.AdminUser, error) {
 	return csm.authManager.GetAllUsers()
 }
 
 // CreateUser creates a new admin user (delegates to auth manager)
-func (csm *CachedSessionManager) CreateUser(username, email, password, role string) (*AdminUser, error) {
+func (csm *CachedSessionManager) CreateUser(username, email, password, role string) (*models.AdminUser, error) {
 	user, err := csm.authManager.CreateUser(username, email, password, role)
 	if err != nil {
 		return nil, err

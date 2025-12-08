@@ -219,11 +219,10 @@ func (r *AdminRepositoryImpl) CreateUser(ctx context.Context, username, email, p
 	}
 	userID := hex.EncodeToString(idBytes)
 
-	// Create new user
 	newUser := &models.AdminUser{
 		ID:           userID,
 		Username:     username,
-		Email:        security.EncryptedString(email), // Cast to EncryptedString type
+		Email:        email,
 		PasswordHash: string(hashedPassword),
 		Role:         role,
 		Active:       true,

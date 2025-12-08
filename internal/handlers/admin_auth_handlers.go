@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"chrisgross-ctrl-project/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -28,19 +29,6 @@ type LoginResponse struct {
 	Success bool   `json:"success"`
 	Token   string `json:"token,omitempty"`
 	Message string `json:"message,omitempty"`
-}
-
-type AdminUser struct {
-	ID           string     `json:"id" gorm:"primaryKey"`
-	Username     string     `json:"username" gorm:"uniqueIndex"`
-	Email        string     `json:"email" gorm:"uniqueIndex"`
-	PasswordHash string     `json:"-"`
-	Role         string     `json:"role"`
-	Active       bool       `json:"active"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
-	LastLogin    *time.Time `json:"last_login"`
-	LoginCount   int64      `json:"login_count"`
 }
 
 func NewAdminAuthHandlers(db *gorm.DB, jwtSecret string) *AdminAuthHandlers {
@@ -72,7 +60,7 @@ func (h *AdminAuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user AdminUser
+	var user models.AdminUser
 	var query string
 	var searchValue string
 

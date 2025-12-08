@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"chrisgross-ctrl-project/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -27,26 +28,13 @@ func NewSimpleAuthManager(db *sql.DB) *SimpleAuthManager {
 	}
 }
 
-// AdminUser represents an admin user (raw SQL compatible)
-type AdminUser struct {
-	ID           string     `json:"id"`
-	Username     string     `json:"username"`
-	Email        string     `json:"email"`
-	PasswordHash string     `json:"-"`
-	Role         string     `json:"role"`
-	Active       bool       `json:"active"`
-	CreatedAt    time.Time  `json:"created_at"`
-	LastLogin    *time.Time `json:"last_login"`
-	LoginCount   int        `json:"login_count"`
-}
+type AdminUser = models.AdminUser
 
-// LoginRequest represents a login request
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// LoginResponse represents a login response
 type LoginResponse struct {
 	Success   bool       `json:"success"`
 	Token     string     `json:"token,omitempty"`

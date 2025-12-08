@@ -60,7 +60,7 @@ func NewStorageService() (*StorageService, error) {
 }
 
 // UploadProfilePhoto uploads a profile photo with image processing
-func (s *StorageService) UploadProfilePhoto(file multipart.File, filename string, userID int64) (string, error) {
+func (s *StorageService) UploadProfilePhoto(file multipart.File, filename string, userID string) (string, error) {
 	// Read file content
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
@@ -93,7 +93,7 @@ func (s *StorageService) UploadProfilePhoto(file multipart.File, filename string
 	// Generate unique filename
 	ext := filepath.Ext(filename)
 	timestamp := time.Now().Unix()
-	key := fmt.Sprintf("profiles/%d/avatar_%d%s", userID, timestamp, ext)
+	key := fmt.Sprintf("profiles/%s/avatar_%d%s", userID, timestamp, ext)
 
 	// Upload to Spaces
 	_, err = s.s3Client.PutObject(&s3.PutObjectInput{

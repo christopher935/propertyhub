@@ -64,22 +64,22 @@ type Property struct {
 	Bookings []Booking `json:"bookings,omitempty" gorm:"foreignKey:PropertyID"`
 }
 
-// AdminUser - Admin authentication model
+// AdminUser - Admin authentication model (canonical definition)
 type AdminUser struct {
-	ID           string                   `json:"id" gorm:"primaryKey"`
-	Username     string                   `json:"username" gorm:"uniqueIndex;not null"`
-	Email        security.EncryptedString `json:"email" gorm:"uniqueIndex;not null"`
-	PasswordHash string                   `json:"-" gorm:"not null"`
-	Role         string                   `json:"role" gorm:"default:'admin'"`
-	Active       bool                     `json:"active" gorm:"default:true"`
+	ID           string     `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	Username     string     `json:"username" gorm:"uniqueIndex;not null"`
+	Email        string     `json:"email" gorm:"uniqueIndex;not null"`
+	PasswordHash string     `json:"-" gorm:"column:password_hash;not null"`
+	Role         string     `json:"role" gorm:"default:'admin'"`
+	Active       bool       `json:"active" gorm:"default:true"`
+	LastLogin    *time.Time `json:"last_login"`
+	LoginCount   int        `json:"login_count" gorm:"default:0"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+}
 
-	// Login tracking
-	LastLogin  *time.Time `json:"last_login"`
-	LoginCount int        `json:"login_count" gorm:"default:0"`
-
-	// Timestamps
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+func (AdminUser) TableName() string {
+	return "admin_users"
 }
 
 // GetFormattedPrice returns a formatted price string
