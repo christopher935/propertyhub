@@ -6,8 +6,8 @@ import (
 
 // UserProfile represents extended profile information for admin users
 type UserProfile struct {
-	ID        int64     `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserID    int64     `gorm:"uniqueIndex;not null" json:"user_id"`
+	ID        int64  `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID    string `gorm:"uniqueIndex;not null" json:"user_id"`
 	FirstName string    `gorm:"size:100" json:"first_name"`
 	LastName  string    `gorm:"size:100" json:"last_name"`
 	Phone     string    `gorm:"size:50" json:"phone"`
@@ -27,8 +27,8 @@ func (UserProfile) TableName() string {
 
 // UserPreferences represents user preferences and notification settings
 type UserPreferences struct {
-	ID                   int64     `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserID               int64     `gorm:"uniqueIndex;not null" json:"user_id"`
+	ID                   int64  `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID               string `gorm:"uniqueIndex;not null" json:"user_id"`
 	Timezone             string    `gorm:"size:50;default:'America/Chicago'" json:"timezone"`
 	Language             string    `gorm:"size:10;default:'en'" json:"language"`
 	DateFormat           string    `gorm:"size:20;default:'MM/DD/YYYY'" json:"date_format"`

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 
 	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
@@ -72,36 +71,23 @@ func (h *SettingsHandler) sendErrorResponse(w http.ResponseWriter, statusCode in
 
 // GetProfile handles GET /api/admin/settings/profile
 func (h *SettingsHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from context (set by auth middleware)
 	userIDStr := r.Context().Value("user_id")
 	if userIDStr == nil {
 		h.sendErrorResponse(w, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
 		return
 	}
 
-	userID, err := strconv.ParseInt(userIDStr.(string), 10, 64)
-	if err != nil {
-		h.sendErrorResponse(w, http.StatusBadRequest, "INVALID_USER_ID", "Invalid user ID")
-		return
-	}
+	userID := userIDStr.(string)
 
-	// Get user from admin_users table
-	var user struct {
-		ID       int64  `gorm:"column:id"`
-		Username string `gorm:"column:username"`
-		Email    string `gorm:"column:email"`
-		Role     string `gorm:"column:role"`
-	}
-	if err := h.db.Table("admin_users").Where("id = ?", userID).First(&user).Error; err != nil {
+	var user models.AdminUser
+	if err := h.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		h.sendErrorResponse(w, http.StatusNotFound, "USER_NOT_FOUND", "User not found")
 		return
 	}
 
-	// Get or create profile
 	var profile models.UserProfile
-	err = h.db.Where("user_id = ?", userID).First(&profile).Error
+	err := h.db.Where("user_id = ?", userID).First(&profile).Error
 	if err == gorm.ErrRecordNotFound {
-		// Create default profile
 		profile = models.UserProfile{UserID: userID}
 		h.db.Create(&profile)
 	} else if err != nil {
@@ -133,7 +119,7 @@ func (h *SettingsHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
+	userID := userIDStr.(string)
 
 	var req struct {
 		FirstName  string `json:"first_name"`
@@ -197,7 +183,7 @@ func (h *SettingsHandler) UploadProfilePhoto(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
+	userID := userIDStr.(string)
 
 	// Parse multipart form (10MB limit)
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
@@ -260,7 +246,7 @@ func (h *SettingsHandler) GetPreferences(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
+	userID := userIDStr.(string)
 
 	var prefs models.UserPreferences
 	err := h.db.Where("user_id = ?", userID).First(&prefs).Error
@@ -295,7 +281,7 @@ func (h *SettingsHandler) UpdatePreferences(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
+	userID := userIDStr.(string)
 
 	var req models.UserPreferences
 	if err := h.secureDecodeJSON(r, &req, 1024*1024); err != nil {
@@ -340,7 +326,7 @@ func (h *SettingsHandler) ChangePassword(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	userID, _ := strconv.ParseInt(userIDStr.(string), 10, 64)
+	userID := userIDStr.(string)
 
 	var req struct {
 		CurrentPassword string `json:"current_password"`
@@ -358,12 +344,8 @@ func (h *SettingsHandler) ChangePassword(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Get user
-	var user struct {
-		ID           int64  `gorm:"column:id"`
-		PasswordHash string `gorm:"column:password_hash"`
-	}
-	if err := h.db.Table("admin_users").Where("id = ?", userID).First(&user).Error; err != nil {
+	var user models.AdminUser
+	if err := h.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		h.sendErrorResponse(w, http.StatusNotFound, "USER_NOT_FOUND", "User not found")
 		return
 	}

@@ -3,8 +3,9 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"chrisgross-ctrl-project/internal/auth"
+	"chrisgross-ctrl-project/internal/models"
+	"github.com/gin-gonic/gin"
 )
 
 // AuthRequired creates middleware that requires authentication for admin routes
@@ -23,14 +24,12 @@ func AuthRequired(authManager interface{}) gin.HandlerFunc {
 			}
 		}
 		
-		// Validate session using the appropriate auth manager
-		var user *auth.AdminUser
+		var user *models.AdminUser
 		if simpleAuth, ok := authManager.(*auth.SimpleAuthManager); ok {
 			user, err = simpleAuth.ValidateSessionToken(sessionToken)
 		} else if cachedAuth, ok := authManager.(*auth.CachedSessionManager); ok {
 			user, err = cachedAuth.ValidateSessionToken(sessionToken)
 		} else {
-			// Invalid auth manager type
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Authentication system error"})
 			c.Abort()
 			return
