@@ -15,6 +15,7 @@ type BehavioralEventService struct {
 	scoringEngine *BehavioralScoringEngine
 }
 
+
 // NewBehavioralEventService creates a new behavioral event service
 func NewBehavioralEventService(db *gorm.DB) *BehavioralEventService {
 	return &BehavioralEventService{

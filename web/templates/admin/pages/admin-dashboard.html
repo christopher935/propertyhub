@@ -70,6 +70,40 @@
                     </div>
                 </section>
 
+                <!-- Live Activity Feed - Real-time user activity -->
+                <section class="dashboard-section">
+                    <div class="live-activity-container" x-data="liveActivityFeed()" x-init="init()">
+                        <div class="live-activity-header">
+                            <div class="section-label admin-section-label">
+                                <span class="section-label-line"></span>
+                                <span class="section-label-text">
+                                    <span class="pulse-indicator"></span>
+                                    Live Activity
+                                    <span class="active-count-badge" x-text="activeCount" x-show="activeCount > 0"></span>
+                                </span>
+                                <span class="section-label-line"></span>
+                            </div>
+                        </div>
+                        <div class="live-activity-feed" id="live-activity-feed">
+                            <div class="activity-list" id="activity-list">
+                                <template x-for="event in events.slice(0, 20)" :key="event.timestamp">
+                                    <div class="activity-item" :class="'activity-' + event.type" :data-score="event.score">
+                                        <span class="activity-icon" x-html="getActivityIcon(event.type)"></span>
+                                        <div class="activity-content">
+                                            <span class="activity-details" x-text="event.details"></span>
+                                            <span class="activity-score" x-show="event.score >= 70" x-text="'🔥 Score: ' + event.score"></span>
+                                        </div>
+                                        <span class="activity-time" x-text="formatTimeAgo(event.timestamp)"></span>
+                                    </div>
+                                </template>
+                                <div x-show="events.length === 0" class="empty-state-small">
+                                    <div class="empty-state-text">No recent activity</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="dashboard-section">
                     <div class="dashboard-columns">
                         <div class="dashboard-column">

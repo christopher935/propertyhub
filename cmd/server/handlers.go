@@ -19,6 +19,7 @@ type AllHandlers struct {
 
 	// Behavioral Intelligence & FUB
 	Behavioral            *handlers.BehavioralIntelligenceHandlers
+	BehavioralEvent       *handlers.BehavioralEventHandler
 	InsightsAPI           *handlers.InsightsAPIHandlers
 	ContextFUB            *handlers.ContextFUBIntegrationHandlers
 

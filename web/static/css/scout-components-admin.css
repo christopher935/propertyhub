@@ -7542,3 +7542,229 @@ opacity: 0.7;
   content: "⚠️";
   font-size: var(--font-size-xl);
 }
+
+/* ============================================================================
+   LIVE ACTIVITY FEED
+   ============================================================================ */
+
+.live-activity-container {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.live-activity-header {
+    margin-bottom: 1.5rem;
+}
+
+.pulse-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #10B981;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.active-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #EF4444;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    margin-left: 0.5rem;
+    min-width: 24px;
+}
+
+.live-activity-feed {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.live-activity-feed::-webkit-scrollbar {
+    width: 6px;
+}
+
+.live-activity-feed::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: 3px;
+}
+
+.live-activity-feed::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: 3px;
+}
+
+.live-activity-feed::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.activity-item:hover {
+    background: var(--gray-100);
+    transform: translateX(2px);
+}
+
+.activity-item[data-score="70"],
+.activity-item[data-score="71"],
+.activity-item[data-score="72"],
+.activity-item[data-score="73"],
+.activity-item[data-score="74"],
+.activity-item[data-score="75"],
+.activity-item[data-score="76"],
+.activity-item[data-score="77"],
+.activity-item[data-score="78"],
+.activity-item[data-score="79"],
+.activity-item[data-score="80"],
+.activity-item[data-score="81"],
+.activity-item[data-score="82"],
+.activity-item[data-score="83"],
+.activity-item[data-score="84"],
+.activity-item[data-score="85"],
+.activity-item[data-score="86"],
+.activity-item[data-score="87"],
+.activity-item[data-score="88"],
+.activity-item[data-score="89"],
+.activity-item[data-score="90"],
+.activity-item[data-score="91"],
+.activity-item[data-score="92"],
+.activity-item[data-score="93"],
+.activity-item[data-score="94"],
+.activity-item[data-score="95"],
+.activity-item[data-score="96"],
+.activity-item[data-score="97"],
+.activity-item[data-score="98"],
+.activity-item[data-score="99"],
+.activity-item[data-score="100"] {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    border-left: 4px solid #F59E0B;
+}
+
+.activity-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--white);
+    border-radius: 50%;
+    color: var(--navy-primary);
+    flex-shrink: 0;
+}
+
+.activity-property_view .activity-icon {
+    color: #3B82F6;
+}
+
+.activity-property_save .activity-icon {
+    color: #EF4444;
+}
+
+.activity-inquiry .activity-icon {
+    color: #10B981;
+}
+
+.activity-search .activity-icon {
+    color: #8B5CF6;
+}
+
+.activity-application .activity-icon {
+    color: #F59E0B;
+}
+
+.activity-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.activity-details {
+    font-size: 0.875rem;
+    color: var(--gray-900);
+    font-weight: 500;
+}
+
+.activity-score {
+    font-size: 0.75rem;
+    color: #F59E0B;
+    font-weight: 600;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Empty state for activity feed */
+.activity-list .empty-state-small {
+    padding: 2rem;
+    text-align: center;
+    color: var(--gray-500);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .live-activity-container {
+        padding: 1rem;
+    }
+    
+    .activity-item {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+    
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .activity-details {
+        font-size: 0.8125rem;
+    }
+}
