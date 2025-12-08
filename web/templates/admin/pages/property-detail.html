@@ -1,349 +1,232 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Property Details - PropertyHub Admin</title>
-    
-    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
-    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
-    
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body>
-    <div class="admin-layout" x-data="propertyDetailData()" x-init="init()">
-        <aside class="admin-sidebar">
-            <div class="sidebar-header">
-                <a href="/admin/dashboard" class="sidebar-logo">
-                    <div class="sidebar-logo-icon">PH</div>
-                    <span>PropertyHub</span>
-                </a>
+{{define "property-detail"}}
+{{template "admin-base" .}}
+
+{{define "layout-data"}}x-data="propertyDetailData()" x-init="init()"{{end}}
+
+{{define "content"}}
+<div class="mb-2">
+    <a href="/admin/properties" class="text-gray-500 text-sm">← Back to Properties</a>
+</div>
+
+<div x-show="loading" class="d-flex justify-center p-6">
+    <div class="loading"></div>
+</div>
+
+<div x-show="!loading">
+    <div class="card p-6 mb-6">
+        <div class="flex justify-between align-start mb-6">
+            <div class="flex-1">
+                <div class="flex align-center gap-3 mb-3">
+                    <h2 class="text-2xl font-semibold text-navy-primary m-0" x-text="property.address"></h2>
+                    <span class="status-badge" :class="'status-' + property.status" x-text="property.status"></span>
+                </div>
+                <p class="text-gray-500 mb-2" x-text="property.city + ', ' + property.state + ' ' + property.zip"></p>
+                <div class="flex gap-4 text-gray-600">
+                    <span x-text="property.bedrooms + ' beds'"></span>
+                    <span>•</span>
+                    <span x-text="property.bathrooms + ' baths'"></span>
+                    <span>•</span>
+                    <span x-text="property.square_feet + ' sqft'"></span>
+                </div>
             </div>
-            
-            <nav class="admin-sidebar-nav">
-                <div class="nav-section">
-                    <a href="/admin/dashboard" class="nav-section-header">
-                        <div class="nav-section-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                        </div>
-                        <span class="nav-section-title">Dashboard</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section" x-data="{ open: false }">
-                    <button class="nav-section-header" @click="open = !open">
-                        <div class="nav-section-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                        </div>
-                        <span class="nav-section-title">Leads</span>
-                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </button>
-                    <ul class="nav-section-items" x-show="open" x-collapse>
-                        <li><a href="/admin/leads" class="nav-item">All Leads</a></li>
-                        <li><a href="/admin/leads?segment=hot" class="nav-item">Hot Leads</a></li>
-                        <li><a href="/admin/leads?segment=warm" class="nav-item">Warm Leads</a></li>
-                    </ul>
-                </div>
-                
-                <div class="nav-section expanded" x-data="{ open: true }">
-                    <button class="nav-section-header active" @click="open = !open">
-                        <div class="nav-section-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                            </svg>
-                        </div>
-                        <span class="nav-section-title">Properties</span>
-                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </button>
-                    <ul class="nav-section-items" x-show="open" x-collapse>
-                        <li><a href="/admin/properties" class="nav-item active">All Properties</a></li>
-                        <li><a href="/admin/properties?status=active" class="nav-item">Active Listings</a></li>
-                        <li><a href="/admin/pre-listing" class="nav-item">Pre-Listing Pipeline</a></li>
-                    </ul>
-                </div>
-                
-                <div class="nav-section">
-                    <a href="/admin/bookings" class="nav-section-header">
-                        <div class="nav-section-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                        </div>
-                        <span class="nav-section-title">Bookings</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
+            <div class="text-right">
+                <div class="text-3xl font-bold text-gold-primary" x-text="'$' + property.price.toLocaleString()"></div>
+                <div class="text-gray-500 text-sm">Listed Price</div>
+            </div>
+        </div>
         
-        <main class="admin-main">
-            <header class="admin-header">
-                <div class="admin-header-content">
-                    <div>
-                        <div style="margin-bottom: var(--space-2);">
-                            <a href="/admin/properties" style="color: var(--gray-500); font-size: var(--font-size-sm); text-decoration: none;">
-                                ← Back to Properties
-                            </a>
-                        </div>
-                        <h1 class="admin-header-title" x-text="property.address || 'Property Details'"></h1>
-                    </div>
-                    
-                    <div class="admin-header-actions">
-                        <div class="admin-user-menu">
-                            <div class="admin-user-avatar" x-text="userProfile.initials"></div>
-                            <div class="admin-user-info">
-                                <div class="admin-user-name" x-text="userProfile.username"></div>
-                                <div class="admin-user-role" x-text="userProfile.role"></div>
-                            </div>
-                        </div>
-                        
-                        <a href="/admin/logout" class="btn-logout">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                            </svg>
-                            Logout
-                        </a>
-                    </div>
-                </div>
-            </header>
-            
-            <div class="admin-content">
-                <div x-show="loading" class="d-flex justify-center p-6">
-                    <div class="loading"></div>
-                </div>
-                
-                <div x-show="!loading">
-                    <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-6);">
-                            <div style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
-                                    <h2 style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin: 0;" x-text="property.address"></h2>
-                                    <span class="status-badge" :class="'status-' + property.status" x-text="property.status"></span>
-                                </div>
-                                <p style="color: var(--gray-500); margin-bottom: var(--space-2);" x-text="property.city + ', ' + property.state + ' ' + property.zip"></p>
-                                <div style="display: flex; gap: var(--space-4); color: var(--gray-600);">
-                                    <span x-text="property.bedrooms + ' beds'"></span>
-                                    <span>•</span>
-                                    <span x-text="property.bathrooms + ' baths'"></span>
-                                    <span>•</span>
-                                    <span x-text="property.square_feet + ' sqft'"></span>
-                                </div>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--gold-primary);" x-text="'$' + property.price.toLocaleString()"></div>
-                                <div style="color: var(--gray-500); font-size: var(--font-size-sm);">Listed Price</div>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; gap: var(--space-3);">
-                            <a :href="'/admin/property-edit/' + property.id" class="btn btn-primary">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-2);">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                                Edit Property
-                            </a>
-                            <button class="btn btn-secondary" @click="archiveProperty">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: var(--space-2);">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
-                                </svg>
-                                Archive
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-6);">
-                        <div>
-                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
-                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Property Photos</h3>
-                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3);">
-                                    <template x-for="(photo, index) in property.photos" :key="index">
-                                        <img :src="photo" :alt="'Property photo ' + (index + 1)" style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-md);">
-                                    </template>
-                                    <div x-show="property.photos.length === 0" style="grid-column: 1/-1; text-align: center; padding: var(--space-8); color: var(--gray-400);">
-                                        No photos uploaded yet
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
-                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Description</h3>
-                                <p style="color: var(--gray-600); line-height: 1.6;" x-text="property.description"></p>
-                            </div>
-                            
-                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
-                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Showing History</h3>
-                                <div style="space-y: var(--space-3);">
-                                    <template x-for="showing in showings" :key="showing.id">
-                                        <div style="padding: var(--space-3); border: 1px solid var(--gray-200); border-radius: var(--radius-md); margin-bottom: var(--space-3);">
-                                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                                <div>
-                                                    <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="showing.lead_name"></div>
-                                                    <div style="font-size: var(--font-size-sm); color: var(--gray-500);" x-text="new Date(showing.scheduled_at).toLocaleString()"></div>
-                                                </div>
-                                                <span class="status-badge" :class="'status-' + showing.status" x-text="showing.status"></span>
-                                            </div>
-                                        </div>
-                                    </template>
-                                    <div x-show="showings.length === 0" style="text-align: center; padding: var(--space-6); color: var(--gray-400);">
-                                        No showings scheduled
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
-                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Property Details</h3>
-                                <div style="display: grid; gap: var(--space-3);">
-                                    <div>
-                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Type</div>
-                                        <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="property.property_type"></div>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Listing Type</div>
-                                        <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="property.listing_type"></div>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Year Built</div>
-                                        <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="property.year_built"></div>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Lot Size</div>
-                                        <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="property.lot_size"></div>
-                                    </div>
-                                    <div>
-                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500); text-transform: uppercase;">Listed Date</div>
-                                        <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="new Date(property.created_at).toLocaleDateString()"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
-                                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Performance</h3>
-                                <div style="display: grid; gap: var(--space-4);">
-                                    <div style="text-align: center;">
-                                        <div style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--navy-primary);" x-text="stats.views"></div>
-                                        <div style="font-size: var(--font-size-sm); color: var(--gray-500);">Total Views</div>
-                                    </div>
-                                    <div style="text-align: center;">
-                                        <div style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--navy-primary);" x-text="stats.inquiries"></div>
-                                        <div style="font-size: var(--font-size-sm); color: var(--gray-500);">Inquiries</div>
-                                    </div>
-                                    <div style="text-align: center;">
-                                        <div style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--navy-primary);" x-text="stats.showings"></div>
-                                        <div style="font-size: var(--font-size-sm); color: var(--gray-500);">Showings</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+        <div class="flex gap-3">
+            <a :href="'/admin/property-edit/' + property.id" class="btn btn-primary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="mr-2">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                Edit Property
+            </a>
+            <button class="btn btn-secondary" @click="archiveProperty">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="mr-2">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                </svg>
+                Archive
+            </button>
+        </div>
     </div>
     
-    <script>
-        function propertyDetailData() {
-            return {
-                loading: true,
-                property: {
-                    id: null,
-                    address: '',
-                    city: '',
-                    state: '',
-                    zip: '',
-                    price: 0,
-                    bedrooms: 0,
-                    bathrooms: 0,
-                    square_feet: 0,
-                    property_type: '',
-                    listing_type: '',
-                    year_built: '',
-                    lot_size: '',
-                    status: 'active',
-                    description: '',
-                    photos: [],
-                    created_at: ''
-                },
-                showings: [],
-                stats: {
-                    views: 0,
-                    inquiries: 0,
-                    showings: 0
-                },
-                userProfile: {
-                    username: 'Admin',
-                    role: 'Administrator',
-                    initials: 'AD'
-                },
-                
-                async init() {
-                    const propertyId = window.location.pathname.split('/').pop();
-                    await this.fetchProperty(propertyId);
-                    await this.fetchShowings(propertyId);
-                    await this.fetchStats(propertyId);
-                },
-                
-                async fetchProperty(id) {
-                    try {
-                        const response = await fetch(`/api/properties/${id}`);
-                        if (response.ok) {
-                            this.property = await response.json();
-                        }
-                    } catch (error) {
-                        console.error('Failed to fetch property:', error);
-                    } finally {
-                        this.loading = false;
+    <div class="d-grid gap-6" style="grid-template-columns: 2fr 1fr;">
+        <div>
+            <div class="card p-6 mb-6">
+                <h3 class="text-lg font-semibold text-navy-primary mb-4">Property Photos</h3>
+                <div class="d-grid gap-3" style="grid-template-columns: repeat(3, 1fr);">
+                    <template x-for="(photo, index) in property.photos" :key="index">
+                        <img :src="photo" :alt="'Property photo ' + (index + 1)" class="w-full rounded-md" style="height: 200px; object-fit: cover;">
+                    </template>
+                    <div x-show="property.photos.length === 0" class="text-center p-8 text-gray-400" style="grid-column: 1/-1;">
+                        No photos uploaded yet
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card p-6 mb-6">
+                <h3 class="text-lg font-semibold text-navy-primary mb-4">Description</h3>
+                <p class="text-gray-600" style="line-height: 1.6;" x-text="property.description"></p>
+            </div>
+            
+            <div class="card p-6">
+                <h3 class="text-lg font-semibold text-navy-primary mb-4">Showing History</h3>
+                <div>
+                    <template x-for="showing in showings" :key="showing.id">
+                        <div class="p-3 border border-gray-200 rounded-md mb-3">
+                            <div class="flex justify-between align-center">
+                                <div>
+                                    <div class="font-semibold text-navy-primary" x-text="showing.lead_name"></div>
+                                    <div class="text-sm text-gray-500" x-text="new Date(showing.scheduled_at).toLocaleString()"></div>
+                                </div>
+                                <span class="status-badge" :class="'status-' + showing.status" x-text="showing.status"></span>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="showings.length === 0" class="text-center p-6 text-gray-400">
+                        No showings scheduled
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <div class="card p-6 mb-6">
+                <h3 class="text-lg font-semibold text-navy-primary mb-4">Property Details</h3>
+                <div class="d-grid gap-3">
+                    <div>
+                        <div class="text-xs text-gray-500 uppercase">Type</div>
+                        <div class="font-semibold text-navy-primary" x-text="property.property_type"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 uppercase">Listing Type</div>
+                        <div class="font-semibold text-navy-primary" x-text="property.listing_type"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 uppercase">Year Built</div>
+                        <div class="font-semibold text-navy-primary" x-text="property.year_built"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 uppercase">Lot Size</div>
+                        <div class="font-semibold text-navy-primary" x-text="property.lot_size"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-500 uppercase">Listed Date</div>
+                        <div class="font-semibold text-navy-primary" x-text="new Date(property.created_at).toLocaleDateString()"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card p-6">
+                <h3 class="text-lg font-semibold text-navy-primary mb-4">Performance</h3>
+                <div class="d-grid gap-4">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-navy-primary" x-text="stats.views"></div>
+                        <div class="text-sm text-gray-500">Total Views</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-navy-primary" x-text="stats.inquiries"></div>
+                        <div class="text-sm text-gray-500">Inquiries</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-navy-primary" x-text="stats.showings"></div>
+                        <div class="text-sm text-gray-500">Showings</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script>
+    function propertyDetailData() {
+        return {
+            loading: true,
+            property: {
+                id: null,
+                address: '',
+                city: '',
+                state: '',
+                zip: '',
+                price: 0,
+                bedrooms: 0,
+                bathrooms: 0,
+                square_feet: 0,
+                property_type: '',
+                listing_type: '',
+                status: '',
+                year_built: '',
+                lot_size: '',
+                description: '',
+                photos: [],
+                created_at: ''
+            },
+            showings: [],
+            stats: {
+                views: 0,
+                inquiries: 0,
+                showings: 0
+            },
+            
+            async init() {
+                const propertyId = window.location.pathname.split('/').pop();
+                await Promise.all([
+                    this.fetchProperty(propertyId),
+                    this.fetchShowings(propertyId),
+                    this.fetchStats(propertyId)
+                ]);
+            },
+            
+            async fetchProperty(id) {
+                try {
+                    const response = await fetch(`/api/properties/${id}`);
+                    if (response.ok) {
+                        this.property = await response.json();
                     }
-                },
-                
-                async fetchShowings(id) {
-                    try {
-                        const response = await fetch(`/api/properties/${id}/showings`);
-                        if (response.ok) {
-                            this.showings = await response.json();
-                        }
-                    } catch (error) {
-                        console.error('Failed to fetch showings:', error);
-                    }
-                },
-                
-                async fetchStats(id) {
-                    try {
-                        const response = await fetch(`/api/properties/${id}/stats`);
-                        if (response.ok) {
-                            this.stats = await response.json();
-                        }
-                    } catch (error) {
-                        console.error('Failed to fetch stats:', error);
-                    }
-                },
-                
-                archiveProperty() {
-                    if (confirm('Are you sure you want to archive this property?')) {
-                        fetch(`/api/properties/${this.property.id}`, {
-                            method: 'DELETE'
-                        }).then(() => {
-                            window.location.href = '/admin/properties';
-                        });
-                    }
+                } catch (error) {
+                    console.error('Failed to fetch property:', error);
+                } finally {
+                    this.loading = false;
                 }
-            };
-        }
-    </script>
-</body>
-</html>
+            },
+            
+            async fetchShowings(id) {
+                try {
+                    const response = await fetch(`/api/properties/${id}/showings`);
+                    if (response.ok) {
+                        this.showings = await response.json();
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch showings:', error);
+                }
+            },
+            
+            async fetchStats(id) {
+                try {
+                    const response = await fetch(`/api/properties/${id}/stats`);
+                    if (response.ok) {
+                        this.stats = await response.json();
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch stats:', error);
+                }
+            },
+            
+            archiveProperty() {
+                if (confirm('Are you sure you want to archive this property?')) {
+                    fetch(`/api/properties/${this.property.id}`, {
+                        method: 'DELETE'
+                    }).then(() => {
+                        window.location.href = '/admin/properties';
+                    });
+                }
+            }
+        };
+    }
+</script>
+{{end}}
+
+{{end}}
