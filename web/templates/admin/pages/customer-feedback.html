@@ -1,252 +1,174 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Customer Feedback - PropertyHub Admin</title>
-    
-    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
-    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
-    
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body>
-    <div class="admin-layout" x-data="feedbackData()" x-init="init()">
-        <aside class="admin-sidebar">
-            <div class="sidebar-header">
-                <a href="/admin/dashboard" class="sidebar-logo">
-                    <div class="sidebar-logo-icon">PH</div>
-                    <span>PropertyHub</span>
-                </a>
-            </div>
+{{define "customer-feedback"}}
+{{template "admin-base" .}}
+
+{{define "layout-data"}}x-data="feedbackData()" x-init="init()"{{end}}
+
+{{define "content"}}
+<div class="card p-6 mb-6">
+    <div class="stats-grid-4">
+        <div class="text-center">
+            <div class="text-3xl font-bold text-navy-primary" x-text="stats.total"></div>
+            <div class="text-sm text-gray-500">Total Feedback</div>
+        </div>
+        <div class="text-center">
+            <div class="text-3xl font-bold text-success" x-text="stats.average_rating.toFixed(1)"></div>
+            <div class="text-sm text-gray-500">Average Rating</div>
+        </div>
+        <div class="text-center">
+            <div class="text-3xl font-bold text-gold-primary" x-text="stats.positive"></div>
+            <div class="text-sm text-gray-500">Positive Reviews</div>
+        </div>
+        <div class="text-center">
+            <div class="text-3xl font-bold text-error" x-text="stats.needs_response"></div>
+            <div class="text-sm text-gray-500">Needs Response</div>
+        </div>
+    </div>
+</div>
+
+<div class="card p-6">
+    <div class="flex justify-between align-center mb-4">
+        <div class="flex gap-3">
+            <select x-model="filterRating" @change="applyFilters" class="form-input">
+                <option value="">All Ratings</option>
+                <option value="5">5 Stars</option>
+                <option value="4">4 Stars</option>
+                <option value="3">3 Stars</option>
+                <option value="2">2 Stars</option>
+                <option value="1">1 Star</option>
+            </select>
             
-            <nav class="admin-sidebar-nav">
-                <div class="nav-section">
-                    <a href="/admin/dashboard" class="nav-section-header">
-                        <div class="nav-section-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                        </div>
-                        <span class="nav-section-title">Dashboard</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <a href="/admin/customer-feedback" class="nav-section-header active">
-                        <div class="nav-section-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-                            </svg>
-                        </div>
-                        <span class="nav-section-title">Customer Feedback</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
-        
-        <main class="admin-main">
-            <header class="admin-header">
-                <div class="admin-header-content">
-                    <h1 class="admin-header-title">Customer Feedback</h1>
-                    
-                    <div class="admin-header-actions">
-                        <div class="admin-search">
-                            <input type="search" placeholder="Search feedback..." x-model="searchQuery" @input.debounce.300ms="performSearch">
-                            <svg class="admin-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </div>
-                        
-                        <div class="admin-user-menu">
-                            <div class="admin-user-avatar">AD</div>
-                            <div class="admin-user-info">
-                                <div class="admin-user-name">Admin</div>
-                                <div class="admin-user-role">Administrator</div>
-                            </div>
-                        </div>
-                        
-                        <a href="/admin/logout" class="btn-logout">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                            </svg>
-                            Logout
-                        </a>
-                    </div>
-                </div>
-            </header>
-            
-            <div class="admin-content">
-                <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); box-shadow: var(--shadow-sm);">
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4);">
-                        <div style="text-align: center;">
-                            <div style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--navy-primary);" x-text="stats.total"></div>
-                            <div style="font-size: var(--font-size-sm); color: var(--gray-500);">Total Feedback</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--success);" x-text="stats.average_rating.toFixed(1)"></div>
-                            <div style="font-size: var(--font-size-sm); color: var(--gray-500);">Average Rating</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--gold-primary);" x-text="stats.positive"></div>
-                            <div style="font-size: var(--font-size-sm); color: var(--gray-500);">Positive Reviews</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: var(--font-size-3xl); font-weight: var(--font-weight-bold); color: var(--error);" x-text="stats.needs_response"></div>
-                            <div style="font-size: var(--font-size-sm); color: var(--gray-500);">Needs Response</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-                        <div style="display: flex; gap: var(--space-3);">
-                            <select x-model="filterRating" @change="applyFilters" 
-                                    style="padding: var(--space-2) var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                <option value="">All Ratings</option>
-                                <option value="5">5 Stars</option>
-                                <option value="4">4 Stars</option>
-                                <option value="3">3 Stars</option>
-                                <option value="2">2 Stars</option>
-                                <option value="1">1 Star</option>
-                            </select>
-                            
-                            <select x-model="filterStatus" @change="applyFilters" 
-                                    style="padding: var(--space-2) var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                <option value="">All Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="responded">Responded</option>
-                                <option value="resolved">Resolved</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div x-show="loading" class="d-flex justify-center p-6">
-                        <div class="loading"></div>
-                    </div>
-                    
-                    <div x-show="!loading">
-                        <div style="display: grid; gap: var(--space-4);">
-                            <template x-for="feedback in filteredFeedback" :key="feedback.id">
-                                <div style="padding: var(--space-4); border: 1px solid var(--gray-200); border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s;" 
-                                     @click="window.location.href = '/admin/feedback-detail/' + feedback.id">
-                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-3);">
-                                        <div style="flex: 1;">
-                                            <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-                                                <span style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);" x-text="feedback.customer_name"></span>
-                                                <div style="display: flex; align-items: center;">
-                                                    <template x-for="i in 5" :key="i">
-                                                        <svg width="16" height="16" :fill="i <= feedback.rating ? 'var(--gold-primary)' : 'var(--gray-300)'" viewBox="0 0 24 24">
-                                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                                        </svg>
-                                                    </template>
-                                                </div>
-                                            </div>
-                                            <p style="color: var(--gray-600); margin-bottom: var(--space-2);" x-text="feedback.comment"></p>
-                                            <div style="display: flex; gap: var(--space-3); font-size: var(--font-size-sm); color: var(--gray-500);">
-                                                <span x-text="'Property: ' + feedback.property_address"></span>
-                                                <span>•</span>
-                                                <span x-text="new Date(feedback.created_at).toLocaleDateString()"></span>
-                                            </div>
-                                        </div>
-                                        <span class="status-badge" :class="'status-' + feedback.status" x-text="feedback.status"></span>
-                                    </div>
-                                </div>
-                            </template>
-                            
-                            <div x-show="filteredFeedback.length === 0" style="text-align: center; padding: var(--space-8); color: var(--gray-400);">
-                                <div style="font-size: 3rem; margin-bottom: var(--space-2);">💬</div>
-                                <p>No feedback found</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+            <select x-model="filterStatus" @change="applyFilters" class="form-input">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="responded">Responded</option>
+                <option value="resolved">Resolved</option>
+            </select>
+        </div>
     </div>
     
-    <script>
-        function feedbackData() {
-            return {
-                loading: true,
-                feedback: [],
-                searchQuery: '',
-                filterRating: '',
-                filterStatus: '',
-                stats: {
-                    total: 0,
-                    average_rating: 0,
-                    positive: 0,
-                    needs_response: 0
-                },
+    <div x-show="loading" class="d-flex justify-center p-6">
+        <div class="loading"></div>
+    </div>
+    
+    <div x-show="!loading">
+        <div class="d-grid gap-4">
+            <template x-for="feedback in filteredFeedback" :key="feedback.id">
+                <div class="p-4 border border-gray-200 rounded-md cursor-pointer transition" 
+                     @click="window.location.href = '/admin/feedback-detail/' + feedback.id"
+                     @mouseenter="$el.style.transform='translateY(-2px)'; $el.style.boxShadow='var(--shadow-md)'"
+                     @mouseleave="$el.style.transform='translateY(0)'; $el.style.boxShadow='none'">
+                    <div class="flex justify-between align-start mb-3">
+                        <div class="flex-1">
+                            <div class="flex align-center gap-2 mb-2">
+                                <span class="font-semibold text-navy-primary" x-text="feedback.customer_name"></span>
+                                <div class="flex align-center">
+                                    <template x-for="i in 5" :key="i">
+                                        <svg width="16" height="16" :fill="i <= feedback.rating ? 'var(--gold-primary)' : 'var(--gray-300)'" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                    </template>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 mb-2" x-text="feedback.comment"></p>
+                            <div class="flex gap-3 text-sm text-gray-500">
+                                <span x-text="'Property: ' + feedback.property_address"></span>
+                                <span>•</span>
+                                <span x-text="new Date(feedback.created_at).toLocaleDateString()"></span>
+                            </div>
+                        </div>
+                        <span class="status-badge" :class="'status-' + feedback.status" x-text="feedback.status"></span>
+                    </div>
+                </div>
+            </template>
+            
+            <div x-show="filteredFeedback.length === 0" class="text-center p-8 text-gray-500">
+                <svg width="64" height="64" class="mx-auto mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"></path>
+                </svg>
+                <p class="font-medium">No feedback found</p>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script>
+    function feedbackData() {
+        return {
+            loading: true,
+            feedback: [],
+            searchQuery: '',
+            filterRating: '',
+            filterStatus: '',
+            stats: {
+                total: 0,
+                average_rating: 0,
+                positive: 0,
+                needs_response: 0
+            },
+            
+            get filteredFeedback() {
+                let filtered = this.feedback;
                 
-                get filteredFeedback() {
-                    let filtered = this.feedback;
-                    
-                    if (this.searchQuery) {
-                        const query = this.searchQuery.toLowerCase();
-                        filtered = filtered.filter(f => 
-                            f.customer_name.toLowerCase().includes(query) ||
-                            f.comment.toLowerCase().includes(query) ||
-                            f.property_address.toLowerCase().includes(query)
-                        );
-                    }
-                    
-                    if (this.filterRating) {
-                        filtered = filtered.filter(f => f.rating === parseInt(this.filterRating));
-                    }
-                    
-                    if (this.filterStatus) {
-                        filtered = filtered.filter(f => f.status === this.filterStatus);
-                    }
-                    
-                    return filtered;
-                },
-                
-                async init() {
-                    await Promise.all([
-                        this.fetchFeedback(),
-                        this.fetchStats()
-                    ]);
-                    this.loading = false;
-                },
-                
-                async fetchFeedback() {
-                    try {
-                        const response = await fetch('/api/admin/feedback');
-                        if (response.ok) {
-                            this.feedback = await response.json();
-                        }
-                    } catch (error) {
-                        console.error('Failed to fetch feedback:', error);
-                    }
-                },
-                
-                async fetchStats() {
-                    try {
-                        const response = await fetch('/api/admin/feedback/stats');
-                        if (response.ok) {
-                            this.stats = await response.json();
-                        }
-                    } catch (error) {
-                        console.error('Failed to fetch stats:', error);
-                    }
-                },
-                
-                applyFilters() {
-                },
-                
-                performSearch() {
+                if (this.searchQuery) {
+                    const query = this.searchQuery.toLowerCase();
+                    filtered = filtered.filter(f => 
+                        f.customer_name.toLowerCase().includes(query) ||
+                        f.comment.toLowerCase().includes(query) ||
+                        f.property_address.toLowerCase().includes(query)
+                    );
                 }
-            };
-        }
-    </script>
-</body>
-</html>
+                
+                if (this.filterRating) {
+                    filtered = filtered.filter(f => f.rating === parseInt(this.filterRating));
+                }
+                
+                if (this.filterStatus) {
+                    filtered = filtered.filter(f => f.status === this.filterStatus);
+                }
+                
+                return filtered;
+            },
+            
+            async init() {
+                await Promise.all([
+                    this.fetchFeedback(),
+                    this.fetchStats()
+                ]);
+                this.loading = false;
+            },
+            
+            async fetchFeedback() {
+                try {
+                    const response = await fetch('/api/admin/feedback');
+                    if (response.ok) {
+                        this.feedback = await response.json();
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch feedback:', error);
+                }
+            },
+            
+            async fetchStats() {
+                try {
+                    const response = await fetch('/api/admin/feedback/stats');
+                    if (response.ok) {
+                        this.stats = await response.json();
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch stats:', error);
+                }
+            },
+            
+            applyFilters() {
+            },
+            
+            performSearch() {
+            }
+        };
+    }
+</script>
+{{end}}
+
+{{end}}

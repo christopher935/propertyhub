@@ -1,590 +1,122 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{{define "command-center"}}
+{{template "admin-base" .}}
+
+{{define "layout-data"}}x-data="commandCenter()" x-init="init()"{{end}}
+
+{{define "content"}}
+<div class="section">
+    <div class="section-label admin-section-label">
+      <span class="section-label-line"></span>
+      <span class="section-label-text">AI Command Center</span>
+      <span class="section-label-line"></span>
+    </div>
+    <p class="text-gray-500 mb-6">AI-powered action items and recommendations</p>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <title>AI Command Center - PropertyHub</title>
-    
-    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
-    
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <style>
-        .command-center-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-        }
-        
-        .command-center-title {
-            font-size: 1.875rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        
-        .command-center-greeting {
-            font-size: 1.125rem;
-            opacity: 0.95;
-        }
-        
-        .command-center-date {
-            font-size: 0.875rem;
-            opacity: 0.8;
-            float: right;
-            margin-top: -2rem;
-        }
-        
-        .command-center-item {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.25rem;
-            transition: all 0.2s ease;
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .command-center-item:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            border-color: #667eea;
-        }
-        
-        .item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-        
-        .item-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.25rem;
-        }
-        
-        .item-timestamp {
-            font-size: 0.75rem;
-            color: #6b7280;
-            font-family: 'IBM Plex Mono', monospace;
-        }
-        
-        .item-subtitle {
-            font-size: 0.875rem;
-            color: #6b7280;
-            margin-bottom: 0.75rem;
-        }
-        
-        .item-suggestion {
-            background: #f3f4f6;
-            padding: 0.75rem;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            color: #374151;
-            margin-bottom: 1rem;
-            border-left: 3px solid #667eea;
-        }
-        
-        .item-actions {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-        
-        .action-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
-        }
-        
-        .action-btn.primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .action-btn.primary:hover {
-            background: #5568d3;
-        }
-        
-        .action-btn.secondary {
-            background: #f3f4f6;
-            color: #374151;
-            border: 1px solid #d1d5db;
-        }
-        
-        .action-btn.secondary:hover {
-            background: #e5e7eb;
-        }
-        
-        .action-btn.ghost {
-            background: transparent;
-            color: #6b7280;
-        }
-        
-        .action-btn.ghost:hover {
-            color: #374151;
-            background: #f9fafb;
-        }
-        
-        .action-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .action-btn.loading {
-            position: relative;
-            color: transparent;
-        }
-        
-        .action-btn.loading::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            top: 50%;
-            left: 50%;
-            margin-left: -8px;
-            margin-top: -8px;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .stats-bar {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 1rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .stat-label {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .stat-value {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1f2937;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #6b7280;
-        }
-        
-        .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-        
-        .empty-state-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 0.5rem;
-        }
-        
-        .empty-state-message {
-            font-size: 1rem;
-        }
-        
-        .loading-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 4rem;
-        }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f4f6;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        
-        .success-toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: #10b981;
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            animation: slideUp 0.3s ease-out;
-            z-index: 1000;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .type-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-        
-        .type-hot_lead {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .type-showing_request {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .type-price_alert {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        .type-application_review {
-            background: #e0e7ff;
-            color: #3730a3;
-        }
-        
-        .type-abandoned_lead {
-            background: #f3f4f6;
-            color: #374151;
-        }
-    </style>
-</head>
-<body>
-    <div class="admin-layout" x-data="commandCenter()" x-init="init()">
-        <aside class="admin-sidebar">
-            <div class="sidebar-header">
-                <a href="/admin/dashboard" class="sidebar-logo">
-                    <div class="sidebar-logo-icon">PH</div>
-                    <span>PropertyHub</span>
-                </a>
-            </div>
-            
-            <nav class="admin-sidebar-nav">
-                <div class="nav-section">
-                    <a href="/admin/dashboard" class="nav-section-header">
-                        <div class="nav-section-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></div>
-                        <span class="nav-section-title">Dashboard</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <a href="/admin/command-center" class="nav-section-header active">
-                        <div class="nav-section-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
-                        <span class="nav-section-title">AI Command Center</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section" x-data="{ open: false }">
-                    <button class="nav-section-header" @click="open = !open">
-                        <div class="nav-section-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></div>
-                        <span class="nav-section-title">Leads</span>
-                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </button>
-                    <ul class="nav-section-items" x-show="open" x-collapse>
-                        <li><a href="/admin/lead-management" class="nav-item">All Leads</a></li>
-                        <li><a href="/admin/lead-management?segment=hot" class="nav-item">Hot Leads</a></li>
-                        <li><a href="/admin/communication-center" class="nav-item">Communication</a></li>
-                    </ul>
-                </div>
-                
-                <div class="nav-section" x-data="{ open: false }">
-                    <button class="nav-section-header" @click="open = !open">
-                        <div class="nav-section-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></div>
-                        <span class="nav-section-title">Properties</span>
-                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </button>
-                    <ul class="nav-section-items" x-show="open" x-collapse>
-                        <li><a href="/admin/property-list" class="nav-item">All Properties</a></li>
-                        <li><a href="/admin/property-create" class="nav-item">Add Property</a></li>
-                    </ul>
-                </div>
-                
-                <div class="nav-section">
-                    <a href="/admin/application-workflow" class="nav-section-header">
-                        <div class="nav-section-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></div>
-                        <span class="nav-section-title">Applications</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section" x-data="{ open: false }">
-                    <button class="nav-section-header" @click="open = !open">
-                        <div class="nav-section-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg></div>
-                        <span class="nav-section-title">Intelligence</span>
-                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </button>
-                    <ul class="nav-section-items" x-show="open" x-collapse>
-                        <li><a href="/admin/business-intelligence" class="nav-item">Business Intelligence</a></li>
-                        <li><a href="/admin/behavioral-intelligence" class="nav-item">Behavioral Analytics</a></li>
-                    </ul>
-                </div>
-                
-                <div class="nav-section">
-                    <a href="/admin/settings" class="nav-section-header">
-                        <div class="nav-section-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg></div>
-                        <span class="nav-section-title">Settings</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
-        
-        <main class="admin-main">
-            <div class="command-center-header">
-                <div class="command-center-date" x-text="currentDate"></div>
-                <div class="command-center-title">PROPERTYHUB AI</div>
-                <div class="command-center-greeting" x-text="greeting"></div>
-            </div>
-            
-            <div class="stats-bar" x-show="stats">
-                <div class="stat-item">
-                    <span class="stat-label">Handled Today:</span>
-                    <span class="stat-value" x-text="stats.handled_today"></span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Avg Response:</span>
-                    <span class="stat-value" x-text="stats.avg_response_minutes + ' min'"></span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Status:</span>
-                    <span class="stat-value" x-text="items.length === 0 ? 'All Clear ✨' : items.length + ' Pending'"></span>
-                </div>
-            </div>
-            
-            <div x-show="loading" class="loading-container">
-                <div class="spinner"></div>
-            </div>
-            
-            <div x-show="!loading && items.length === 0" class="empty-state">
-                <div class="empty-state-icon">✨</div>
-                <div class="empty-state-title">All Clear!</div>
-                <div class="empty-state-message">No items need your attention right now.</div>
-            </div>
-            
-            <div x-show="!loading && items.length > 0">
-                <template x-for="item in items" :key="item.id">
-                    <div class="command-center-item" :id="'item-' + item.id">
-                        <div class="item-header">
-                            <div>
-                                <div class="item-title" x-text="item.title"></div>
-                                <div class="item-subtitle" x-text="item.subtitle"></div>
-                            </div>
-                            <div>
-                                <span class="type-badge" :class="'type-' + item.type" x-text="item.type.replace('_', ' ')"></span>
-                                <div class="item-timestamp" x-text="formatTimestamp(item.timestamp)"></div>
-                            </div>
-                        </div>
-                        
-                        <div class="item-suggestion" x-show="item.ai_suggestion" x-text="item.ai_suggestion"></div>
-                        
-                        <div class="item-actions">
-                            <template x-for="action in item.actions" :key="action.action">
-                                <button 
-                                    class="action-btn"
-                                    :class="[action.style, { loading: actionLoading[item.id] === action.action }]"
-                                    @click="executeAction(item.id, action.action)"
-                                    :disabled="actionLoading[item.id]"
-                                    x-text="action.label">
-                                </button>
-                            </template>
-                        </div>
-                    </div>
-                </template>
-            </div>
-            
-            <div x-show="successMessage" class="success-toast" x-text="successMessage"></div>
-        </main>
+    <div x-show="loading" class="text-center p-12">
+        <div class="loading-spinner mx-auto"></div>
+        <p class="text-gray-500 mt-4">Loading action items...</p>
     </div>
     
-    <script>
-        function commandCenter() {
-            return {
-                items: [],
-                stats: null,
-                loading: true,
-                actionLoading: {},
-                successMessage: '',
-                currentDate: '',
-                greeting: '',
-                
-                init() {
-                    this.setDateTime();
-                    this.loadItems();
-                    this.loadStats();
-                    
-                    // Refresh every 30 seconds
-                    setInterval(() => {
-                        this.loadItems();
-                        this.loadStats();
-                    }, 30000);
-                },
-                
-                setDateTime() {
-                    const now = new Date();
-                    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                    
-                    this.currentDate = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-                    
-                    const hour = now.getHours();
-                    const itemCount = this.items.length;
-                    
-                    if (itemCount === 0) {
-                        this.greeting = hour < 12 ? 'Good morning. All clear!' : hour < 18 ? 'Good afternoon. All clear!' : 'Good evening. All clear!';
-                    } else {
-                        const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-                        this.greeting = `${greeting}. ${itemCount} ${itemCount === 1 ? 'item needs' : 'items need'} your attention.`;
+    <div x-show="!loading && items.length === 0" class="empty-state">
+        <svg width="64" height="64" class="mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div class="empty-state-title">All Clear!</div>
+        <div class="empty-state-message">No action items at this time</div>
+    </div>
+    
+    <div x-show="!loading && items.length > 0" class="d-grid gap-4">
+        <template x-for="item in items" :key="item.id">
+            <div class="card p-4">
+                <div class="flex justify-between align-start mb-3">
+                    <div class="flex-1">
+                        <div class="flex align-center gap-2 mb-2">
+                            <span class="badge" :class="'badge-' + item.priority" x-text="item.type"></span>
+                            <span class="text-xs text-gray-500" x-text="formatTimeAgo(item.created_at)"></span>
+                        </div>
+                        <h4 class="text-lg font-semibold text-navy-primary mb-2" x-text="item.title"></h4>
+                        <p class="text-sm text-gray-600 mb-3" x-text="item.subtitle"></p>
+                        <div class="p-3 bg-gray-50 rounded-md text-sm text-gray-700 mb-3" x-show="item.suggestion" x-text="item.suggestion"></div>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <template x-for="action in item.actions" :key="action.id">
+                        <button class="btn btn-sm btn-primary" @click="executeAction(item.id, action.id)" x-text="action.label"></button>
+                    </template>
+                    <button class="btn btn-sm btn-secondary" @click="dismissItem(item.id)">Dismiss</button>
+                </div>
+            </div>
+        </template>
+    </div>
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script>
+    function commandCenter() {
+        return {
+            loading: true,
+            items: [],
+            
+            async init() {
+                await this.fetchItems();
+            },
+            
+            async fetchItems() {
+                try {
+                    const response = await fetch('/api/command-center/items');
+                    if (response.ok) {
+                        this.items = await response.json();
                     }
-                },
-                
-                async loadItems() {
-                    try {
-                        const response = await fetch('/api/command-center/items');
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            this.items = data.data.items || [];
-                            this.setDateTime();
-                        }
-                    } catch (error) {
-                        console.error('Failed to load items:', error);
-                    } finally {
-                        this.loading = false;
-                    }
-                },
-                
-                async loadStats() {
-                    try {
-                        const response = await fetch('/api/command-center/stats');
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            this.stats = data.data;
-                        }
-                    } catch (error) {
-                        console.error('Failed to load stats:', error);
-                    }
-                },
-                
-                async executeAction(itemId, action) {
-                    this.actionLoading[itemId] = action;
-                    
-                    try {
-                        const response = await fetch('/api/command-center/act', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                item_id: itemId,
-                                action: action,
-                                params: {}
-                            })
-                        });
-                        
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            this.showSuccess(data.message || 'Action completed successfully');
-                            
-                            // Remove item from list
-                            this.items = this.items.filter(item => item.id !== itemId);
-                            this.setDateTime();
-                            
-                            // Reload stats
-                            this.loadStats();
-                        } else {
-                            alert('Action failed: ' + (data.message || 'Unknown error'));
-                        }
-                    } catch (error) {
-                        console.error('Failed to execute action:', error);
-                        alert('Failed to execute action');
-                    } finally {
-                        delete this.actionLoading[itemId];
-                    }
-                },
-                
-                showSuccess(message) {
-                    this.successMessage = message;
-                    setTimeout(() => {
-                        this.successMessage = '';
-                    }, 3000);
-                },
-                
-                formatTimestamp(timestamp) {
-                    const date = new Date(timestamp);
-                    const now = new Date();
-                    const diffMs = now - date;
-                    const diffMins = Math.floor(diffMs / 60000);
-                    
-                    if (diffMins < 1) return 'just now';
-                    if (diffMins === 1) return '1 min ago';
-                    if (diffMins < 60) return diffMins + ' min ago';
-                    
-                    const diffHours = Math.floor(diffMins / 60);
-                    if (diffHours === 1) return '1 hour ago';
-                    if (diffHours < 24) return diffHours + ' hours ago';
-                    
-                    const diffDays = Math.floor(diffHours / 24);
-                    if (diffDays === 1) return '1 day ago';
-                    return diffDays + ' days ago';
+                } catch (error) {
+                    console.error('Failed to fetch items:', error);
+                } finally {
+                    this.loading = false;
                 }
+            },
+            
+            async executeAction(itemId, actionId) {
+                try {
+                    const response = await fetch('/api/command-center/act', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ item_id: itemId, action_id: actionId })
+                    });
+                    
+                    if (response.ok) {
+                        await this.fetchItems();
+                    }
+                } catch (error) {
+                    console.error('Failed to execute action:', error);
+                }
+            },
+            
+            async dismissItem(itemId) {
+                try {
+                    const response = await fetch('/api/command-center/dismiss', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ item_id: itemId })
+                    });
+                    
+                    if (response.ok) {
+                        await this.fetchItems();
+                    }
+                } catch (error) {
+                    console.error('Failed to dismiss item:', error);
+                }
+            },
+            
+            formatTimeAgo(timestamp) {
+                const seconds = Math.floor((new Date() - new Date(timestamp)) / 1000);
+                if (seconds < 60) return 'just now';
+                if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+                if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+                return Math.floor(seconds / 86400) + 'd ago';
             }
-        }
-    </script>
-</body>
-</html>
+        };
+    }
+</script>
+{{end}}
+
+{{end}}

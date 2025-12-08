@@ -2,17 +2,44 @@
 <header class="header">
     <nav class="nav">
         <a href="/" class="logo">
-            <div class="logo-icon">🏠</div>
-            Landlords of Texas
+            <div class="logo-icon">PH</div>
+            <span class="logo-text">PropertyHub</span>
         </a>
         
-        <div class="nav-links">
-            <a href="/" {{if eq .ActivePage "home"}}class="active"{{end}}>Home</a>
-            <a href="/properties" {{if eq .ActivePage "properties"}}class="active"{{end}}>Properties</a>
-            <a href="/about" {{if eq .ActivePage "about"}}class="active"{{end}}>About</a>
-            <a href="/contact" {{if eq .ActivePage "contact"}}class="active"{{end}}>Contact</a>
-            <a href="/login" class="btn btn-secondary">Login</a>
+        <div class="nav-menu">
+            <a href="/" class="nav-link {{if eq .ActivePage "home"}}active{{end}}">Home</a>
+            <a href="/properties" class="nav-link {{if eq .ActivePage "properties"}}active{{end}}">Properties</a>
+            <a href="/about" class="nav-link {{if eq .ActivePage "about"}}active{{end}}">About</a>
+            <a href="/contact" class="nav-link {{if eq .ActivePage "contact"}}active{{end}}">Contact</a>
+            
+            {{if .User}}
+            <div class="user-dropdown">
+                <button class="user-button" aria-label="User menu">
+                    {{if .User.AvatarURL}}
+                    <img src="{{.User.AvatarURL}}" alt="{{.User.Name}}" class="user-avatar">
+                    {{else}}
+                    <div class="user-avatar">{{.User.Initials}}</div>
+                    {{end}}
+                </button>
+                <div class="user-menu">
+                    <a href="/saved-properties" class="user-menu-item">Saved Properties</a>
+                    <a href="/my-bookings" class="user-menu-item">My Bookings</a>
+                    <a href="/profile" class="user-menu-item">Profile</a>
+                    <div class="user-menu-divider"></div>
+                    <a href="/logout" class="user-menu-item">Logout</a>
+                </div>
+            </div>
+            {{else}}
+            <a href="/login" class="btn btn-secondary-consumer">Login</a>
+            {{end}}
         </div>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" aria-label="Toggle menu">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
     </nav>
 </header>
 {{end}}

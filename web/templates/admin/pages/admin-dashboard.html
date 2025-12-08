@@ -1,422 +1,419 @@
-<!DOCTYPE html>
-<html lang="en">
-{{template "_head.html" .}}
-<body>
-    <link rel="stylesheet" href="/static/css/password-strength.css">
-    <script src="/static/js/mfa-prompt.js"></script>
-    <div class="admin-layout" x-data="dashboardData()" x-init="init()">
-        <!-- Mobile Sidebar Toggle Button -->
-        <button class="admin-sidebar-toggle" x-data="sidebarToggle()" @click="toggleSidebar">
-            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-        </button>
+{{define "admin-dashboard"}}
+{{template "admin-base" .}}
+
+{{define "additional-css"}}
+<link rel="stylesheet" href="/static/css/password-strength.css">
+<link rel="stylesheet" href="/static/css/live-sessions.css">
+{{end}}
+
+{{define "head"}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+{{end}}
+
+{{define "layout-data"}}x-data="dashboardData()" x-init="init()"{{end}}
+
+{{define "content"}}
+<div x-data="mfaPromptData()" x-init="init()">
+    <div class="mfa-prompt" x-show="!dismissed && !hasMFA">
+        <svg class="mfa-prompt-icon" width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        </svg>
+        <div class="mfa-prompt-content">
+            <h3>Secure Your Account</h3>
+            <p>Enable two-factor authentication for extra protection against unauthorized access.</p>
+            <div class="mfa-prompt-actions">
+                <a href="/admin/settings?tab=security" class="btn btn-primary">Enable 2FA</a>
+                <button class="btn btn-outline" @click="remindLater()">Remind Me Later</button>
+            </div>
+        </div>
+        <button class="mfa-prompt-close" @click="dismissMFA()">×</button>
+    </div>
+</div>
+
+<section class="dashboard-section dashboard-critical" x-show="criticalStats.pendingBookings > 0 || criticalStats.pendingApplications > 0 || criticalStats.alerts > 0">
+    <div class="critical-actions-bar">
+        <div class="critical-item" x-show="criticalStats.pendingBookings > 0">
+            <span class="critical-count" x-text="criticalStats.pendingBookings"></span>
+            <span class="critical-label">Pending Bookings</span>
+            <a href="/admin/bookings" class="critical-link">Review →</a>
+        </div>
+        <div class="critical-item" x-show="criticalStats.pendingApplications > 0">
+            <span class="critical-count" x-text="criticalStats.pendingApplications"></span>
+            <span class="critical-label">Pending Applications</span>
+            <a href="/admin/applications" class="critical-link">Review →</a>
+        </div>
+        <div class="critical-item" x-show="criticalStats.alerts > 0">
+            <span class="critical-count" x-text="criticalStats.alerts"></span>
+            <span class="critical-label">System Alerts</span>
+            <a href="/admin/security" class="critical-link">View →</a>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-section">
+    <div class="section-label admin-section-label">
+      <span class="section-label-line"></span>
+      <span class="section-label-text">Key Metrics</span>
+      <span class="section-label-line"></span>
+    </div>
+    <div class="stats-grid stats-grid-4">
+        <div class="stat-card" x-data="statCard('active_leads')">
+            <div class="stat-card-label">Active Leads</div>
+            <div class="stat-card-value" x-text="Math.round(displayValue)"></div>
+            <div class="stat-card-change" :class="keyMetrics.activeLeadsTrend > 0 ? 'positive' : 'negative'">
+                <span x-text="keyMetrics.activeLeadsTrend > 0 ? '↑' : '↓'"></span>
+                <span x-text="Math.abs(keyMetrics.activeLeadsTrend) + '%'"></span>
+            </div>
+        </div>
         
-        <!-- Sidebar Backdrop -->
-        <div class="sidebar-backdrop" x-data="sidebarToggle()" @click="closeSidebar" :class="{ 'show': sidebarOpen }"></div>
+        <div class="stat-card" x-data="statCard('conversion_rate')">
+            <div class="stat-card-label">Conversion Rate</div>
+            <div class="stat-card-value" x-text="displayValue.toFixed(1) + '%'"></div>
+            <div class="stat-card-subtitle">30-day average</div>
+        </div>
         
-        {{template "_sidebar.html" .}}
+        <div class="stat-card" x-data="statCard('revenue_mtd')">
+            <div class="stat-card-label">Revenue MTD</div>
+            <div class="stat-card-value" x-text="formatCurrency(displayValue)"></div>
+            <div class="stat-card-change" :class="keyMetrics.revenueTrend > 0 ? 'positive' : 'negative'">
+                <span x-text="keyMetrics.revenueTrend > 0 ? '↑' : '↓'"></span>
+                <span x-text="Math.abs(keyMetrics.revenueTrend) + '%'"></span>
+            </div>
+        </div>
         
-        <main class="admin-main">
-            {{template "_topbar.html" .}}
-            
-            <div class="admin-content">
-                <!-- MFA Enrollment Prompt -->
-                <div x-data="mfaPromptData()" x-init="init()">
-                    <div class="mfa-prompt" x-show="!dismissed && !hasMFA">
-                        <div class="mfa-prompt-icon">🔐</div>
-                        <div class="mfa-prompt-content">
-                            <h3>Secure Your Account</h3>
-                            <p>Enable two-factor authentication for extra protection against unauthorized access.</p>
-                            <div class="mfa-prompt-actions">
-                                <a href="/admin/settings?tab=security" class="btn btn-primary">Enable 2FA</a>
-                                <button class="btn btn-outline" @click="remindLater()">Remind Me Later</button>
-                            </div>
-                        </div>
-                        <button class="mfa-prompt-close" @click="dismissMFA()">×</button>
-                    </div>
-                </div>
+        <div class="stat-card" x-data="statCard('bookings_week')">
+            <div class="stat-card-label">Bookings This Week</div>
+            <div class="stat-card-value" x-text="Math.round(displayValue)"></div>
+            <div class="stat-card-subtitle">
+                <span x-text="keyMetrics.confirmedBookings"></span> confirmed
+            </div>
+        </div>
+    </div>
+</section>
 
-                <section class="dashboard-section dashboard-critical" x-show="criticalStats.pendingBookings > 0 || criticalStats.pendingApplications > 0 || criticalStats.alerts > 0">
-                    <div class="critical-actions-bar">
-                        <div class="critical-item" x-show="criticalStats.pendingBookings > 0">
-                            <span class="critical-count" x-text="criticalStats.pendingBookings"></span>
-                            <span class="critical-label">Pending Bookings</span>
-                            <a href="/admin/bookings" class="critical-link">Review →</a>
-                        </div>
-                        <div class="critical-item" x-show="criticalStats.pendingApplications > 0">
-                            <span class="critical-count" x-text="criticalStats.pendingApplications"></span>
-                            <span class="critical-label">Pending Applications</span>
-                            <a href="/admin/applications" class="critical-link">Review →</a>
-                        </div>
-                        <div class="critical-item" x-show="criticalStats.alerts > 0">
-                            <span class="critical-count" x-text="criticalStats.alerts"></span>
-                            <span class="critical-label">System Alerts</span>
-                            <a href="/admin/security" class="critical-link">View →</a>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="dashboard-section">
-                    <div class="section-label admin-section-label">
-                      <span class="section-label-line"></span>
-                      <span class="section-label-text">Key Metrics</span>
-                      <span class="section-label-line"></span>
-                    </div>
-                    <div class="stats-grid stats-grid-4">
-                        <div class="stat-card" x-data="statCard('active_leads')">
-                            <div class="stat-card-label">Active Leads</div>
-                            <div class="stat-card-value" x-text="Math.round(displayValue)"></div>
-                            <div class="stat-card-change" :class="keyMetrics.activeLeadsTrend > 0 ? 'positive' : 'negative'">
-                                <span x-text="keyMetrics.activeLeadsTrend > 0 ? '↑' : '↓'"></span>
-                                <span x-text="Math.abs(keyMetrics.activeLeadsTrend) + '%'"></span>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card" x-data="statCard('conversion_rate')">
-                            <div class="stat-card-label">Conversion Rate</div>
-                            <div class="stat-card-value" x-text="displayValue.toFixed(1) + '%'"></div>
-                            <div class="stat-card-subtitle">30-day average</div>
-                        </div>
-                        
-                        <div class="stat-card" x-data="statCard('revenue_mtd')">
-                            <div class="stat-card-label">Revenue MTD</div>
-                            <div class="stat-card-value" x-text="formatCurrency(displayValue)"></div>
-                            <div class="stat-card-change" :class="keyMetrics.revenueTrend > 0 ? 'positive' : 'negative'">
-                                <span x-text="keyMetrics.revenueTrend > 0 ? '↑' : '↓'"></span>
-                                <span x-text="Math.abs(keyMetrics.revenueTrend) + '%'"></span>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card" x-data="statCard('bookings_week')">
-                            <div class="stat-card-label">Bookings This Week</div>
-                            <div class="stat-card-value" x-text="Math.round(displayValue)"></div>
-                            <div class="stat-card-subtitle">
-                                <span x-text="keyMetrics.confirmedBookings"></span> confirmed
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Live Activity Feed - Real-time user activity -->
-                <section class="dashboard-section">
-                    <div class="live-activity-container" x-data="liveActivityFeed()" x-init="init()">
-                        <div class="live-activity-header">
-                            <div class="section-label admin-section-label">
-                                <span class="section-label-line"></span>
-                                <span class="section-label-text">
-                                    <span class="pulse-indicator"></span>
-                                    Live Activity
-                                    <span class="active-count-badge" x-text="activeCount" x-show="activeCount > 0"></span>
-                                </span>
-                                <span class="section-label-line"></span>
-                            </div>
-                        </div>
-                        <div class="live-activity-feed" id="live-activity-feed">
-                            <div class="activity-list" id="activity-list">
-                                <template x-for="event in events.slice(0, 20)" :key="event.timestamp">
-                                    <div class="activity-item" :class="'activity-' + event.type" :data-score="event.score">
-                                        <span class="activity-icon" x-html="getActivityIcon(event.type)"></span>
-                                        <div class="activity-content">
-                                            <span class="activity-details" x-text="event.details"></span>
-                                            <span class="activity-score" x-show="event.score >= 70" x-text="'🔥 Score: ' + event.score"></span>
-                                        </div>
-                                        <span class="activity-time" x-text="formatTimeAgo(event.timestamp)"></span>
-                                    </div>
-                                </template>
-                                <div x-show="events.length === 0" class="empty-state-small">
-                                    <div class="empty-state-text">No recent activity</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="dashboard-section">
-                    <div class="dashboard-columns">
-                        <div class="dashboard-column">
-                            <div class="d-flex justify-between align-center mb-4">
-                                <div class="section-label admin-section-label">
-                                  <span class="section-label-line"></span>
-                                  <span class="section-label-text">Top Opportunities</span>
-                                  <span class="section-label-line"></span>
-                                </div>
-                                <a href="/admin/business-intelligence" class="view-all">View All →</a>
-                            </div>
-                            
-                            <div x-show="loadingOpportunities" class="d-flex justify-center p-6">
-                                <div class="loading"></div>
-                            </div>
-                            
-                            <div x-show="!loadingOpportunities">
-                                <template x-for="(opp, index) in opportunities.slice(0, 4)" :key="opp.id">
-                                    <div class="opportunity-card mb-3">
-                                        <div class="opportunity-header">
-                                            <div class="opportunity-rank" x-text="'#' + (index + 1)"></div>
-                                            <div class="opportunity-badges">
-                                                <span class="badge badge-danger text-xs" x-text="'Priority: ' + opp.priority"></span>
-                                                <span class="badge badge-success text-xs" x-text="Math.round(opp.conversion_probability * 100) + '%'"></span>
-                                            </div>
-                                        </div>
-                                        <h4 class="opportunity-title" x-text="opp.lead_name"></h4>
-                                        <p class="opportunity-type" x-text="opp.type.replace(/_/g, ' ')"></p>
-                                        <div class="opportunity-property" x-show="opp.property_address" x-text="opp.property_address"></div>
-                                        <div class="opportunity-actions">
-                                            <template x-for="action in opp.action_sequence.slice(0, 2)" :key="action.action">
-                                                <button class="btn btn-sm btn-primary" @click="executeAction(opp.id, action.action, opp.lead_email)">
-                                                    <span x-text="action.description"></span>
-                                                </button>
-                                            </template>
-                                        </div>
-                                    </div>
-                                </template>
-                                
-                                <div x-show="opportunities.length === 0" class="empty-state-small">
-                                    <div class="empty-state-icon">✓</div>
-                                    <div class="empty-state-text">No urgent opportunities</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="dashboard-column">
-                            <div class="d-flex justify-between align-center mb-4">
-                                <div class="section-label admin-section-label">
-                                  <span class="section-label-line"></span>
-                                  <span class="section-label-text">Recent Activity</span>
-                                  <span class="section-label-line"></span>
-                                </div>
-                                <a href="/admin/business-intelligence" class="view-all">View All →</a>
-                            </div>
-                            
-                            <div class="activity-feed-compact">
-                                <template x-for="activity in recentActivity.slice(0, 5)" :key="activity.id">
-                                    <div class="activity-item-compact">
-                                        <div class="activity-icon-compact" :style="`background-color: ${getActivityColor(activity.type)}`">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="getActivityIconPath(activity.type)"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="activity-content-compact">
-                                            <div class="activity-title-compact" x-text="activity.title"></div>
-                                            <div class="activity-time-compact" x-text="formatTimeAgo(activity.timestamp)"></div>
-                                        </div>
-                                    </div>
-                                </template>
-                                
-                                <div x-show="recentActivity.length === 0" class="empty-state-small">
-                                    <div class="empty-state-text">No recent activity</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="dashboard-section">
-                    <div class="section-label admin-section-label">
-                      <span class="section-label-line"></span>
-                      <span class="section-label-text">Performance Overview</span>
-                      <span class="section-label-line"></span>
-                    </div>
-                    <div class="charts-grid charts-grid-2">
-                        <div class="chart-card">
-                            <div class="chart-card-header">
-                                <h3 class="chart-card-title">Booking Trends</h3>
-                                <p class="chart-card-subtitle">Last 7 days</p>
-                            </div>
-                            <div class="chart-card-body">
-                                <canvas x-ref="bookingTrendsChart" class="chart-canvas"></canvas>
-                            </div>
-                        </div>
-                        
-                        <div class="chart-card">
-                            <div class="chart-card-header">
-                                <h3 class="chart-card-title">Lead Sources</h3>
-                                <p class="chart-card-subtitle">Current month</p>
-                            </div>
-                            <div class="chart-card-body">
-                                <canvas x-ref="leadSourceChart" class="chart-canvas"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Live Sessions Panel - Who's Browsing Now -->
-                <section class="dashboard-section">
-                    <div class="live-sessions-panel" x-data="liveSessionsPanel()" x-init="init()">
-                        <div class="live-sessions-header">
-                            <h3 class="live-sessions-title">
-                                <span class="pulse-dot"></span>
-                                Active Visitors
-                                <span class="live-sessions-count" x-text="sessions.length"></span>
-                            </h3>
-                            <a href="/admin/sessions" class="view-all-link">
-                                View All 
-                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+<section class="dashboard-section">
+    <div class="live-activity-container" x-data="liveActivityFeed()" x-init="init()">
+        <div class="live-activity-header">
+            <div class="section-label admin-section-label">
+                <span class="section-label-line"></span>
+                <span class="section-label-text">
+                    <span class="pulse-indicator"></span>
+                    Live Activity
+                    <span class="active-count-badge" x-text="activeCount" x-show="activeCount > 0"></span>
+                </span>
+                <span class="section-label-line"></span>
+            </div>
+        </div>
+        <div class="live-activity-feed" id="live-activity-feed">
+            <div class="activity-list" id="activity-list">
+                <template x-for="event in events.slice(0, 20)" :key="event.timestamp">
+                    <div class="activity-item" :class="'activity-' + event.type" :data-score="event.score">
+                        <span class="activity-icon" x-html="getActivityIcon(event.type)"></span>
+                        <div class="activity-content">
+                            <span class="activity-details" x-text="event.details"></span>
+                            <span class="activity-score" x-show="event.score >= 70">
+                                <svg width="14" height="14" class="inline" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path>
                                 </svg>
-                            </a>
+                                Score: <span x-text="event.score"></span>
+                            </span>
                         </div>
-                        
-                        <div x-show="loading" class="sessions-loading">
-                            <div class="sessions-loading-spinner"></div>
+                        <span class="activity-time" x-text="formatTimeAgo(event.timestamp)"></span>
+                    </div>
+                </template>
+                <div x-show="events.length === 0" class="empty-state-small">
+                    <div class="empty-state-text">No recent activity</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-section">
+    <div class="dashboard-columns">
+        <div class="dashboard-column">
+            <div class="d-flex justify-between align-center mb-4">
+                <div class="section-label admin-section-label">
+                  <span class="section-label-line"></span>
+                  <span class="section-label-text">Top Opportunities</span>
+                  <span class="section-label-line"></span>
+                </div>
+                <a href="/admin/business-intelligence" class="view-all">View All →</a>
+            </div>
+            
+            <div x-show="loadingOpportunities" class="d-flex justify-center p-6">
+                <div class="loading"></div>
+            </div>
+            
+            <div x-show="!loadingOpportunities">
+                <template x-for="(opp, index) in opportunities.slice(0, 4)" :key="opp.id">
+                    <div class="opportunity-card mb-3">
+                        <div class="opportunity-header">
+                            <div class="opportunity-rank" x-text="'#' + (index + 1)"></div>
+                            <div class="opportunity-badges">
+                                <span class="badge badge-danger text-xs" x-text="'Priority: ' + opp.priority"></span>
+                                <span class="badge badge-success text-xs" x-text="Math.round(opp.conversion_probability * 100) + '%'"></span>
+                            </div>
                         </div>
-                        
-                        <div x-show="!loading && sessions.length === 0" class="sessions-empty-state">
-                            <div class="sessions-empty-icon">👥</div>
-                            <div class="sessions-empty-text">No active visitors right now</div>
-                        </div>
-                        
-                        <div x-show="!loading && sessions.length > 0" class="sessions-list">
-                            <template x-for="session in sessions.slice(0, 5)" :key="session.session_id">
-                                <div class="session-card" :class="'score-' + session.score_category" @click="viewJourney(session.session_id)">
-                                    <div class="session-header">
-                                        <div class="session-identity">
-                                            <span class="session-status-indicator" x-text="getStatusIcon(session.score_category)"></span>
-                                            <div class="session-identity-details">
-                                                <div class="session-email" :class="{ 'anonymous': session.is_anonymous }" x-text="session.is_anonymous ? 'Anonymous Visitor' : (session.lead_email || session.lead_name)"></div>
-                                                <div class="session-location" x-show="session.location.city || session.location.state">
-                                                    <svg class="session-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                    </svg>
-                                                    <span x-text="getLocationString(session.location)"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="session-score" :class="session.score_category">
-                                            <span>Score: <span x-text="session.behavioral_score"></span></span>
-                                            <span x-text="'(' + getCategoryLabel(session.score_category) + ')'"></span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="session-activity">
-                                        <div class="session-current-activity">
-                                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                            </svg>
-                                            <span x-text="session.current_page"></span>
-                                        </div>
-                                        <div x-show="session.current_property" class="session-property-address" x-text="session.current_property ? session.current_property.address : ''"></div>
-                                    </div>
-                                    
-                                    <div class="session-metrics">
-                                        <div class="session-metric">
-                                            <svg class="session-metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                            </svg>
-                                            <span x-text="session.page_views + ' pages'"></span>
-                                        </div>
-                                        <div class="session-metric">
-                                            <svg class="session-metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                            <span x-text="formatDuration(session.session_duration)"></span>
-                                        </div>
-                                        <div class="session-metric" x-show="session.device_type">
-                                            <svg class="session-metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                            </svg>
-                                            <span x-text="session.device_type"></span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="session-actions">
-                                        <button class="session-action-btn primary" @click.stop="viewJourney(session.session_id)">
-                                            View Journey
-                                        </button>
-                                        <button class="session-action-btn" @click.stop="identifyLead(session)" x-show="session.is_anonymous">
-                                            Identify Lead
-                                        </button>
-                                        <button class="session-action-btn" @click.stop="sendProperty(session)" x-show="!session.is_anonymous">
-                                            Send Property
-                                        </button>
-                                    </div>
-                                </div>
+                        <h4 class="opportunity-title" x-text="opp.lead_name"></h4>
+                        <p class="opportunity-type" x-text="opp.type.replace(/_/g, ' ')"></p>
+                        <div class="opportunity-property" x-show="opp.property_address" x-text="opp.property_address"></div>
+                        <div class="opportunity-actions">
+                            <template x-for="action in opp.action_sequence.slice(0, 2)" :key="action.action">
+                                <button class="btn btn-sm btn-primary" @click="executeAction(opp.id, action.action, opp.lead_email)">
+                                    <span x-text="action.description"></span>
+                                </button>
                             </template>
                         </div>
                     </div>
-                </section>
-
-                <section class="dashboard-section dashboard-system-status">
-                    <div class="system-status-indicator" :class="systemHealthClass">
-                        <span class="status-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="systemHealth.status === 'healthy' ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' : 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'"></path>
-                            </svg>
-                        </span>
-                        <div class="status-content">
-                            <span class="status-text" x-text="systemHealthText"></span>
-                            <span class="status-details" x-text="systemHealth.uptime_percent + '% uptime • ' + systemHealth.avg_response_time_ms + 'ms avg response'"></span>
-                        </div>
-                        <a href="/admin/security" class="status-link">Details →</a>
-                    </div>
-                </section>
+                </template>
+                
+                <div x-show="opportunities.length === 0" class="empty-state-small">
+                    <svg width="32" height="32" class="mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="empty-state-text">No urgent opportunities</div>
+                </div>
             </div>
-        </main>
+        </div>
         
-        <div class="toast-container" x-data="toastManager()">
-            <template x-for="toast in toasts" :key="toast.id">
-                <div class="toast" :class="`toast-${toast.type}`" x-show="toast.visible" x-transition:enter="transition-fast" x-transition:leave="transition-fast">
-                    <div class="toast-icon" x-text="getToastIcon(toast.type)"></div>
-                    <div class="toast-message" x-text="toast.message"></div>
-                    <button class="toast-close" @click="remove(toast.id)">×</button>
+        <div class="dashboard-column">
+            <div class="d-flex justify-between align-center mb-4">
+                <div class="section-label admin-section-label">
+                  <span class="section-label-line"></span>
+                  <span class="section-label-text">Recent Activity</span>
+                  <span class="section-label-line"></span>
+                </div>
+                <a href="/admin/business-intelligence" class="view-all">View All →</a>
+            </div>
+            
+            <div class="activity-feed-compact">
+                <template x-for="activity in recentActivity.slice(0, 5)" :key="activity.id">
+                    <div class="activity-item-compact">
+                        <div class="activity-icon-compact" :style="`background-color: ${getActivityColor(activity.type)}`">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="getActivityIconPath(activity.type)"></path>
+                            </svg>
+                        </div>
+                        <div class="activity-content-compact">
+                            <div class="activity-title-compact" x-text="activity.title"></div>
+                            <div class="activity-time-compact" x-text="formatTimeAgo(activity.timestamp)"></div>
+                        </div>
+                    </div>
+                </template>
+                
+                <div x-show="recentActivity.length === 0" class="empty-state-small">
+                    <div class="empty-state-text">No recent activity</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-section">
+    <div class="section-label admin-section-label">
+      <span class="section-label-line"></span>
+      <span class="section-label-text">Performance Overview</span>
+      <span class="section-label-line"></span>
+    </div>
+    <div class="charts-grid charts-grid-2">
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <h3 class="chart-card-title">Booking Trends</h3>
+                <p class="chart-card-subtitle">Last 7 days</p>
+            </div>
+            <div class="chart-card-body">
+                <canvas x-ref="bookingTrendsChart" class="chart-canvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <h3 class="chart-card-title">Lead Sources</h3>
+                <p class="chart-card-subtitle">Current month</p>
+            </div>
+            <div class="chart-card-body">
+                <canvas x-ref="leadSourceChart" class="chart-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-section">
+    <div class="live-sessions-panel" x-data="liveSessionsPanel()" x-init="init()">
+        <div class="live-sessions-header">
+            <h3 class="live-sessions-title">
+                <span class="pulse-dot"></span>
+                Active Visitors
+                <span class="live-sessions-count" x-text="sessions.length"></span>
+            </h3>
+            <a href="/admin/sessions" class="view-all-link">
+                View All 
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
+        
+        <div x-show="loading" class="sessions-loading">
+            <div class="sessions-loading-spinner"></div>
+        </div>
+        
+        <div x-show="!loading && sessions.length === 0" class="sessions-empty-state">
+            <svg width="48" height="48" class="sessions-empty-icon text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"></path>
+            </svg>
+            <div class="sessions-empty-text">No active visitors right now</div>
+        </div>
+        
+        <div x-show="!loading && sessions.length > 0" class="sessions-list">
+            <template x-for="session in sessions.slice(0, 5)" :key="session.session_id">
+                <div class="session-card" :class="'score-' + session.score_category" @click="viewJourney(session.session_id)">
+                    <div class="session-header">
+                        <div class="session-identity">
+                            <span class="session-status-indicator" x-text="getStatusIcon(session.score_category)"></span>
+                            <div class="session-identity-details">
+                                <div class="session-email" :class="{ 'anonymous': session.is_anonymous }" x-text="session.is_anonymous ? 'Anonymous Visitor' : (session.lead_email || session.lead_name)"></div>
+                                <div class="session-location" x-show="session.location.city || session.location.state">
+                                    <svg class="session-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    <span x-text="getLocationString(session.location)"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="session-score" :class="session.score_category">
+                            <span>Score: <span x-text="session.behavioral_score"></span></span>
+                            <span x-text="'(' + getCategoryLabel(session.score_category) + ')'"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="session-activity">
+                        <div class="session-current-activity">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <span x-text="session.current_page"></span>
+                        </div>
+                        <div x-show="session.current_property" class="session-property-address" x-text="session.current_property ? session.current_property.address : ''"></div>
+                    </div>
+                    
+                    <div class="session-metrics">
+                        <div class="session-metric">
+                            <svg class="session-metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span x-text="session.page_views + ' pages'"></span>
+                        </div>
+                        <div class="session-metric">
+                            <svg class="session-metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span x-text="formatDuration(session.session_duration)"></span>
+                        </div>
+                        <div class="session-metric" x-show="session.device_type">
+                            <svg class="session-metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                            <span x-text="session.device_type"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="session-actions">
+                        <button class="session-action-btn primary" @click.stop="viewJourney(session.session_id)">
+                            View Journey
+                        </button>
+                        <button class="session-action-btn" @click.stop="identifyLead(session)" x-show="session.is_anonymous">
+                            Identify Lead
+                        </button>
+                        <button class="session-action-btn" @click.stop="sendProperty(session)" x-show="!session.is_anonymous">
+                            Send Property
+                        </button>
+                    </div>
                 </div>
             </template>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="/static/js/dashboard.js"></script>
-    
-    <!-- Session Journey Modal -->
-    <template x-if="showJourneyModal" x-data="{ show: showJourneyModal }">
-        <div class="session-journey-modal" @click.self="closeJourneyModal()" x-show="show" x-transition>
-            <div class="session-journey-content">
-                <div class="session-journey-header">
-                    <h3 class="session-journey-title">Session Journey</h3>
-                    <button class="session-journey-close" @click="closeJourneyModal()">&times;</button>
-                </div>
-                <div class="session-journey-body">
-                    <div x-show="journeyData">
-                        <div style="margin-bottom: 2rem;">
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                                <div style="padding: 1rem; background: var(--gray-50); border-radius: 8px;">
-                                    <div style="font-size: 0.75rem; color: var(--gray-600); margin-bottom: 0.5rem;">Duration</div>
-                                    <div style="font-size: 1.25rem; font-weight: 600;" x-text="journeyData ? Math.floor(journeyData.duration / 60) + 'm ' + (journeyData.duration % 60) + 's' : ''"></div>
-                                </div>
-                                <div style="padding: 1rem; background: var(--gray-50); border-radius: 8px;">
-                                    <div style="font-size: 0.75rem; color: var(--gray-600); margin-bottom: 0.5rem;">Page Views</div>
-                                    <div style="font-size: 1.25rem; font-weight: 600;" x-text="journeyData ? journeyData.page_views : ''"></div>
-                                </div>
-                                <div style="padding: 1rem; background: var(--gray-50); border-radius: 8px;">
-                                    <div style="font-size: 0.75rem; color: var(--gray-600); margin-bottom: 0.5rem;">Total Events</div>
-                                    <div style="font-size: 1.25rem; font-weight: 600;" x-text="journeyData ? journeyData.total_events : ''"></div>
-                                </div>
-                            </div>
-                            
-                            <h4 style="font-family: var(--font-family-primary); font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--navy-primary);">Activity Timeline</h4>
-                            <div class="session-timeline">
-                                <template x-for="event in journeyData?.timeline || []" :key="event.timestamp">
-                                    <div class="timeline-item">
-                                        <div class="timeline-time" x-text="formatTime(event.timestamp)"></div>
-                                        <div class="timeline-content">
-                                            <div class="timeline-event-type" x-text="formatEventType(event.event_type)"></div>
-                                            <div x-show="event.property" class="timeline-property">
-                                                <div class="timeline-property-info">
-                                                    <div class="timeline-property-address" x-text="event.property?.address"></div>
-                                                    <div class="timeline-property-price" x-text="event.property ? '$' + event.property.price.toLocaleString() : ''"></div>
-                                                </div>
-                                            </div>
+</section>
+
+<section class="dashboard-section dashboard-system-status">
+    <div class="system-status-indicator" :class="systemHealthClass">
+        <span class="status-icon">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="systemHealth.status === 'healthy' ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' : 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'"></path>
+            </svg>
+        </span>
+        <div class="status-content">
+            <span class="status-text" x-text="systemHealthText"></span>
+            <span class="status-details" x-text="systemHealth.uptime_percent + '% uptime • ' + systemHealth.avg_response_time_ms + 'ms avg response'"></span>
+        </div>
+        <a href="/admin/security" class="status-link">Details →</a>
+    </div>
+</section>
+
+<div class="toast-container" x-data="toastManager()">
+    <template x-for="toast in toasts" :key="toast.id">
+        <div class="toast" :class="`toast-${toast.type}`" x-show="toast.visible" x-transition:enter="transition-fast" x-transition:leave="transition-fast">
+            <div class="toast-icon" x-text="getToastIcon(toast.type)"></div>
+            <div class="toast-message" x-text="toast.message"></div>
+            <button class="toast-close" @click="remove(toast.id)">×</button>
+        </div>
+    </template>
+</div>
+
+<template x-if="showJourneyModal">
+    <div class="session-journey-modal" @click.self="closeJourneyModal()" x-show="showJourneyModal" x-transition>
+        <div class="session-journey-content">
+            <div class="session-journey-header">
+                <h3 class="session-journey-title">Session Journey</h3>
+                <button class="session-journey-close" @click="closeJourneyModal()">&times;</button>
+            </div>
+            <div class="session-journey-body">
+                <div x-show="journeyData">
+                    <div class="stats-grid-3 mb-6">
+                        <div class="stat-card-sm">
+                            <div class="stat-label-sm">Duration</div>
+                            <div class="stat-value-sm" x-text="journeyData ? Math.floor(journeyData.duration / 60) + 'm ' + (journeyData.duration % 60) + 's' : ''"></div>
+                        </div>
+                        <div class="stat-card-sm">
+                            <div class="stat-label-sm">Page Views</div>
+                            <div class="stat-value-sm" x-text="journeyData ? journeyData.page_views : ''"></div>
+                        </div>
+                        <div class="stat-card-sm">
+                            <div class="stat-label-sm">Total Events</div>
+                            <div class="stat-value-sm" x-text="journeyData ? journeyData.total_events : ''"></div>
+                        </div>
+                    </div>
+                    
+                    <h4 class="text-xl mb-6 text-navy-primary">Activity Timeline</h4>
+                    <div class="session-timeline">
+                        <template x-for="event in journeyData?.timeline || []" :key="event.timestamp">
+                            <div class="timeline-item">
+                                <div class="timeline-time" x-text="formatTime(event.timestamp)"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-event-type" x-text="formatEventType(event.event_type)"></div>
+                                    <div x-show="event.property" class="timeline-property">
+                                        <div class="timeline-property-info">
+                                            <div class="timeline-property-address" x-text="event.property?.address"></div>
+                                            <div class="timeline-property-price" x-text="event.property ? '$' + event.property.price.toLocaleString() : ''"></div>
                                         </div>
                                     </div>
-                                </template>
+                                </div>
                             </div>
-                        </div>
+                        </template>
                     </div>
                 </div>
             </div>
         </div>
-    </template>
-</body>
-</html>
+    </div>
+</template>
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/mfa-prompt.js"></script>
+<script src="/static/js/dashboard.js"></script>
+{{end}}
+
+{{end}}

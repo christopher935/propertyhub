@@ -1,85 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{{define "application-workflow"}}
+{{template "admin-base" .}}
+
+{{define "content"}}
+<div class="section">
+    <h2 class="section-title">Drag & Drop Application Processing</h2>
+    <p class="text-gray-500 mb-6">Manage applicants and assign to properties</p>
     
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Application Workflow - PropertyHub</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
-    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body class="admin-layout">
-<aside class="admin-sidebar">
-    <div class="sidebar-header">
-        <a href="/" class="sidebar-logo">
-            <div class="sidebar-logo-icon">PH</div>
-            <span>PropertyHub</span>
-        </a>
+    <div class="empty-state p-12 text-center">
+        <svg width="64" height="64" class="mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path>
+        </svg>
+        <div class="empty-state-title">All Clear!</div>
+        <div class="empty-state-description">No unassigned applicants at this time</div>
     </div>
-    <nav class="admin-sidebar-nav">
-        <div class="nav-section">
-            <a href="/admin/dashboard" class="nav-section-header">
-                <span class="nav-section-icon">OV</span>
-                <span class="nav-section-title">Overview</span>
-            </a>
-        </div>
-        <div class="nav-section">
-            <a href="/admin/property-list" class="nav-section-header">
-                <span class="nav-section-icon">PR</span>
-                <span class="nav-section-title">Properties</span>
-            </a>
-        </div>
-        <div class="nav-section">
-            <a href="/admin/lead-management" class="nav-section-header">
-                <span class="nav-section-icon">LD</span>
-                <span class="nav-section-title">Leads</span>
-            </a>
-        </div>
-        <div class="nav-section">
-            <a href="/admin/application-workflow" class="nav-section-header active">
-                <span class="nav-section-icon">WF</span>
-                <span class="nav-section-title">Workflow</span>
-            </a>
-        </div>
-        <div class="nav-section">
-            <a href="/admin/communication-center" class="nav-section-header">
-                <span class="nav-section-icon">CM</span>
-                <span class="nav-section-title">Communications</span>
-            </a>
-        </div>
-    </nav>
-</aside>
-<main class="admin-main">
-    <header class="admin-header">
-        <div class="admin-header-content">
-            <h1 class="admin-header-title">Application Workflow</h1>
-            <div class="admin-header-actions">
-                <button class="btn btn-logout" onclick="location.href='/admin/logout'">Logout</button>
-            </div>
-        </div>
-    </header>
-    <div class="admin-content">
-        <div class="section">
-            <h2 class="section-title">Drag & Drop Application Processing</h2>
-            <p style="color: var(--navy-muted); margin-bottom: var(--space-6);">Manage applicants and assign to properties</p>
-            <div class="empty-state" style="padding: var(--space-12); text-align: center;">
-                <div class="empty-state-icon" style="font-size: 48px; margin-bottom: var(--space-4);">📋</div>
-                <div class="empty-state-title">All Clear!</div>
-                <div class="empty-state-description">No unassigned applicants at this time</div>
-            </div>
-        </div>
-    </div>
-</main>
-</body>
-</html>
+</div>
+{{end}}
+
+{{end}}

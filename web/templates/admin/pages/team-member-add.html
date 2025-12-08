@@ -1,228 +1,147 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Add Team Member - PropertyHub Admin</title>
-    
-    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
-    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
-    
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body>
-    <div class="admin-layout" x-data="teamMemberAddData()">
-        <aside class="admin-sidebar">
-            <div class="sidebar-header">
-                <a href="/admin/dashboard" class="sidebar-logo">
-                    <div class="sidebar-logo-icon">PH</div>
-                    <span>PropertyHub</span>
-                </a>
-            </div>
+{{define "team-member-add"}}
+{{template "admin-base" .}}
+
+{{define "layout-data"}}x-data="teamMemberAddData()"{{end}}
+
+{{define "content"}}
+<div class="mb-2">
+    <a href="/admin/team" class="text-gray-500 text-sm">← Back to Team</a>
+</div>
+
+<div class="max-w-3xl mx-auto">
+    <form @submit.prevent="submitForm" class="card p-6">
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-navy-primary mb-4">Personal Information</h3>
             
-            <nav class="admin-sidebar-nav">
-                <div class="nav-section">
-                    <a href="/admin/dashboard" class="nav-section-header">
-                        <div class="nav-section-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                        </div>
-                        <span class="nav-section-title">Dashboard</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <a href="/admin/team" class="nav-section-header active">
-                        <div class="nav-section-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                            </svg>
-                        </div>
-                        <span class="nav-section-title">Team</span>
-                    </a>
-                </div>
-            </nav>
-        </aside>
-        
-        <main class="admin-main">
-            <header class="admin-header">
-                <div class="admin-header-content">
+            <div class="d-grid gap-4">
+                <div class="d-grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-3);">
                     <div>
-                        <div style="margin-bottom: var(--space-2);">
-                            <a href="/admin/team" style="color: var(--gray-500); font-size: var(--font-size-sm); text-decoration: none;">
-                                ← Back to Team
-                            </a>
-                        </div>
-                        <h1 class="admin-header-title">Add Team Member</h1>
+                        <label class="form-label">
+                            First Name <span class="text-error">*</span>
+                        </label>
+                        <input type="text" x-model="form.first_name" required class="form-input">
                     </div>
-                    
-                    <div class="admin-header-actions">
-                        <div class="admin-user-menu">
-                            <div class="admin-user-avatar">AD</div>
-                            <div class="admin-user-info">
-                                <div class="admin-user-name">Admin</div>
-                                <div class="admin-user-role">Administrator</div>
-                            </div>
-                        </div>
+                    <div>
+                        <label class="form-label">
+                            Last Name <span class="text-error">*</span>
+                        </label>
+                        <input type="text" x-model="form.last_name" required class="form-input">
                     </div>
                 </div>
-            </header>
-            
-            <div class="admin-content">
-                <div style="max-width: 800px; margin: 0 auto;">
-                    <form @submit.prevent="submitForm" style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
-                        <div style="margin-bottom: var(--space-6);">
-                            <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Personal Information</h3>
-                            
-                            <div style="display: grid; gap: var(--space-4);">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
-                                    <div>
-                                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                            First Name <span style="color: var(--error);">*</span>
-                                        </label>
-                                        <input type="text" x-model="form.first_name" required 
-                                               style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-size: var(--font-size-base);">
-                                    </div>
-                                    <div>
-                                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                            Last Name <span style="color: var(--error);">*</span>
-                                        </label>
-                                        <input type="text" x-model="form.last_name" required 
-                                               style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                        Email <span style="color: var(--error);">*</span>
-                                    </label>
-                                    <input type="email" x-model="form.email" required 
-                                           style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                </div>
-                                
-                                <div>
-                                    <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                        Phone <span style="color: var(--error);">*</span>
-                                    </label>
-                                    <input type="tel" x-model="form.phone" required 
-                                           style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom: var(--space-6);">
-                            <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Role & Permissions</h3>
-                            
-                            <div style="display: grid; gap: var(--space-4);">
-                                <div>
-                                    <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                        Role <span style="color: var(--error);">*</span>
-                                    </label>
-                                    <select x-model="form.role" required 
-                                            style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                        <option value="">Select Role</option>
-                                        <option value="admin">Administrator</option>
-                                        <option value="agent">Agent</option>
-                                        <option value="manager">Manager</option>
-                                        <option value="support">Support Staff</option>
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                        Department
-                                    </label>
-                                    <select x-model="form.department" 
-                                            style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                        <option value="">Select Department</option>
-                                        <option value="sales">Sales</option>
-                                        <option value="leasing">Leasing</option>
-                                        <option value="property_management">Property Management</option>
-                                        <option value="support">Support</option>
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                        Commission Rate (%)
-                                    </label>
-                                    <input type="number" step="0.1" x-model="form.commission_rate" 
-                                           style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                </div>
-                                
-                                <div>
-                                    <label style="display: flex; align-items: center; cursor: pointer;">
-                                        <input type="checkbox" x-model="form.is_active" 
-                                               style="width: 18px; height: 18px; margin-right: var(--space-2); cursor: pointer;">
-                                        <span style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);">Active</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; gap: var(--space-3); justify-content: flex-end;">
-                            <a href="/admin/team" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary" :disabled="submitting">
-                                <span x-show="!submitting">Add Team Member</span>
-                                <span x-show="submitting">Adding...</span>
-                            </button>
-                        </div>
-                    </form>
+                
+                <div>
+                    <label class="form-label">
+                        Email <span class="text-error">*</span>
+                    </label>
+                    <input type="email" x-model="form.email" required class="form-input">
+                </div>
+                
+                <div>
+                    <label class="form-label">
+                        Phone <span class="text-error">*</span>
+                    </label>
+                    <input type="tel" x-model="form.phone" required class="form-input">
                 </div>
             </div>
-        </main>
-    </div>
-    
-    <script>
-        function teamMemberAddData() {
-            return {
-                submitting: false,
-                form: {
-                    first_name: '',
-                    last_name: '',
-                    email: '',
-                    phone: '',
-                    role: '',
-                    department: '',
-                    commission_rate: '',
-                    is_active: true
-                },
+        </div>
+        
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-navy-primary mb-4">Role & Permissions</h3>
+            
+            <div class="d-grid gap-4">
+                <div>
+                    <label class="form-label">
+                        Role <span class="text-error">*</span>
+                    </label>
+                    <select x-model="form.role" required class="form-input">
+                        <option value="">Select Role</option>
+                        <option value="admin">Administrator</option>
+                        <option value="agent">Agent</option>
+                        <option value="manager">Manager</option>
+                        <option value="support">Support Staff</option>
+                    </select>
+                </div>
                 
-                async submitForm() {
-                    this.submitting = true;
+                <div>
+                    <label class="form-label">Department</label>
+                    <select x-model="form.department" class="form-input">
+                        <option value="">Select Department</option>
+                        <option value="sales">Sales</option>
+                        <option value="leasing">Leasing</option>
+                        <option value="property_management">Property Management</option>
+                        <option value="support">Support</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="form-label">Commission Rate (%)</label>
+                    <input type="number" step="0.1" x-model="form.commission_rate" class="form-input">
+                </div>
+                
+                <div>
+                    <label class="flex align-center cursor-pointer">
+                        <input type="checkbox" x-model="form.is_active" class="mr-2 cursor-pointer" style="width: 18px; height: 18px;">
+                        <span class="font-semibold text-navy-primary">Active</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex gap-3 justify-end">
+            <a href="/admin/team" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" :disabled="submitting">
+                <span x-show="!submitting">Add Team Member</span>
+                <span x-show="submitting">Adding...</span>
+            </button>
+        </div>
+    </form>
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script>
+    function teamMemberAddData() {
+        return {
+            submitting: false,
+            form: {
+                first_name: '',
+                last_name: '',
+                email: '',
+                phone: '',
+                role: '',
+                department: '',
+                commission_rate: '',
+                is_active: true
+            },
+            
+            async submitForm() {
+                this.submitting = true;
+                
+                try {
+                    const response = await fetch('/api/admin/team/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(this.form)
+                    });
                     
-                    try {
-                        const response = await fetch('/api/admin/team/add', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(this.form)
-                        });
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            window.location.href = `/admin/team-member-added-success?id=${data.id}`;
-                        } else {
-                            alert('Failed to add team member. Please try again.');
-                        }
-                    } catch (error) {
-                        console.error('Error adding team member:', error);
-                        alert('An error occurred. Please try again.');
-                    } finally {
-                        this.submitting = false;
+                    if (response.ok) {
+                        const data = await response.json();
+                        window.location.href = `/admin/team-member-added-success?id=${data.id}`;
+                    } else {
+                        alert('Failed to add team member. Please try again.');
                     }
+                } catch (error) {
+                    console.error('Error adding team member:', error);
+                    alert('An error occurred. Please try again.');
+                } finally {
+                    this.submitting = false;
                 }
-            };
-        }
-    </script>
-</body>
-</html>
+            }
+        };
+    }
+</script>
+{{end}}
+
+{{end}}
