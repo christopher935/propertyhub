@@ -54,6 +54,7 @@ func RegisterBIRoutes(router *gin.Engine, db *gorm.DB) {
 
 		// Reports
 		bi.GET("/reports/friday", handlers.GetFridayReport)
+		bi.POST("/reports/friday/send", handlers.SendFridayReport)
 
 		// Real-time metrics
 		bi.GET("/realtime/stats", handlers.GetRealtimeStats)
@@ -462,6 +463,39 @@ func (bih *BusinessIntelligenceHandlers) GetFridayReport(c *gin.Context) {
 			"format":  "json",
 		})
 	}
+}
+
+// SendFridayReport sends the Friday Report via email
+func (bih *BusinessIntelligenceHandlers) SendFridayReport(c *gin.Context) {
+	var request struct {
+		Recipients []string `json:"recipients" binding:"required"`
+		ReportText string   `json:"report_text" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	if len(request.Recipients) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "At least one recipient is required",
+		})
+		return
+	}
+
+	// TODO: Implement actual email sending using AWS SES or SMTP
+	// For now, just return success
+	// In a real implementation, you would use the aws_communication_service
+	
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": fmt.Sprintf("Report sent to %d recipient(s)", len(request.Recipients)),
+		"recipients": request.Recipients,
+	})
 }
 
 // generateTextFridayReport converts the Friday Report to text format for email

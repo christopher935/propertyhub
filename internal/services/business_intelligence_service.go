@@ -110,149 +110,133 @@ func NewBusinessIntelligenceService(db *gorm.DB) *BusinessIntelligenceService {
 	}
 }
 
-// GenerateFridayReport generates the weekly Friday report
+// GenerateFridayReport generates the weekly Friday report with real data
 func (bis *BusinessIntelligenceService) GenerateFridayReport() (*FridayReportData, error) {
+	now := time.Now()
+	weekStart := now.AddDate(0, 0, -7)
+
+	weekRange := fmt.Sprintf("%s - %s", weekStart.Format("Jan 2"), now.Format("Jan 2, 2006"))
+
+	var activeListings []ActiveListing
+	var soldListings []SoldListing
+
+	var properties []models.Property
+	bis.db.Where("status = ? OR status = ?", "active", "available").Find(&properties)
+
+	for _, prop := range properties {
+		address := string(prop.Address)
+		mlsID := prop.MLSId
+
+		var cdom int
+		if prop.DaysOnMarket != nil {
+			cdom = *prop.DaysOnMarket
+		} else if prop.DateAdded != nil {
+			cdom = int(now.Sub(*prop.DateAdded).Hours() / 24)
+		} else {
+			cdom = int(now.Sub(prop.CreatedAt).Hours() / 24)
+		}
+
+		var leadsTotal int64
+		bis.db.Table("contacts").Where("property_id = ? AND created_at >= ?", prop.ID, weekStart).Count(&leadsTotal)
+
+		var leadsThisWeek int64
+		bis.db.Table("contacts").Where("property_id = ? AND created_at >= ?", prop.ID, weekStart).Count(&leadsThisWeek)
+
+		var leadsLastWeek int64
+		bis.db.Table("contacts").Where("property_id = ? AND created_at >= ? AND created_at < ?", prop.ID, weekStart.AddDate(0, 0, -7), weekStart).Count(&leadsLastWeek)
+
+		leadsWeekChange := int(leadsThisWeek - leadsLastWeek)
+
+		var showingsTotal int64
+		bis.db.Table("bookings").Where("property_id = ?", prop.ID).Count(&showingsTotal)
+
+		var showingsThisWeek int64
+		bis.db.Table("bookings").Where("property_id = ? AND created_at >= ?", prop.ID, weekStart).Count(&showingsThisWeek)
+
+		var showingsLastWeek int64
+		bis.db.Table("bookings").Where("property_id = ? AND created_at >= ? AND created_at < ?", prop.ID, weekStart.AddDate(0, 0, -7), weekStart).Count(&showingsLastWeek)
+
+		showingsChange := int(showingsThisWeek - showingsLastWeek)
+
+		var applications int64
+		bis.db.Raw(`
+			SELECT COUNT(DISTINCT aa.id) 
+			FROM application_applicants aa
+			JOIN application_numbers an ON aa.application_number_id = an.id
+			JOIN property_application_groups pag ON an.property_group_id = pag.id
+			WHERE pag.property_id = ?
+		`, prop.ID).Scan(&applications)
+
+		aiInsights := bis.generateInsights(cdom, int(leadsTotal), int(showingsTotal), int(applications), leadsWeekChange, showingsChange)
+
+		activeListing := ActiveListing{
+			MLSID:                  mlsID,
+			Address:                address,
+			PropertyAddress:        address,
+			Price:                  int(prop.Price),
+			DaysOnMarket:           cdom,
+			CDOM:                   cdom,
+			Showings:               int(showingsTotal),
+			LeadsTotal:             int(leadsTotal),
+			LeadsWeekChange:        leadsWeekChange,
+			BookingShowings:        int(showingsTotal),
+			BookingShowingsWeek:    int(showingsThisWeek),
+			BookingShowingsChange:  showingsChange,
+			TotalShowings:          int(showingsTotal),
+			TotalShowingsChange:    showingsChange,
+			Applications:           int(applications),
+			ShowingSmartFeedback:   []ShowingFeedback{},
+			AIInsights:             aiInsights,
+		}
+
+		activeListings = append(activeListings, activeListing)
+	}
+
+	var closingPipelines []models.ClosingPipeline
+	bis.db.Where("sold_date >= ?", weekStart.AddDate(0, 0, -30)).Find(&closingPipelines)
+
+	for _, cp := range closingPipelines {
+		alertFlags := []string{}
+		if !cp.LeaseSentOut {
+			alertFlags = append(alertFlags, "Lease not sent")
+		}
+		if cp.LeaseSentOut && !cp.LeaseComplete {
+			alertFlags = append(alertFlags, "Awaiting lease signature")
+		}
+		if !cp.DepositReceived {
+			alertFlags = append(alertFlags, "Deposit not received")
+		}
+
+		soldListing := SoldListing{
+			PropertyAddress:    cp.PropertyAddress,
+			SoldDate:           cp.SoldDate,
+			LeaseSentOut:       cp.LeaseSentOut,
+			LeaseComplete:      cp.LeaseComplete,
+			DepositReceived:    cp.DepositReceived,
+			FirstMonthReceived: cp.FirstMonthReceived,
+			MoveInDate:         cp.MoveInDate,
+			DaysToMoveIn:       cp.GetDaysToMoveIn(),
+			StatusSummary:      cp.GetStatusSummary(),
+			AlertFlags:         alertFlags,
+		}
+		soldListings = append(soldListings, soldListing)
+	}
+
+	var totalShowings int
+	for _, al := range activeListings {
+		totalShowings += al.TotalShowings
+	}
+
 	report := &FridayReportData{
-		WeeklyStats: map[string]interface{}{
-			"total_leads":   150,
-			"conversions":   23,
-			"response_time": "12 minutes",
-		},
-		TopPerformers: []interface{}{},
-		KeyMetrics: map[string]float64{
-			"conversion_rate": 15.3,
-			"avg_deal_size":   350000,
-		},
-		RecommendedActions: []string{
-			"Follow up on warm leads",
-			"Schedule property photos",
-		},
-		GeneratedAt: time.Now(),
-		WeekRange:   "Aug 20-26, 2025",
-		SoldListings: []SoldListing{
-			{
-				PropertyAddress:    "123 Oak St",
-				SoldDate:           time.Now().AddDate(0, 0, -3),
-				LeaseSentOut:       true,
-				LeaseComplete:      true,
-				DepositReceived:    true,
-				FirstMonthReceived: true,
-				StatusSummary:      "Complete",
-				AlertFlags:         []string{},
-			},
-			{
-				PropertyAddress:    "456 Pine Ave",
-				SoldDate:           time.Now().AddDate(0, 0, -5),
-				LeaseSentOut:       true,
-				LeaseComplete:      false,
-				DepositReceived:    false,
-				FirstMonthReceived: false,
-				StatusSummary:      "Pending Lease",
-				AlertFlags:         []string{"Follow-up needed"},
-			},
-		},
-		ActiveListings: []ActiveListing{
-			{
-				MLSID:                    "12347",
-				Address:                  "789 Elm St",
-				PropertyAddress:          "789 Elm St",
-				Price:                    450000,
-				DaysOnMarket:             15,
-				CDOM:                     15,
-				Showings:                 8,
-				Inquiries:                12,
-				LeadsTotal:               12,
-				LeadsWeekChange:          3,
-				ExternalShowings:         5,
-				ExternalShowingsChange:   1,
-				BookingShowings:          3,
-				BookingShowingsWeek:      3,
-				BookingShowingsChange:    2,
-				TotalShowings:            8,
-				PriceReduction:           0,
-				MarketingActions:         2,
-				ContactAttempts:          5,
-				PriceRecommendation:      "Hold",
-				MarketingRecommendations: []string{"Professional photos"},
-				TotalShowingsChange:      2,
-				Applications:             3,
-				ApplicationsChange:       1,
-				ShowingSmartFeedback: []ShowingFeedback{
-					{
-						Date:          time.Now().AddDate(0, 0, -2),
-						Agent:         "Sarah Johnson",
-						InterestLevel: "High",
-						PriceOpinion:  "Competitive",
-						Comparison:    "Better than comps",
-						Comments:      "Clients loved the kitchen updates",
-					},
-				},
-				AIInsights: []string{"High demand area", "Consider staging"},
-			},
-			{
-				MLSID:                    "12348",
-				Address:                  "321 Maple Dr",
-				PropertyAddress:          "321 Maple Dr",
-				Price:                    385000,
-				DaysOnMarket:             22,
-				CDOM:                     22,
-				Showings:                 5,
-				Inquiries:                7,
-				LeadsTotal:               7,
-				LeadsWeekChange:          -2,
-				ExternalShowings:         3,
-				ExternalShowingsChange:   0,
-				BookingShowings:          2,
-				BookingShowingsWeek:      2,
-				BookingShowingsChange:    -1,
-				TotalShowings:            5,
-				PriceReduction:           1,
-				MarketingActions:         3,
-				ContactAttempts:          8,
-				PriceRecommendation:      "Consider reduction",
-				MarketingRecommendations: []string{"Price reduction", "Enhanced marketing"},
-				TotalShowingsChange:      -1,
-				Applications:             1,
-				ApplicationsChange:       -1,
-				ShowingSmartFeedback: []ShowingFeedback{
-					{
-						Date:          time.Now().AddDate(0, 0, -1),
-						Agent:         "Mike Davis",
-						InterestLevel: "Medium",
-						PriceOpinion:  "High",
-						Comparison:    "Overpriced vs comps",
-						Comments:      "Price reduction recommended",
-					},
-				},
-				AIInsights: []string{"Consider price reduction", "Market slowing"},
-			},
-		},
-		PreListingPipeline: []PreListing{
-			{
-				PropertyAddress:  "654 Cedar Ln",
-				TargetListDate:   &[]time.Time{time.Now().AddDate(0, 0, 10)}[0],
-				TasksRemaining:   []string{"Photos", "Staging"},
-				EstimatedDaysOut: 10,
-				Priority:         "High",
-			},
-			{
-				PropertyAddress:  "987 Birch Way",
-				TargetListDate:   &[]time.Time{time.Now().AddDate(0, 0, 14)}[0],
-				TasksRemaining:   []string{"Final Walkthrough"},
-				EstimatedDaysOut: 14,
-				Priority:         "Medium",
-			},
-		},
+		GeneratedAt:        now,
+		WeekRange:          weekRange,
+		ActiveListings:     activeListings,
+		SoldListings:       soldListings,
+		PreListingPipeline: []PreListing{},
 		WeeklySummary: WeeklySummary{
-			TotalActions:       15,
-			HighPriorityTasks:  []string{"Follow up on 789 Elm St", "Price review for 321 Maple Dr"},
-			UpcomingDeadlines:  []string{"Photos for 654 Cedar Ln (Aug 30)", "Listing 987 Birch Way (Sep 2)"},
-			ActiveListings:     2,
-			PreListings:        2,
-			TotalShowings:      13,
-			ShowingsChange:     3,
-			ClosingsInProgress: 2,
-			UpcomingMoveIns:    1,
+			ActiveListings:     len(activeListings),
+			TotalShowings:      totalShowings,
+			ClosingsInProgress: len(soldListings),
 		},
 	}
 
@@ -732,6 +716,49 @@ func (bis *BusinessIntelligenceService) GetPopularTimeSlots() []map[string]inter
 }
 
 // calculateMonthlyBookingGrowth calculates month-over-month booking growth
+// generateInsights generates AI insights based on property performance
+func (bis *BusinessIntelligenceService) generateInsights(cdom, leads, showings, applications, leadsChange, showingsChange int) []string {
+	var insights []string
+
+	if cdom > 60 && applications == 0 {
+		insights = append(insights, "High CDOM with low conversion - consider price adjustment")
+	}
+
+	if leads > 20 && showings < 3 {
+		insights = append(insights, "High lead volume, low showings - potential lead quality or scheduling issue")
+	}
+
+	if showings > 5 && applications == 0 {
+		insights = append(insights, "Multiple showings without applications - follow up on feedback")
+	}
+
+	if applications > 2 {
+		insights = append(insights, "Strong application activity - property likely to close soon")
+	}
+
+	if leadsChange > 10 {
+		insights = append(insights, "High volume lead source - strong market interest")
+	}
+
+	if showingsChange < -2 {
+		insights = append(insights, "Showing activity declining - may need marketing refresh")
+	}
+
+	if cdom < 30 && leads > 10 {
+		insights = append(insights, "Strong early performance - maintain momentum")
+	}
+
+	if len(insights) == 0 {
+		if showings > 0 {
+			insights = append(insights, "Showing conversion healthy")
+		} else {
+			insights = append(insights, "Monitor lead engagement")
+		}
+	}
+
+	return insights
+}
+
 func (bis *BusinessIntelligenceService) calculateMonthlyBookingGrowth() float64 {
 	var lastMonthCount int64
 	var thisMonthCount int64
