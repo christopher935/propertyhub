@@ -63,6 +63,10 @@ type Config struct {
         BusinessEmail   string
         BusinessAddress string
         TRECLicense     string
+
+        // reCAPTCHA (from database)
+        RecaptchaSiteKey   string
+        RecaptchaSecretKey string
 }
 
 var AppConfig *Config
@@ -146,6 +150,10 @@ func LoadConfig() *Config {
                 BusinessEmail:   getDbSetting(dbSettings, "BUSINESS_EMAIL", "info@propertyhub.com"),
                 BusinessAddress: getDbSetting(dbSettings, "BUSINESS_ADDRESS", "Houston, TX"),
                 TRECLicense:     getDbSetting(dbSettings, "TREC_LICENSE", "#625244"),
+
+                // reCAPTCHA
+                RecaptchaSiteKey:   dbSettings["RECAPTCHA_SITE_KEY"],
+                RecaptchaSecretKey: dbSettings["RECAPTCHA_SECRET_KEY"],
         }
 
         if len(config.JWTSecret) > 10 {

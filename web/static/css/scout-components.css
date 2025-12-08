@@ -273,6 +273,54 @@ a:hover {
 
 /* Button styles defined in design-tokens.css */
 
+/* Hamburger Menu Toggle Button */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 101;
+}
+
+.nav-toggle-bar {
+  width: 24px;
+  height: 2px;
+  background: var(--navy-primary);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  border-radius: 2px;
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile Menu Backdrop */
+.nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.nav-backdrop.open {
+  display: block;
+  opacity: 1;
+}
+
 /* ========================================================================
    CONSUMER BUTTON OVERRIDES - Gold Gradient for Consumer Pages
    Overrides admin navy buttons on consumer-facing pages
@@ -12761,5 +12809,99 @@ html {
   
   .ai-recommendations-section {
     padding: 40px 16px;
+  }
+}
+
+/* ========================================================================
+   MOBILE NAVIGATION - Hamburger Menu
+   ======================================================================== */
+
+/* Hamburger Menu Toggle Button */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 101;
+}
+
+.nav-toggle-bar {
+  width: 24px;
+  height: 2px;
+  background: var(--navy-primary);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  border-radius: 2px;
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile Menu Backdrop */
+.nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.nav-backdrop.open {
+  display: block;
+  opacity: 1;
+}
+
+/* Mobile Navigation Overrides */
+@media (max-width: 768px) {
+  .nav-toggle {
+    display: flex;
+  }
+  
+  .nav-menu {
+    position: fixed !important;
+    top: 0 !important;
+    right: -100% !important;
+    width: 80% !important;
+    max-width: 300px !important;
+    height: 100vh !important;
+    background: var(--white) !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 80px 24px 24px !important;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1) !important;
+    transition: right 0.3s ease !important;
+    z-index: 100 !important;
+    overflow-y: auto !important;
+    display: flex !important;
+  }
+  
+  .nav-menu.open {
+    right: 0 !important;
+  }
+  
+  .nav-menu .nav-link {
+    width: 100%;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  
+  .nav-menu .btn {
+    width: 100%;
+    margin-top: 8px;
+    justify-content: center;
+    text-align: center;
   }
 }

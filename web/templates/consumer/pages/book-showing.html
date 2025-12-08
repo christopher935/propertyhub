@@ -14,7 +14,10 @@
 <link href="/static/css/scout-components.css" rel="stylesheet"/>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script src="/static/js/booking-calendar.js"></script>
-<script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITE_KEY"></script>
+{{if .RecaptchaSiteKey}}
+<script src="https://www.google.com/recaptcha/api.js?render={{.RecaptchaSiteKey}}"></script>
+{{end}}
+<script src="/static/js/mobile-nav.js"></script>
 </head>
 <body class="scout-consumer-layout page-booking">
 <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
@@ -110,6 +113,11 @@
 <div class="logo-icon icon-gold"><svg class="icon-gold" height="32" width="32"><use href="#icon-home"></use></svg></div>
                 Landlords of Texas
             </a>
+<button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+<span class="nav-toggle-bar"></span>
+<span class="nav-toggle-bar"></span>
+<span class="nav-toggle-bar"></span>
+</button>
 <div class="nav-menu">
 <a class="nav-link" href="/">Home</a>
 <a class="nav-link" href="/properties">Properties</a>

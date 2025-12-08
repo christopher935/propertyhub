@@ -4,13 +4,14 @@ import (
 	"net/http"
 	"time"
 
+	"chrisgross-ctrl-project/internal/config"
 	"chrisgross-ctrl-project/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
 
 // RegisterConsumerRoutes registers all consumer-facing routes
-func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers) {
+func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 	// Core website routes
 	// Homepage - show 2 featured properties
 	r.GET("/", func(c *gin.Context) {
@@ -72,7 +73,15 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers) {
 		})
 	})
 	r.GET("/book-showing", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "book-showing.html", gin.H{"Title": "Book Showing"})
+		recaptchaSiteKey := ""
+		if cfg != nil && cfg.RecaptchaSiteKey != "" {
+			recaptchaSiteKey = cfg.RecaptchaSiteKey
+		}
+		c.HTML(http.StatusOK, "book-showing.html", gin.H{
+			"Title":           "Book Showing",
+			"RecaptchaSiteKey": recaptchaSiteKey,
+			"CSRFToken":       c.GetString("csrf_token"),
+		})
 	})
 	r.GET("/booking-confirmation", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "booking-confirmation.html", gin.H{"Title": "Booking Confirmed"})
