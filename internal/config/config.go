@@ -30,7 +30,7 @@ type Config struct {
         // External services (all from database)
         FUBAPIKey     string
         FUBAPIURL     string
-        ScraperAPIKey string // Generic scraper for property data (not HAR-specific)
+        ScraperAPIKey string // Generic scraper for property data
 
         // TREC compliance (from database)
         TRECComplianceEnabled bool

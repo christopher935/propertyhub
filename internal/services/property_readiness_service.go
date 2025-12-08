@@ -58,13 +58,11 @@ type PhotoReadinessCheck struct {
 
 // PropertyDataCheck represents property data completeness checks
 type PropertyDataCheck struct {
-	HasCompleteAddress    bool       `json:"has_complete_address"`
-	HasValidPrice         bool       `json:"has_valid_price"`
-	HasDescription        bool       `json:"has_description"`
-	HasPropertyDetails    bool       `json:"has_property_details"`
-	HARDataFresh          bool       `json:"har_data_fresh"`
-	LastHARUpdate         *time.Time `json:"last_har_update,omitempty"`
-	DataCompletenessScore int        `json:"data_completeness_score"`
+	HasCompleteAddress    bool `json:"has_complete_address"`
+	HasValidPrice         bool `json:"has_valid_price"`
+	HasDescription        bool `json:"has_description"`
+	HasPropertyDetails    bool `json:"has_property_details"`
+	DataCompletenessScore int  `json:"data_completeness_score"`
 }
 
 // SystemChecksResult represents system-level readiness checks
@@ -223,13 +221,6 @@ func (prs *PropertyReadinessService) checkPropertyData(property models.Property,
 		property.Bathrooms != nil && *property.Bathrooms > 0 &&
 		property.SquareFeet != nil && *property.SquareFeet > 0
 
-	// Check HAR data freshness using ScrapedAt field
-	if property.ScrapedAt != nil && !property.ScrapedAt.IsZero() {
-		dataFreshnessCutoff := time.Now().Add(-24 * time.Hour) // 24 hours
-		dataCheck.HARDataFresh = property.ScrapedAt.After(dataFreshnessCutoff)
-		dataCheck.LastHARUpdate = property.ScrapedAt
-	}
-
 	// Calculate data completeness score
 	score := 0
 	if dataCheck.HasCompleteAddress {
@@ -243,9 +234,6 @@ func (prs *PropertyReadinessService) checkPropertyData(property models.Property,
 	}
 	if dataCheck.HasPropertyDetails {
 		score += 20
-	}
-	if dataCheck.HARDataFresh {
-		score += 10
 	}
 	dataCheck.DataCompletenessScore = score
 
@@ -274,17 +262,6 @@ func (prs *PropertyReadinessService) checkPropertyData(property models.Property,
 		})
 	}
 
-	if !dataCheck.HARDataFresh {
-		status.Recommendations = append(status.Recommendations, ReadinessAction{
-			Type:          "recommended",
-			Category:      "data",
-			Title:         "Refresh HAR Data",
-			Description:   "Property data is more than 24 hours old",
-			Priority:      3,
-			EstimatedTime: "Automatic",
-			AutomatedFix:  true,
-		})
-	}
 }
 
 // checkSystemReadiness validates system-level requirements
@@ -400,16 +377,6 @@ func (prs *PropertyReadinessService) AutoFixReadinessIssues(mlsID string) (*Prop
 	fixedIssues := []string{}
 
 	// Auto-fix data issues
-	for _, action := range status.RequiredActions {
-		if action.AutomatedFix && action.Category == "data" {
-			switch action.Title {
-			case "Refresh HAR Data":
-				// Trigger HAR scraper refresh (would integrate with scraper service)
-				fixedIssues = append(fixedIssues, "Triggered HAR data refresh")
-			}
-		}
-	}
-
 	// Auto-fix system issues
 	for _, action := range status.RequiredActions {
 		if action.AutomatedFix && action.Category == "system" {
