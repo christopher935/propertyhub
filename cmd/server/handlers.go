@@ -46,6 +46,7 @@ type AllHandlers struct {
 	// Lead Management
 	LeadReengagement      *handlers.LeadReengagementHandler
 	LeadsList             *handlers.LeadsListHandler
+	BulkOperations        *handlers.BulkOperationsHandler
 
 	// Team Management
 	Team                  *handlers.TeamHandlers

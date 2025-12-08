@@ -181,6 +181,19 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 
 	api.GET("/leads", h.LeadsList.GetAllLeads)
 	
+	// Bulk Lead Operations
+	api.POST("/leads/bulk/email", h.BulkOperations.BulkEmailLeads)
+	api.POST("/leads/bulk/assign", h.BulkOperations.BulkAssignLeads)
+	api.POST("/leads/bulk/status", h.BulkOperations.BulkUpdateLeadStatus)
+	api.POST("/leads/bulk/tag", h.BulkOperations.BulkTagLeads)
+	api.POST("/leads/bulk/archive", h.BulkOperations.BulkArchiveLeads)
+
+	// Bulk Property Operations
+	api.POST("/properties/bulk/status", h.BulkOperations.BulkUpdatePropertyStatus)
+	api.POST("/properties/bulk/assign", h.BulkOperations.BulkAssignProperties)
+	api.POST("/properties/bulk/featured", h.BulkOperations.BulkUpdateFeatured)
+	api.POST("/properties/bulk/export", h.BulkOperations.BulkExportProperties)
+	
 	// Properties API
 	api.GET("/properties", h.Properties.GetPropertiesGin)
 	api.GET("/properties/:id", h.Properties.GetPropertyByIDGin)
