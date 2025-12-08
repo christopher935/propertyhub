@@ -102,11 +102,27 @@ function bookingForm() {
             credit: false
         },
         
+        get checkedCount() {
+            return Object.values(this.requirementsChecked).filter(v => v).length;
+        },
+        
         get allRequirementsMet() {
             return this.requirementsChecked.income && 
                    this.requirementsChecked.felony && 
                    this.requirementsChecked.eviction && 
                    this.requirementsChecked.credit;
+        },
+        
+        get progressMessage() {
+            const count = this.checkedCount;
+            if (count === 0) {
+                return 'Tap each box to confirm you meet the requirement';
+            } else if (count === 4) {
+                return "Great! You're ready to schedule your tour";
+            } else {
+                const remaining = 4 - count;
+                return `Almost there! ${remaining} more to go`;
+            }
         },
         
         get canProceedToStep2() {

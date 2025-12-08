@@ -547,6 +547,10 @@
 
         saveConsent: function(consent) {
             localStorage.setItem('phCookieConsent', JSON.stringify(consent));
+            
+            // Also save as cookie for backend access
+            document.cookie = `phCookieConsent=${encodeURIComponent(JSON.stringify(consent))}; path=/; max-age=${365*24*60*60}; SameSite=Lax`;
+            
             this.applyConsent(consent);
             
             // Log to backend (if endpoint exists)
@@ -624,7 +628,40 @@
                 gtag('consent', 'update', { 'ad_storage': 'denied' });
             }
             console.log('Marketing disabled');
+        },
+
+        getConsent: function() {
+            const consent = localStorage.getItem('phCookieConsent');
+            return consent ? JSON.parse(consent) : null;
+        },
+
+        hasAnalyticsConsent: function() {
+            const consent = this.getConsent();
+            return consent ? consent.analytics === true : false;
+        },
+
+        hasBehavioralConsent: function() {
+            const consent = this.getConsent();
+            return consent ? consent.behavioral === true : false;
+        },
+
+        hasMarketingConsent: function() {
+            const consent = this.getConsent();
+            return consent ? consent.marketing === true : false;
         }
+    };
+
+    // Global helper functions for easy consent checking
+    window.hasAnalyticsConsent = function() {
+        return window.phCookieConsent.hasAnalyticsConsent();
+    };
+
+    window.hasBehavioralConsent = function() {
+        return window.phCookieConsent.hasBehavioralConsent();
+    };
+
+    window.hasMarketingConsent = function() {
+        return window.phCookieConsent.hasMarketingConsent();
     };
 
     // Global function to revoke consent (for footer link)

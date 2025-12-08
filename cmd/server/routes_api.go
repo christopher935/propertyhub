@@ -13,6 +13,7 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	// WEBSOCKET - Real-time Updates
 	// ============================================================================
 	api.GET("/ws", h.WebSocket.HandleWebSocket)
+	api.GET("/ws/admin/activity", h.WebSocket.HandleAdminActivityFeed)
 
 	// ============================================================================
 	// ADMIN NOTIFICATIONS - Real-time Alerts
@@ -180,6 +181,19 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 
 	api.GET("/leads", h.LeadsList.GetAllLeads)
 	
+	// Bulk Lead Operations
+	api.POST("/leads/bulk/email", h.BulkOperations.BulkEmailLeads)
+	api.POST("/leads/bulk/assign", h.BulkOperations.BulkAssignLeads)
+	api.POST("/leads/bulk/status", h.BulkOperations.BulkUpdateLeadStatus)
+	api.POST("/leads/bulk/tag", h.BulkOperations.BulkTagLeads)
+	api.POST("/leads/bulk/archive", h.BulkOperations.BulkArchiveLeads)
+
+	// Bulk Property Operations
+	api.POST("/properties/bulk/status", h.BulkOperations.BulkUpdatePropertyStatus)
+	api.POST("/properties/bulk/assign", h.BulkOperations.BulkAssignProperties)
+	api.POST("/properties/bulk/featured", h.BulkOperations.BulkUpdateFeatured)
+	api.POST("/properties/bulk/export", h.BulkOperations.BulkExportProperties)
+	
 	// Properties API
 	api.GET("/properties", h.Properties.GetPropertiesGin)
 	api.GET("/properties/:id", h.Properties.GetPropertyByIDGin)
@@ -207,6 +221,13 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/admin/session/:id", h.LiveActivity.GetSessionDetails)
 
 	// Behavioral Sessions API (Admin Real-Time - Who's Browsing Now)
+
+	// Behavioral Event Tracking API (Consumer-facing with real-time broadcasting)
+	api.POST("/behavioral/track/property-view", h.BehavioralEvent.TrackPropertyView)
+	api.POST("/behavioral/track/property-save", h.BehavioralEvent.TrackPropertySave)
+	api.POST("/behavioral/track/inquiry", h.BehavioralEvent.TrackInquiry)
+	api.POST("/behavioral/track/search", h.BehavioralEvent.TrackSearch)
+	api.GET("/behavioral/active-count", h.BehavioralEvent.GetActiveSessionsCount)
 	api.GET("/admin/sessions/active", h.BehavioralSessions.GetActiveSessions)
 	api.GET("/admin/sessions/:id/journey", h.BehavioralSessions.GetSessionJourney)
 
@@ -290,4 +311,9 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 			"message": "Lead added successfully",
 		})
 	})
+
+	// ============================================================================
+	// COOKIE CONSENT API - GDPR/CCPA Compliance
+	// ============================================================================
+	api.POST("/cookie-consent", middleware.CookieConsentHandler)
 }

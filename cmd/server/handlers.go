@@ -19,6 +19,7 @@ type AllHandlers struct {
 
 	// Behavioral Intelligence & FUB
 	Behavioral            *handlers.BehavioralIntelligenceHandlers
+	BehavioralEvent       *handlers.BehavioralEventHandler
 	InsightsAPI           *handlers.InsightsAPIHandlers
 	ContextFUB            *handlers.ContextFUBIntegrationHandlers
 
@@ -45,6 +46,7 @@ type AllHandlers struct {
 	// Lead Management
 	LeadReengagement      *handlers.LeadReengagementHandler
 	LeadsList             *handlers.LeadsListHandler
+	BulkOperations        *handlers.BulkOperationsHandler
 
 	// Team Management
 	Team                  *handlers.TeamHandlers

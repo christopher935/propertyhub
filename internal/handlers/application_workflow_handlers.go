@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/services"
+	"chrisgross-ctrl-project/internal/middleware"
 )
 
 // ApplicationWorkflowHandlers handles Christopher's specific application workflow
@@ -94,23 +95,25 @@ func (awh *ApplicationWorkflowHandlers) CreateApplicationNumber(c *gin.Context) 
 	}
 
 	// ============ ADDED: BEHAVIORAL TRACKING ============
-	// Track application submission
-	if leadID := extractLeadIDFromGin(c); leadID > 0 {
-		sessionID := extractSessionIDFromGin(c)
-		ipAddress := c.ClientIP()
-		userAgent := c.Request.UserAgent()
-		
-		propertyIDInt64 := int64(propertyID)
-		
-		// Track application event (non-blocking)
-		go awh.behavioralService.TrackApplication(
-			leadID,
-			propertyIDInt64,
-			appNumber.ApplicationName,
-			sessionID,
-			ipAddress,
-			userAgent,
-		)
+	// Track application submission (only if user has consented)
+	if middleware.HasBehavioralConsent(c) {
+		if leadID := extractLeadIDFromGin(c); leadID > 0 {
+			sessionID := extractSessionIDFromGin(c)
+			ipAddress := c.ClientIP()
+			userAgent := c.Request.UserAgent()
+			
+			propertyIDInt64 := int64(propertyID)
+			
+			// Track application event (non-blocking)
+			go awh.behavioralService.TrackApplication(
+				leadID,
+				propertyIDInt64,
+				appNumber.ApplicationName,
+				sessionID,
+				ipAddress,
+				userAgent,
+			)
+		}
 	}
 	// ============ END TRACKING ============
 	

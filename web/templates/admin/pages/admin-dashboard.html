@@ -2,6 +2,8 @@
 <html lang="en">
 {{template "_head.html" .}}
 <body>
+    <link rel="stylesheet" href="/static/css/password-strength.css">
+    <script src="/static/js/mfa-prompt.js"></script>
     <div class="admin-layout" x-data="dashboardData()" x-init="init()">
         {{template "_sidebar.html" .}}
         
@@ -9,6 +11,22 @@
             {{template "_topbar.html" .}}
             
             <div class="admin-content">
+                <!-- MFA Enrollment Prompt -->
+                <div x-data="mfaPromptData()" x-init="init()">
+                    <div class="mfa-prompt" x-show="!dismissed && !hasMFA">
+                        <div class="mfa-prompt-icon">🔐</div>
+                        <div class="mfa-prompt-content">
+                            <h3>Secure Your Account</h3>
+                            <p>Enable two-factor authentication for extra protection against unauthorized access.</p>
+                            <div class="mfa-prompt-actions">
+                                <a href="/admin/settings?tab=security" class="btn btn-primary">Enable 2FA</a>
+                                <button class="btn btn-outline" @click="remindLater()">Remind Me Later</button>
+                            </div>
+                        </div>
+                        <button class="mfa-prompt-close" @click="dismissMFA()">×</button>
+                    </div>
+                </div>
+
                 <section class="dashboard-section dashboard-critical" x-show="criticalStats.pendingBookings > 0 || criticalStats.pendingApplications > 0 || criticalStats.alerts > 0">
                     <div class="critical-actions-bar">
                         <div class="critical-item" x-show="criticalStats.pendingBookings > 0">
@@ -65,6 +83,40 @@
                             <div class="stat-card-value" x-text="Math.round(displayValue)"></div>
                             <div class="stat-card-subtitle">
                                 <span x-text="keyMetrics.confirmedBookings"></span> confirmed
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Live Activity Feed - Real-time user activity -->
+                <section class="dashboard-section">
+                    <div class="live-activity-container" x-data="liveActivityFeed()" x-init="init()">
+                        <div class="live-activity-header">
+                            <div class="section-label admin-section-label">
+                                <span class="section-label-line"></span>
+                                <span class="section-label-text">
+                                    <span class="pulse-indicator"></span>
+                                    Live Activity
+                                    <span class="active-count-badge" x-text="activeCount" x-show="activeCount > 0"></span>
+                                </span>
+                                <span class="section-label-line"></span>
+                            </div>
+                        </div>
+                        <div class="live-activity-feed" id="live-activity-feed">
+                            <div class="activity-list" id="activity-list">
+                                <template x-for="event in events.slice(0, 20)" :key="event.timestamp">
+                                    <div class="activity-item" :class="'activity-' + event.type" :data-score="event.score">
+                                        <span class="activity-icon" x-html="getActivityIcon(event.type)"></span>
+                                        <div class="activity-content">
+                                            <span class="activity-details" x-text="event.details"></span>
+                                            <span class="activity-score" x-show="event.score >= 70" x-text="'🔥 Score: ' + event.score"></span>
+                                        </div>
+                                        <span class="activity-time" x-text="formatTimeAgo(event.timestamp)"></span>
+                                    </div>
+                                </template>
+                                <div x-show="events.length === 0" class="empty-state-small">
+                                    <div class="empty-state-text">No recent activity</div>
+                                </div>
                             </div>
                         </div>
                     </div>

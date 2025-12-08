@@ -1,12 +1,12 @@
 package config
 
 import (
-        "database/sql"
-        "log"
-        "os"
-        "strconv"
-        "time"
-        _ "github.com/lib/pq"
+	"database/sql"
+	_ "github.com/lib/pq"
+	"log"
+	"os"
+	"strconv"
+	"time"
 )
 
 type Config struct {
@@ -66,8 +66,7 @@ type Config struct {
 
         // reCAPTCHA (from database)
         RecaptchaSiteKey   string
-        RecaptchaSecretKey string
-}
+        RecaptchaSecretKey string}
 
 var AppConfig *Config
 
@@ -162,106 +161,105 @@ func LoadConfig() *Config {
                 log.Printf("🔧 DEBUG: Config struct created with JWT: %s", config.JWTSecret)
         }
         AppConfig = config
-        return config
-}
+        return config}
 
 func loadAllDatabaseSettings(dbURL string) map[string]string {
-        log.Printf("🔧 DEBUG: Starting loadAllDatabaseSettings")
-        settings := make(map[string]string)
+	log.Printf("🔧 DEBUG: Starting loadAllDatabaseSettings")
+	settings := make(map[string]string)
 
-        db, err := sql.Open("postgres", dbURL)
-        if err != nil {
-                log.Printf("❌ WARNING: Could not connect to database for settings: %v", err)
-                return settings
-        }
-        defer db.Close()
-        log.Printf("🔧 DEBUG: Database connection opened successfully")
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Printf("❌ WARNING: Could not connect to database for settings: %v", err)
+		return settings
+	}
+	defer db.Close()
+	log.Printf("🔧 DEBUG: Database connection opened successfully")
 
-        // Test connection first
-        if err := db.Ping(); err != nil {
-                log.Printf("❌ WARNING: Database ping failed: %v", err)
-                return settings
-        }
-        log.Printf("🔧 DEBUG: Database ping successful")
+	// Test connection first
+	if err := db.Ping(); err != nil {
+		log.Printf("❌ WARNING: Database ping failed: %v", err)
+		return settings
+	}
+	log.Printf("🔧 DEBUG: Database ping successful")
 
-        rows, err := db.Query("SELECT key, value FROM system_settings")
-        if err != nil {
-                log.Printf("❌ WARNING: Could not load settings from database: %v", err)
-                return settings
-        }
-        defer rows.Close()
-        log.Printf("🔧 DEBUG: Settings query executed successfully")
+	rows, err := db.Query("SELECT key, value FROM system_settings")
+	if err != nil {
+		log.Printf("❌ WARNING: Could not load settings from database: %v", err)
+		return settings
+	}
+	defer rows.Close()
+	log.Printf("🔧 DEBUG: Settings query executed successfully")
 
-        for rows.Next() {
-                var key, value string
-                if err := rows.Scan(&key, &value); err != nil {
-                        log.Printf("❌ WARNING: Could not scan setting row: %v", err)
-                        continue
-                }
-                settings[key] = value
-                
-                // Safe debug logging - avoid slice bounds crash
-                if len(value) > 10 {
-                        log.Printf("🔧 DEBUG: Loaded setting: %s = %s...", key, value[:10])
-                } else {
-                        log.Printf("🔧 DEBUG: Loaded setting: %s = %s", key, value)
-                }
-        }
+	for rows.Next() {
+		var key, value string
+		if err := rows.Scan(&key, &value); err != nil {
+			log.Printf("❌ WARNING: Could not scan setting row: %v", err)
+			continue
+		}
+		settings[key] = value
 
-        if err := rows.Err(); err != nil {
-                log.Printf("❌ WARNING: Error iterating settings rows: %v", err)
-        }
+		// Safe debug logging - avoid slice bounds crash
+		if len(value) > 10 {
+			log.Printf("🔧 DEBUG: Loaded setting: %s = %s...", key, value[:10])
+		} else {
+			log.Printf("🔧 DEBUG: Loaded setting: %s = %s", key, value)
+		}
+	}
 
-        log.Printf("✅ Loaded %d settings from database", len(settings))
-        return settings
+	if err := rows.Err(); err != nil {
+		log.Printf("❌ WARNING: Error iterating settings rows: %v", err)
+	}
+
+	log.Printf("✅ Loaded %d settings from database", len(settings))
+	return settings
 }
 
 func getDbSetting(settings map[string]string, key, defaultValue string) string {
-        if value, exists := settings[key]; exists && value != "" {
-                return value
-        }
-        return defaultValue
+	if value, exists := settings[key]; exists && value != "" {
+		return value
+	}
+	return defaultValue
 }
 
 func getDbSettingInt(settings map[string]string, key string, defaultValue int) int {
-        if value, exists := settings[key]; exists && value != "" {
-                if intVal, err := strconv.Atoi(value); err == nil {
-                        return intVal
-                }
-        }
-        return defaultValue
+	if value, exists := settings[key]; exists && value != "" {
+		if intVal, err := strconv.Atoi(value); err == nil {
+			return intVal
+		}
+	}
+	return defaultValue
 }
 
 func getDbSettingBool(settings map[string]string, key string, defaultValue bool) bool {
-        if value, exists := settings[key]; exists {
-                return value == "true" || value == "1"
-        }
-        return defaultValue
+	if value, exists := settings[key]; exists {
+		return value == "true" || value == "1"
+	}
+	return defaultValue
 }
 
 func (c *Config) IsDevelopment() bool {
-        return c.Environment == "development"
+	return c.Environment == "development"
 }
 
 func (c *Config) IsProduction() bool {
-        return c.Environment == "production"
+	return c.Environment == "production"
 }
 
 func (c *Config) HasJWTSecret() bool {
-        return c.JWTSecret != ""
+	return c.JWTSecret != ""
 }
 
 // Bootstrap helpers (only for DATABASE_URL, PORT, ENVIRONMENT)
 func getEnv(key, defaultValue string) string {
-        if value := os.Getenv(key); value != "" {
-                return value
-        }
-        return defaultValue
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
 
 func GetConfig() *Config {
-        if AppConfig == nil {
-                return LoadConfig()
-        }
-        return AppConfig
+	if AppConfig == nil {
+		return LoadConfig()
+	}
+	return AppConfig
 }
