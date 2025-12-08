@@ -5,17 +5,17 @@ import "time"
 // BehavioralScore represents the current behavioral score for a lead
 // Schema matches existing behavioral_scores table in database
 type BehavioralScore struct {
-	ID              string     `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	VisitorID       *string    `json:"visitor_id,omitempty"`
-	LeadID          *int       `json:"lead_id,omitempty"`
-	EngagementScore int        `json:"engagement_score" gorm:"default:0;not null"`
-	FinancialScore  int        `json:"financial_score" gorm:"default:0;not null"`
-	UrgencyScore    int        `json:"urgency_score" gorm:"default:0;not null"`
-	CompositeScore  int        `json:"composite_score" gorm:"default:0;not null"`
-	ScoreFactors    JSONB      `json:"score_factors" gorm:"type:jsonb"`
-	LastCalculated  time.Time  `json:"last_calculated" gorm:"default:now();not null"`
-	CreatedAt       time.Time  `json:"created_at" gorm:"default:now();not null"`
-	UpdatedAt       time.Time  `json:"updated_at" gorm:"default:now();not null"`
+	ID              string    `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	VisitorID       *string   `json:"visitor_id,omitempty"`
+	LeadID          *int      `json:"lead_id,omitempty"`
+	EngagementScore int       `json:"engagement_score" gorm:"default:0;not null"`
+	FinancialScore  int       `json:"financial_score" gorm:"default:0;not null"`
+	UrgencyScore    int       `json:"urgency_score" gorm:"default:0;not null"`
+	CompositeScore  int       `json:"composite_score" gorm:"default:0;not null"`
+	ScoreFactors    JSONB     `json:"score_factors" gorm:"type:jsonb"`
+	LastCalculated  time.Time `json:"last_calculated" gorm:"default:now();not null"`
+	CreatedAt       time.Time `json:"created_at" gorm:"default:now();not null"`
+	UpdatedAt       time.Time `json:"updated_at" gorm:"default:now();not null"`
 }
 
 // TableName specifies the table name for GORM

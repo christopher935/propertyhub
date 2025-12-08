@@ -106,25 +106,25 @@ func isCSRFExemptPath(path string) bool {
 	// These should be protected by API authentication, IP whitelisting, or admin sessions
 	internalAutomation := []string{
 		"/api/v1/properties/sync/",     // HAR property synchronization
-		"/api/v1/jobs/",                 // Background job management
-		"/api/v1/har/trigger-scraping",  // Manual HAR scraping trigger
-		"/api/har/properties/scrape",      // HAR property scraper (no v1 prefix)
-		"/api/v1/har/schedule-weekly",   // HAR scraping scheduler
-		"/api/v1/fub/sync",              // Follow Up Boss sync
-		"/api/v1/email/process",         // Email processing jobs
+		"/api/v1/jobs/",                // Background job management
+		"/api/v1/har/trigger-scraping", // Manual HAR scraping trigger
+		"/api/har/properties/scrape",   // HAR property scraper (no v1 prefix)
+		"/api/v1/har/schedule-weekly",  // HAR scraping scheduler
+		"/api/v1/fub/sync",             // Follow Up Boss sync
+		"/api/v1/email/process",        // Email processing jobs
 	}
 
 	// Category 2: Read-only endpoints (GET requests already exempt, but some POST analytics)
 	readOnly := []string{
-		"/api/v1/analytics/",            // Analytics data (read-only)
-		"/api/v1/reports/",              // Report generation
-		"/api/v1/stats/",                // Statistics endpoints
+		"/api/v1/analytics/", // Analytics data (read-only)
+		"/api/v1/reports/",   // Report generation
+		"/api/v1/stats/",     // Statistics endpoints
 	}
 
 	// Category 3: Webhook receivers (external systems)
 	webhooks := []string{
-		"/api/v1/webhooks/",             // Generic webhook receiver
-		"/api/v1/fub/webhook",           // Follow Up Boss webhooks
+		"/api/v1/webhooks/",   // Generic webhook receiver
+		"/api/v1/fub/webhook", // Follow Up Boss webhooks
 	}
 
 	// Combine all exempt paths

@@ -111,10 +111,10 @@ func (e *AdvancedBehavioralEndpoints) ProcessAdvancedBehavioralAutomation(c *gin
 		TriggerID:         basicResponse.TriggerID,
 		ScheduledAt:       basicResponse.ScheduledAt,
 		AdvancedMetrics: map[string]interface{}{
-			"automation_level":     request.AutomationLevel,
-			"processing_time_ms":   time.Since(time.Now()).Milliseconds(),
-			"endpoint_version":     "advanced_2.1",
-			"feature_flags":        []string{"behavioral_analysis", "market_intelligence", "pattern_matching"},
+			"automation_level":   request.AutomationLevel,
+			"processing_time_ms": time.Since(time.Now()).Milliseconds(),
+			"endpoint_version":   "advanced_2.1",
+			"feature_flags":      []string{"behavioral_analysis", "market_intelligence", "pattern_matching"},
 		},
 	}
 
@@ -124,17 +124,17 @@ func (e *AdvancedBehavioralEndpoints) ProcessAdvancedBehavioralAutomation(c *gin
 // GetAdvancedBehavioralHealth handles GET /api/v1/behavioral/health/advanced
 func (e *AdvancedBehavioralEndpoints) GetAdvancedBehavioralHealth(c *gin.Context) {
 	health := gin.H{
-		"service_status":           "operational",
-		"behavioral_engine":        "active",
-		"context_intelligence":     "enabled",
-		"pattern_matching":         "active",
-		"market_intelligence":      "connected",
-		"automation_workflows":     "functional",
-		"last_health_check":       time.Now(),
-		"version":                 "2.1.0-enterprise",
-		"uptime":                  "99.9%",
-		"processed_triggers_24h":   287,
-		"success_rate_24h":        0.91,
+		"service_status":         "operational",
+		"behavioral_engine":      "active",
+		"context_intelligence":   "enabled",
+		"pattern_matching":       "active",
+		"market_intelligence":    "connected",
+		"automation_workflows":   "functional",
+		"last_health_check":      time.Now(),
+		"version":                "2.1.0-enterprise",
+		"uptime":                 "99.9%",
+		"processed_triggers_24h": 287,
+		"success_rate_24h":       0.91,
 	}
 
 	c.JSON(http.StatusOK, health)
@@ -144,21 +144,21 @@ func (e *AdvancedBehavioralEndpoints) GetAdvancedBehavioralHealth(c *gin.Context
 func (e *AdvancedBehavioralEndpoints) GetAdvancedConfiguration(c *gin.Context) {
 	config := gin.H{
 		"behavioral_thresholds": gin.H{
-			"high_engagement":    0.7,
-			"medium_engagement":  0.4,
+			"high_engagement":     0.7,
+			"medium_engagement":   0.4,
 			"financial_qualified": 0.6,
-			"high_urgency":       0.8,
+			"high_urgency":        0.8,
 		},
 		"workflow_settings": gin.H{
-			"auto_trigger_enabled":     true,
-			"pattern_matching_enabled": true,
+			"auto_trigger_enabled":        true,
+			"pattern_matching_enabled":    true,
 			"market_intelligence_enabled": true,
-			"advanced_scoring_enabled":  true,
+			"advanced_scoring_enabled":    true,
 		},
-		"automation_levels": []string{"basic", "advanced", "premium"},
+		"automation_levels":    []string{"basic", "advanced", "premium"},
 		"supported_categories": []string{"rental", "sales", "investment", "commercial"},
-		"api_version": "2.1.0",
-		"last_updated": time.Now(),
+		"api_version":          "2.1.0",
+		"last_updated":         time.Now(),
 	}
 
 	c.JSON(http.StatusOK, config)
@@ -181,10 +181,10 @@ func (e *AdvancedBehavioralEndpoints) UpdateAdvancedConfiguration(c *gin.Context
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Advanced behavioral configuration updated",
+		"success":          true,
+		"message":          "Advanced behavioral configuration updated",
 		"updated_settings": validated["settings"],
-		"updated_at": time.Now(),
+		"updated_at":       time.Now(),
 	})
 }
 
@@ -199,7 +199,7 @@ func (e *AdvancedBehavioralEndpoints) validateConfigurationRequest(request map[s
 	if thresholds, exists := request["behavioral_thresholds"]; exists {
 		if thresholdMap, ok := thresholds.(map[string]interface{}); ok {
 			validatedThresholds := make(map[string]interface{})
-			
+
 			for key, value := range thresholdMap {
 				if floatVal, ok := value.(float64); ok {
 					if floatVal >= 0.0 && floatVal <= 1.0 {
@@ -211,7 +211,7 @@ func (e *AdvancedBehavioralEndpoints) validateConfigurationRequest(request map[s
 					}
 				}
 			}
-			
+
 			result["settings"].(map[string]interface{})["behavioral_thresholds"] = validatedThresholds
 		}
 	}

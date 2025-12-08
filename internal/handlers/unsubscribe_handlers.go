@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"chrisgross-ctrl-project/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/models"
 )
 
 // UnsubscribeHandlers handles CAN-SPAM compliant unsubscribe functionality
@@ -17,25 +17,25 @@ type UnsubscribeHandlers struct {
 
 // UnsubscribeRecord tracks email unsubscriptions for CAN-SPAM compliance
 type UnsubscribeRecord struct {
-	ID               uint      `json:"id" gorm:"primaryKey"`
-	Email            string    `json:"email" gorm:"index"`
-	UnsubscribeID    string    `json:"unsubscribe_id" gorm:"uniqueIndex"`
-	UnsubscribeType  string    `json:"unsubscribe_type"` // all, marketing, alerts
-	IPAddress        string    `json:"ip_address"`
-	UserAgent        string    `json:"user_agent"`
-	UnsubscribeDate  time.Time `json:"unsubscribe_date"`
-	OriginalEmailID  string    `json:"original_email_id,omitempty"`
-	Source           string    `json:"source"` // email_link, one_click, manual
-	ResubscribeDate  *time.Time `json:"resubscribe_date,omitempty"`
-	IsActive         bool      `json:"is_active" gorm:"default:true"`
-	CreatedAt        time.Time `json:"created_at"`
+	ID              uint       `json:"id" gorm:"primaryKey"`
+	Email           string     `json:"email" gorm:"index"`
+	UnsubscribeID   string     `json:"unsubscribe_id" gorm:"uniqueIndex"`
+	UnsubscribeType string     `json:"unsubscribe_type"` // all, marketing, alerts
+	IPAddress       string     `json:"ip_address"`
+	UserAgent       string     `json:"user_agent"`
+	UnsubscribeDate time.Time  `json:"unsubscribe_date"`
+	OriginalEmailID string     `json:"original_email_id,omitempty"`
+	Source          string     `json:"source"` // email_link, one_click, manual
+	ResubscribeDate *time.Time `json:"resubscribe_date,omitempty"`
+	IsActive        bool       `json:"is_active" gorm:"default:true"`
+	CreatedAt       time.Time  `json:"created_at"`
 }
 
 // NewUnsubscribeHandlers creates new unsubscribe handlers
 func NewUnsubscribeHandlers(db *gorm.DB) *UnsubscribeHandlers {
 	// Auto-migrate unsubscribe records table
 	db.AutoMigrate(&UnsubscribeRecord{})
-	
+
 	return &UnsubscribeHandlers{
 		db: db,
 	}
@@ -60,7 +60,7 @@ func (u *UnsubscribeHandlers) HandleUnsubscribe(c *gin.Context) {
 	// Validate email format
 	if !u.isValidEmail(email) {
 		c.HTML(http.StatusBadRequest, "unsubscribe_error.html", gin.H{
-			"Title": "Unsubscribe Error", 
+			"Title": "Unsubscribe Error",
 			"Error": "Invalid email address format.",
 		})
 		return
@@ -68,9 +68,9 @@ func (u *UnsubscribeHandlers) HandleUnsubscribe(c *gin.Context) {
 
 	// Check if already unsubscribed
 	var existing UnsubscribeRecord
-	result := u.db.Where("email = ? AND unsubscribe_type = ? AND is_active = ?", 
+	result := u.db.Where("email = ? AND unsubscribe_type = ? AND is_active = ?",
 		email, unsubType, true).First(&existing)
-	
+
 	if result.Error == nil {
 		// Already unsubscribed
 		c.HTML(http.StatusOK, "unsubscribe_success.html", gin.H{
@@ -85,14 +85,14 @@ func (u *UnsubscribeHandlers) HandleUnsubscribe(c *gin.Context) {
 
 	// Create unsubscribe record
 	unsubRecord := &UnsubscribeRecord{
-		Email:            email,
-		UnsubscribeID:    unsubscribeID,
-		UnsubscribeType:  unsubType,
-		IPAddress:        c.ClientIP(),
-		UserAgent:        c.GetHeader("User-Agent"),
-		UnsubscribeDate:  time.Now(),
-		Source:           source,
-		IsActive:         true,
+		Email:           email,
+		UnsubscribeID:   unsubscribeID,
+		UnsubscribeType: unsubType,
+		IPAddress:       c.ClientIP(),
+		UserAgent:       c.GetHeader("User-Agent"),
+		UnsubscribeDate: time.Now(),
+		Source:          source,
+		IsActive:        true,
 	}
 
 	if err := u.db.Create(unsubRecord).Error; err != nil {
@@ -129,7 +129,7 @@ func (u *UnsubscribeHandlers) HandleOneClickUnsubscribe(c *gin.Context) {
 	// Parse form data
 	email := c.PostForm("email")
 	unsubscribeID := c.PostForm("id")
-	
+
 	if email == "" || unsubscribeID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Missing required parameters",
@@ -139,14 +139,14 @@ func (u *UnsubscribeHandlers) HandleOneClickUnsubscribe(c *gin.Context) {
 
 	// Process unsubscribe
 	unsubRecord := &UnsubscribeRecord{
-		Email:            email,
-		UnsubscribeID:    unsubscribeID,
-		UnsubscribeType:  "all", // One-click always unsubscribes from all
-		IPAddress:        c.ClientIP(),
-		UserAgent:        c.GetHeader("User-Agent"),
-		UnsubscribeDate:  time.Now(),
-		Source:           "one_click",
-		IsActive:         true,
+		Email:           email,
+		UnsubscribeID:   unsubscribeID,
+		UnsubscribeType: "all", // One-click always unsubscribes from all
+		IPAddress:       c.ClientIP(),
+		UserAgent:       c.GetHeader("User-Agent"),
+		UnsubscribeDate: time.Now(),
+		Source:          "one_click",
+		IsActive:        true,
 	}
 
 	if err := u.db.Create(unsubRecord).Error; err != nil {
@@ -180,7 +180,7 @@ func (u *UnsubscribeHandlers) HandleResubscribe(c *gin.Context) {
 
 	// Deactivate existing unsubscribe records
 	result := u.db.Model(&UnsubscribeRecord{}).
-		Where("email = ? AND unsubscribe_type = ? AND is_active = ?", 
+		Where("email = ? AND unsubscribe_type = ? AND is_active = ?",
 			email, subscribeType, true).
 		Updates(map[string]interface{}{
 			"is_active":        false,
@@ -207,26 +207,26 @@ func (u *UnsubscribeHandlers) HandleResubscribe(c *gin.Context) {
 // IsEmailUnsubscribed checks if an email is unsubscribed from a specific type
 func (u *UnsubscribeHandlers) IsEmailUnsubscribed(email, emailType string) bool {
 	var count int64
-	
+
 	// Check for specific type unsubscribe or "all" unsubscribe
 	u.db.Model(&UnsubscribeRecord{}).
-		Where("email = ? AND (unsubscribe_type = ? OR unsubscribe_type = ?) AND is_active = ?", 
+		Where("email = ? AND (unsubscribe_type = ? OR unsubscribe_type = ?) AND is_active = ?",
 			email, emailType, "all", true).
 		Count(&count)
-	
+
 	return count > 0
 }
 
 // GetUnsubscribeStats returns unsubscribe statistics
 func (u *UnsubscribeHandlers) GetUnsubscribeStats(c *gin.Context) {
 	var stats struct {
-		TotalUnsubscribes    int64   `json:"total_unsubscribes"`
-		MarketingUnsubscribes int64  `json:"marketing_unsubscribes"`
-		AlertsUnsubscribes   int64   `json:"alerts_unsubscribes"`
-		AllUnsubscribes      int64   `json:"all_unsubscribes"`
-		OneClickUnsubscribes int64   `json:"one_click_unsubscribes"`
-		UnsubscribeRate      float64 `json:"unsubscribe_rate"`
-		RecentUnsubscribes   []UnsubscribeRecord `json:"recent_unsubscribes"`
+		TotalUnsubscribes     int64               `json:"total_unsubscribes"`
+		MarketingUnsubscribes int64               `json:"marketing_unsubscribes"`
+		AlertsUnsubscribes    int64               `json:"alerts_unsubscribes"`
+		AllUnsubscribes       int64               `json:"all_unsubscribes"`
+		OneClickUnsubscribes  int64               `json:"one_click_unsubscribes"`
+		UnsubscribeRate       float64             `json:"unsubscribe_rate"`
+		RecentUnsubscribes    []UnsubscribeRecord `json:"recent_unsubscribes"`
 	}
 
 	// Get total counts
@@ -291,42 +291,42 @@ func (u *UnsubscribeHandlers) GetUnsubscribeList(c *gin.Context) {
 
 func (u *UnsubscribeHandlers) updateContactUnsubscribeStatus(email, unsubType string) {
 	// Update in various contact tables based on what exists
-	
+
 	// Update BookingRequests if table exists
 	u.db.Model(&models.BookingRequest{}).
 		Where("email = ?", email).
 		Update("marketing_consent", false)
-	
+
 	// Update Leads table if exists
 	u.db.Model(&models.Lead{}).
 		Where("email = ?", email).
 		Updates(map[string]interface{}{
-			"marketing_consent":     unsubType != "marketing" && unsubType != "all",
-			"notification_consent":  unsubType != "alerts" && unsubType != "all",
-			"unsubscribed_at":       time.Now(),
+			"marketing_consent":    unsubType != "marketing" && unsubType != "all",
+			"notification_consent": unsubType != "alerts" && unsubType != "all",
+			"unsubscribed_at":      time.Now(),
 		})
 }
 
 func (u *UnsubscribeHandlers) updateContactSubscribeStatus(email, subscribeType string) {
 	// Re-enable marketing consent when resubscribing
-	
+
 	// Update BookingRequests
 	u.db.Model(&models.BookingRequest{}).
 		Where("email = ?", email).
 		Update("marketing_consent", true)
-	
+
 	// Update Leads table
 	updates := map[string]interface{}{
 		"unsubscribed_at": nil,
 	}
-	
+
 	if subscribeType == "marketing" || subscribeType == "all" {
 		updates["marketing_consent"] = true
 	}
 	if subscribeType == "alerts" || subscribeType == "all" {
 		updates["notification_consent"] = true
 	}
-	
+
 	u.db.Model(&models.Lead{}).
 		Where("email = ?", email).
 		Updates(updates)

@@ -154,9 +154,9 @@ func (s *ScraperService) extractPropertiesFromHTML(html string, sourceURL string
 	placesFound := 0
 	propertiesExtracted := 0
 	filtered := map[string]int{
-		"wrong_type":      0,
-		"recent_showing":  0,
-		"missing_data":    0,
+		"wrong_type":     0,
+		"recent_showing": 0,
+		"missing_data":   0,
 	}
 
 	doc.Find("script[type='application/ld+json']").Each(func(i int, script *goquery.Selection) {
@@ -214,7 +214,7 @@ func (s *ScraperService) extractPropertiesFromHTML(html string, sourceURL string
 
 	log.Printf("📊 JSON-LD Analysis for %s:", expectedListingType)
 	log.Printf("   Total items: %d | Places: %d | Extracted: %d", totalItems, placesFound, propertiesExtracted)
-	log.Printf("   Filtered: wrong_type=%d, showings=%d, missing_data=%d", 
+	log.Printf("   Filtered: wrong_type=%d, showings=%d, missing_data=%d",
 		filtered["wrong_type"], filtered["recent_showing"], filtered["missing_data"])
 
 	properties = s.enrichPropertiesWithPrices(doc, properties)

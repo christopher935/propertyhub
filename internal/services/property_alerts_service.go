@@ -5,15 +5,15 @@ import (
 	"log"
 	"strings"
 	"time"
-	
+
 	"chrisgross-ctrl-project/internal/models"
 	"gorm.io/gorm"
 )
 
 type PropertyAlertsService struct {
-	db               *gorm.DB
-	emailService     *EmailService
-	matchingService  *PropertyMatchingService
+	db              *gorm.DB
+	emailService    *EmailService
+	matchingService *PropertyMatchingService
 }
 
 func NewPropertyAlertsService(db *gorm.DB, emailService *EmailService) *PropertyAlertsService {
@@ -25,22 +25,22 @@ func NewPropertyAlertsService(db *gorm.DB, emailService *EmailService) *Property
 }
 
 type AlertPreferences struct {
-	ID               uint      `json:"id" gorm:"primaryKey"`
-	Email            string    `json:"email" gorm:"index;not null"`
-	SessionID        string    `json:"session_id" gorm:"index"`
-	MinPrice         float64   `json:"min_price"`
-	MaxPrice         float64   `json:"max_price"`
-	MinBedrooms      int       `json:"min_bedrooms"`
-	MaxBedrooms      int       `json:"max_bedrooms"`
-	MinBathrooms     float64   `json:"min_bathrooms"`
-	PreferredCities  string    `json:"preferred_cities" gorm:"type:text"`
-	PreferredZips    string    `json:"preferred_zips" gorm:"type:text"`
-	PropertyTypes    string    `json:"property_types" gorm:"type:text"`
-	AlertFrequency   string    `json:"alert_frequency" gorm:"default:'instant'"`
-	Active           bool      `json:"active" gorm:"default:true"`
-	LastNotified     *time.Time `json:"last_notified"`
-	CreatedAt        time.Time `json:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at"`
+	ID              uint       `json:"id" gorm:"primaryKey"`
+	Email           string     `json:"email" gorm:"index;not null"`
+	SessionID       string     `json:"session_id" gorm:"index"`
+	MinPrice        float64    `json:"min_price"`
+	MaxPrice        float64    `json:"max_price"`
+	MinBedrooms     int        `json:"min_bedrooms"`
+	MaxBedrooms     int        `json:"max_bedrooms"`
+	MinBathrooms    float64    `json:"min_bathrooms"`
+	PreferredCities string     `json:"preferred_cities" gorm:"type:text"`
+	PreferredZips   string     `json:"preferred_zips" gorm:"type:text"`
+	PropertyTypes   string     `json:"property_types" gorm:"type:text"`
+	AlertFrequency  string     `json:"alert_frequency" gorm:"default:'instant'"`
+	Active          bool       `json:"active" gorm:"default:true"`
+	LastNotified    *time.Time `json:"last_notified"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
 }
 
 func (AlertPreferences) TableName() string {
@@ -48,16 +48,16 @@ func (AlertPreferences) TableName() string {
 }
 
 type PropertyAlert struct {
-	ID                uint      `json:"id" gorm:"primaryKey"`
-	PropertyID        uint      `json:"property_id" gorm:"index;not null"`
-	AlertPreferenceID uint      `json:"alert_preference_id" gorm:"index;not null"`
-	Email             string    `json:"email" gorm:"index;not null"`
-	MatchScore        float64   `json:"match_score"`
-	Sent              bool      `json:"sent" gorm:"default:false"`
+	ID                uint       `json:"id" gorm:"primaryKey"`
+	PropertyID        uint       `json:"property_id" gorm:"index;not null"`
+	AlertPreferenceID uint       `json:"alert_preference_id" gorm:"index;not null"`
+	Email             string     `json:"email" gorm:"index;not null"`
+	MatchScore        float64    `json:"match_score"`
+	Sent              bool       `json:"sent" gorm:"default:false"`
 	SentAt            *time.Time `json:"sent_at"`
-	Opened            bool      `json:"opened" gorm:"default:false"`
-	Clicked           bool      `json:"clicked" gorm:"default:false"`
-	CreatedAt         time.Time `json:"created_at"`
+	Opened            bool       `json:"opened" gorm:"default:false"`
+	Clicked           bool       `json:"clicked" gorm:"default:false"`
+	CreatedAt         time.Time  `json:"created_at"`
 }
 
 func (PropertyAlert) TableName() string {
@@ -66,24 +66,24 @@ func (PropertyAlert) TableName() string {
 
 func (s *PropertyAlertsService) ProcessNewProperty(propertyID uint) error {
 	log.Printf("🔔 Property Alerts: Processing new property %d", propertyID)
-	
+
 	var property models.Property
 	if err := s.db.First(&property, propertyID).Error; err != nil {
 		return err
 	}
-	
+
 	var preferences []AlertPreferences
 	query := s.db.Where("active = ?", true)
-	
+
 	if property.Price > 0 {
-		query = query.Where("(min_price = 0 OR min_price <= ?) AND (max_price = 0 OR max_price >= ?)", 
+		query = query.Where("(min_price = 0 OR min_price <= ?) AND (max_price = 0 OR max_price >= ?)",
 			property.Price, property.Price)
 	}
-	
+
 	query.Find(&preferences)
-	
+
 	log.Printf("📊 Found %d alert preferences to check", len(preferences))
-	
+
 	alertsSent := 0
 	for _, pref := range preferences {
 		if s.propertyMatchesPreferences(property, pref) {
@@ -92,7 +92,7 @@ func (s *PropertyAlertsService) ProcessNewProperty(propertyID uint) error {
 			}
 		}
 	}
-	
+
 	log.Printf("✅ Sent %d property alerts for new property %d", alertsSent, propertyID)
 	return nil
 }
@@ -101,15 +101,15 @@ func (s *PropertyAlertsService) propertyMatchesPreferences(property models.Prope
 	if pref.MinBedrooms > 0 && property.Bedrooms != nil && *property.Bedrooms < pref.MinBedrooms {
 		return false
 	}
-	
+
 	if pref.MaxBedrooms > 0 && property.Bedrooms != nil && *property.Bedrooms > pref.MaxBedrooms {
 		return false
 	}
-	
+
 	if pref.MinBathrooms > 0 && property.Bathrooms != nil && *property.Bathrooms < float32(pref.MinBathrooms) {
 		return false
 	}
-	
+
 	if pref.PreferredCities != "" {
 		cities := strings.Split(pref.PreferredCities, ",")
 		matched := false
@@ -123,7 +123,7 @@ func (s *PropertyAlertsService) propertyMatchesPreferences(property models.Prope
 			return false
 		}
 	}
-	
+
 	if pref.PreferredZips != "" {
 		zips := strings.Split(pref.PreferredZips, ",")
 		matched := false
@@ -137,7 +137,7 @@ func (s *PropertyAlertsService) propertyMatchesPreferences(property models.Prope
 			return false
 		}
 	}
-	
+
 	if pref.PropertyTypes != "" {
 		types := strings.Split(pref.PropertyTypes, ",")
 		matched := false
@@ -151,7 +151,7 @@ func (s *PropertyAlertsService) propertyMatchesPreferences(property models.Prope
 			return false
 		}
 	}
-	
+
 	return true
 }
 
@@ -163,17 +163,17 @@ func (s *PropertyAlertsService) sendPropertyAlert(property models.Property, pref
 		MatchScore:        85.0,
 		CreatedAt:         time.Now(),
 	}
-	
+
 	if err := s.db.Create(&alert).Error; err != nil {
 		return err
 	}
-	
+
 	subject := fmt.Sprintf("🏠 New Property Alert: %s", property.Address)
-	
+
 	bedrooms := "—"
 	bathrooms := "—"
 	sqft := "—"
-	
+
 	if property.Bedrooms != nil {
 		bedrooms = fmt.Sprintf("%d", *property.Bedrooms)
 	}
@@ -183,7 +183,7 @@ func (s *PropertyAlertsService) sendPropertyAlert(property models.Property, pref
 	if property.SquareFeet != nil {
 		sqft = fmt.Sprintf("%d", *property.SquareFeet)
 	}
-	
+
 	body := fmt.Sprintf(`
 		<h2>New Property Matching Your Criteria</h2>
 		<div style="background:#f9fafb;padding:20px;border-radius:8px;margin:20px 0;">
@@ -215,26 +215,26 @@ func (s *PropertyAlertsService) sendPropertyAlert(property models.Property, pref
 		property.ID,
 		pref.Email,
 	)
-	
+
 	metadata := map[string]interface{}{
-		"property_id":  property.ID,
-		"alert_id":     alert.ID,
-		"match_score":  alert.MatchScore,
+		"property_id":   property.ID,
+		"alert_id":      alert.ID,
+		"match_score":   alert.MatchScore,
 		"campaign_type": "property_alert",
 	}
-	
+
 	if err := s.emailService.SendEmail(pref.Email, subject, body, metadata); err != nil {
 		log.Printf("❌ Failed to send property alert to %s: %v", pref.Email, err)
 		return err
 	}
-	
+
 	s.db.Model(&alert).Updates(map[string]interface{}{
-		"sent": true,
+		"sent":    true,
 		"sent_at": time.Now(),
 	})
-	
+
 	s.db.Model(&pref).Update("last_notified", time.Now())
-	
+
 	log.Printf("✅ Sent property alert to %s for property %d", pref.Email, property.ID)
 	return nil
 }

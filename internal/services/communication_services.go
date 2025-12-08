@@ -1,13 +1,13 @@
 package services
 
 import (
-	"fmt"
-	"log"
-	"time"
-	"gorm.io/gorm"
-	"strconv"
 	"chrisgross-ctrl-project/internal/config"
 	"chrisgross-ctrl-project/internal/safety"
+	"fmt"
+	"gorm.io/gorm"
+	"log"
+	"strconv"
+	"time"
 )
 
 type EmailService struct {
@@ -123,7 +123,7 @@ func (es *EmailService) SendTemplateEmail(to, subject, template string, data map
 	}
 
 	content := fmt.Sprintf("Template: %s\nData: %v", template, data)
-	
+
 	return es.SendEmail(to, subject, content, data)
 }
 
@@ -159,13 +159,13 @@ func (ss *SMSService) SendTemplateSMS(to, template string, data map[string]inter
 	}
 
 	content := fmt.Sprintf("Template: %s - Data: %v", template, data)
-	
+
 	return ss.SendSMS(to, content, data)
 }
 
 func (ns *NotificationService) SendNotification(userID, title, content string, metadata map[string]interface{}) error {
 	log.Printf("🔔 NOTIFICATION: UserID=%s, Title=%s", userID, title)
-	
+
 	if ns.db == nil {
 		log.Printf("⚠️  Database not available for notification")
 		return fmt.Errorf("database not configured")
@@ -193,7 +193,7 @@ func (ns *NotificationService) SendScheduledNotification(userID, title, content 
 
 func (ns *NotificationService) SendAgentAlert(agentID, title, content string, metadata map[string]interface{}) error {
 	log.Printf("🚨 AGENT ALERT: AgentID=%s, Title=%s", agentID, title)
-	
+
 	if ns.db == nil {
 		log.Printf("⚠️  Database not available for agent alert")
 		return fmt.Errorf("database not configured")
@@ -270,16 +270,16 @@ func (ps *PropertyService) GetPropertyByID(propertyID string) (map[string]interf
 
 func (blss *BehavioralLeadScoringService) ScoreLead(leadID string, behaviorData map[string]interface{}) (float64, error) {
 	log.Printf("📊 SCORE LEAD: ID=%s", leadID)
-	
+
 	if blss.db == nil {
 		return 0, fmt.Errorf("database not initialized")
 	}
-	
+
 	leadIDInt, err := strconv.Atoi(leadID)
 	if err != nil {
 		return 0, fmt.Errorf("invalid lead ID: %w", err)
 	}
-	
+
 	var compositeScore int
 	err = blss.db.Table("behavioral_scores").
 		Select("composite_score").
@@ -287,30 +287,30 @@ func (blss *BehavioralLeadScoringService) ScoreLead(leadID string, behaviorData 
 		Order("last_calculated DESC").
 		Limit(1).
 		Scan(&compositeScore).Error
-	
+
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return 0, fmt.Errorf("failed to query behavioral score: %w", err)
 	}
-	
+
 	if err == gorm.ErrRecordNotFound {
 		return 0.0, nil
 	}
-	
+
 	return float64(compositeScore), nil
 }
 
 func (blss *BehavioralLeadScoringService) GetLeadScore(leadID string) (float64, error) {
 	log.Printf("📊 GET LEAD SCORE: ID=%s", leadID)
-	
+
 	if blss.db == nil {
 		return 0, fmt.Errorf("database not initialized")
 	}
-	
+
 	leadIDInt, err := strconv.Atoi(leadID)
 	if err != nil {
 		return 0, fmt.Errorf("invalid lead ID: %w", err)
 	}
-	
+
 	var compositeScore int
 	err = blss.db.Table("behavioral_scores").
 		Select("composite_score").
@@ -318,15 +318,15 @@ func (blss *BehavioralLeadScoringService) GetLeadScore(leadID string) (float64, 
 		Order("last_calculated DESC").
 		Limit(1).
 		Scan(&compositeScore).Error
-	
+
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return 0, fmt.Errorf("failed to query behavioral score: %w", err)
 	}
-	
+
 	if err == gorm.ErrRecordNotFound {
 		return 0.0, nil
 	}
-	
+
 	return float64(compositeScore), nil
 }
 

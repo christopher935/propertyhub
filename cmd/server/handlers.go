@@ -9,100 +9,99 @@ import (
 // AllHandlers contains all initialized handlers for route registration
 type AllHandlers struct {
 	// Analytics & Business Intelligence
-	BusinessIntelligence  *handlers.BusinessIntelligenceHandlers
-	TieredStats           *handlers.TieredStatsHandlers
+	BusinessIntelligence *handlers.BusinessIntelligenceHandlers
+	TieredStats          *handlers.TieredStatsHandlers
 
 	// Approvals & Workflow
-	Approvals             *handlers.ApprovalsManagementHandlers
-	ApplicationWorkflow   *handlers.ApplicationWorkflowHandlers
-	ClosingPipeline       *handlers.ClosingPipelineHandlers
+	Approvals           *handlers.ApprovalsManagementHandlers
+	ApplicationWorkflow *handlers.ApplicationWorkflowHandlers
+	ClosingPipeline     *handlers.ClosingPipelineHandlers
 
 	// Behavioral Intelligence & FUB
-	Behavioral            *handlers.BehavioralIntelligenceHandlers
-	BehavioralEvent       *handlers.BehavioralEventHandler
-	InsightsAPI           *handlers.InsightsAPIHandlers
-	ContextFUB            *handlers.ContextFUBIntegrationHandlers
+	Behavioral      *handlers.BehavioralIntelligenceHandlers
+	BehavioralEvent *handlers.BehavioralEventHandler
+	InsightsAPI     *handlers.InsightsAPIHandlers
+	ContextFUB      *handlers.ContextFUBIntegrationHandlers
 
 	// Command Center
-	CommandCenter         *handlers.CommandCenterHandlers
+	CommandCenter *handlers.CommandCenterHandlers
 
 	// Booking
-	Booking               *handlers.BookingHandler
+	Booking *handlers.BookingHandler
 
 	// Calendar & Scheduling
-	Calendar              *handlers.CalendarHandlers
+	Calendar *handlers.CalendarHandlers
 
 	// Dashboard
-	Dashboard             *handlers.DashboardHandlers
+	Dashboard *handlers.DashboardHandlers
 
 	// Data Migration
-	DataMigration         *handlers.DataMigrationHandlers
+	DataMigration *handlers.DataMigrationHandlers
 
 	// Email
-	EmailSender           *handlers.EmailSenderHandlers
-	Unsubscribe           *handlers.UnsubscribeHandlers
-
+	EmailSender *handlers.EmailSenderHandlers
+	Unsubscribe *handlers.UnsubscribeHandlers
 
 	// Lead Management
-	LeadReengagement      *handlers.LeadReengagementHandler
-	LeadsList             *handlers.LeadsListHandler
-	BulkOperations        *handlers.BulkOperationsHandler
+	LeadReengagement *handlers.LeadReengagementHandler
+	LeadsList        *handlers.LeadsListHandler
+	BulkOperations   *handlers.BulkOperationsHandler
 
 	// Team Management
-	Team                  *handlers.TeamHandlers
+	Team *handlers.TeamHandlers
 
 	// Pre-Listing
-	PreListing            *handlers.PreListingHandlers
+	PreListing *handlers.PreListingHandlers
 
 	// Properties
-	Properties            *handlers.PropertiesHandler
-	SavedProperties       *handlers.SavedPropertiesHandler
-	Recommendations       *handlers.RecommendationsHandler
-	PropertyAlerts        *handlers.PropertyAlertsHandler
-	LiveActivity          *handlers.LiveActivityHandler
-	BehavioralSessions    *handlers.BehavioralSessionsHandler
+	Properties         *handlers.PropertiesHandler
+	SavedProperties    *handlers.SavedPropertiesHandler
+	Recommendations    *handlers.RecommendationsHandler
+	PropertyAlerts     *handlers.PropertyAlertsHandler
+	LiveActivity       *handlers.LiveActivityHandler
+	BehavioralSessions *handlers.BehavioralSessionsHandler
 
 	// Security
-	SecurityMonitoring    *handlers.SecurityMonitoringHandlers
-	AdvancedSecurityAPI   *handlers.AdvancedSecurityAPIHandlers
+	SecurityMonitoring  *handlers.SecurityMonitoringHandlers
+	AdvancedSecurityAPI *handlers.AdvancedSecurityAPIHandlers
 
 	// Webhooks
-	Webhook               *handlers.WebhookHandlers
+	Webhook *handlers.WebhookHandlers
 
 	// WebSocket
-	WebSocket             *handlers.WebSocketHandler
+	WebSocket *handlers.WebSocketHandler
 
 	// Admin Notifications
-	AdminNotification     *handlers.AdminNotificationHandler
+	AdminNotification *handlers.AdminNotificationHandler
 
 	// Safety
-	Safety                *handlers.SafetyHandlers
+	Safety *handlers.SafetyHandlers
 
 	// Availability
-	Availability          *handlers.AvailabilityHandler
+	Availability *handlers.AvailabilityHandler
 
 	// Central Property
-	CentralProperty       *handlers.CentralPropertyHandler
-	CentralPropertySync   *handlers.CentralPropertySyncHandlers
+	CentralProperty     *handlers.CentralPropertyHandler
+	CentralPropertySync *handlers.CentralPropertySyncHandlers
 
 	// Daily Schedule
-	DailySchedule         *handlers.DailyScheduleHandlers
+	DailySchedule *handlers.DailyScheduleHandlers
 
 	// MFA
-	MFA                   *handlers.MFAHandler
+	MFA *handlers.MFAHandler
 
 	// Settings
-	Settings              *handlers.SettingsHandler
+	Settings *handlers.SettingsHandler
 
 	// Validation
-	Validation            *handlers.ValidationHandler
+	Validation *handlers.ValidationHandler
 
 	// Setup
-	Setup                 *handlers.SetupHandlers
+	Setup *handlers.SetupHandlers
 
 	// Database (for inline handlers that need it)
-	DB                    *gorm.DB
-	
+	DB *gorm.DB
+
 	// Encryption Manager (for decrypting addresses)
-	EncryptionManager     *security.EncryptionManager
+	EncryptionManager *security.EncryptionManager
 }

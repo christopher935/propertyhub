@@ -78,9 +78,9 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 			recaptchaSiteKey = cfg.RecaptchaSiteKey
 		}
 		c.HTML(http.StatusOK, "consumer/pages/book-showing.html", gin.H{
-			"Title":           "Book Showing",
+			"Title":            "Book Showing",
 			"RecaptchaSiteKey": recaptchaSiteKey,
-			"CSRFToken":       c.GetString("csrf_token"),
+			"CSRFToken":        c.GetString("csrf_token"),
 		})
 	})
 	r.GET("/booking-confirmation", func(c *gin.Context) {

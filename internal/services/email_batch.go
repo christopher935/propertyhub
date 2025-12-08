@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"chrisgross-ctrl-project/internal/utils"
+	"github.com/redis/go-redis/v9"
 )
 
 // EmailBatchService handles batched email processing
@@ -484,5 +484,3 @@ func (e *EmailBatchService) GetStats() map[string]interface{} {
 		},
 	}
 }
-
-

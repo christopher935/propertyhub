@@ -1,9 +1,9 @@
 package models
 
 import (
+	"chrisgross-ctrl-project/internal/security"
 	"fmt"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/security"
 	"time"
 )
 

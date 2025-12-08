@@ -448,3 +448,69 @@ func (client *BehavioralFUBAPIClient) GetPonds() ([]FUBPond, error) {
 	log.Printf("✅ Retrieved %d FUB ponds", len(result))
 	return result, nil
 }
+
+// SearchContactsByEmail searches for contacts by email address
+func (client *BehavioralFUBAPIClient) SearchContactsByEmail(email string) ([]FUBContact, error) {
+	endpoint := fmt.Sprintf("/people?email=%s", email)
+	resp, err := client.makeRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to search contacts: HTTP %d", resp.StatusCode)
+	}
+
+	var result []FUBContact
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %v", err)
+	}
+
+	log.Printf("✅ Found %d FUB contacts for email %s", len(result), email)
+	return result, nil
+}
+
+// SearchContactsByPhone searches for contacts by phone number
+func (client *BehavioralFUBAPIClient) SearchContactsByPhone(phone string) ([]FUBContact, error) {
+	endpoint := fmt.Sprintf("/people?phone=%s", phone)
+	resp, err := client.makeRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to search contacts: HTTP %d", resp.StatusCode)
+	}
+
+	var result []FUBContact
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %v", err)
+	}
+
+	log.Printf("✅ Found %d FUB contacts for phone %s", len(result), phone)
+	return result, nil
+}
+
+// SearchContactsByName searches for contacts by name
+func (client *BehavioralFUBAPIClient) SearchContactsByName(name string) ([]FUBContact, error) {
+	endpoint := fmt.Sprintf("/people?name=%s", name)
+	resp, err := client.makeRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("failed to search contacts: HTTP %d", resp.StatusCode)
+	}
+
+	var result []FUBContact
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %v", err)
+	}
+
+	log.Printf("✅ Found %d FUB contacts for name %s", len(result), name)
+	return result, nil
+}

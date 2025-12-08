@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
- )
+)
 
 // SetupHandlers handles setup wizard requests
 type SetupHandlers struct {
@@ -28,14 +28,14 @@ func NewSetupHandlers(setupService *services.SetupService) *SetupHandlers {
 }
 
 // SetupWizardPage shows the main setup wizard page
-func (h *SetupHandlers) SetupWizardPage(w http.ResponseWriter, r *http.Request ) {
+func (h *SetupHandlers) SetupWizardPage(w http.ResponseWriter, r *http.Request) {
 	if !h.setupService.IsSetupRequired() {
-		http.Redirect(w, r, "/admin/dashboard", http.StatusFound )
+		http.Redirect(w, r, "/admin/dashboard", http.StatusFound)
 		return
 	}
 
 	progress := h.setupService.GetSetupProgress()
-	
+
 	tmpl := `
 <!DOCTYPE html>
 <html>
@@ -194,7 +194,7 @@ func (h *SetupHandlers) SetupWizardPage(w http.ResponseWriter, r *http.Request )
 
 	t, err := template.New("setup").Parse(tmpl)
 	if err != nil {
-		http.Error(w, "Template error", http.StatusInternalServerError )
+		http.Error(w, "Template error", http.StatusInternalServerError)
 		return
 	}
 
@@ -217,9 +217,9 @@ func (h *SetupHandlers) SetupWizardPage(w http.ResponseWriter, r *http.Request )
 }
 
 // ConfigureDatabase handles database configuration
-func (h *SetupHandlers) ConfigureDatabase(w http.ResponseWriter, r *http.Request ) {
+func (h *SetupHandlers) ConfigureDatabase(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed )
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -229,7 +229,7 @@ func (h *SetupHandlers) ConfigureDatabase(w http.ResponseWriter, r *http.Request
 	// Test database connection
 	db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{})
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Database connection failed: %v", err ), http.StatusBadRequest )
+		http.Error(w, fmt.Sprintf("Database connection failed: %v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -244,7 +244,7 @@ func (h *SetupHandlers) ConfigureDatabase(w http.ResponseWriter, r *http.Request
 		&models.AdminSetup{},
 	)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Database migration failed: %v", err ), http.StatusBadRequest )
+		http.Error(w, fmt.Sprintf("Database migration failed: %v", err), http.StatusBadRequest)
 		return
 	}
 
@@ -258,13 +258,13 @@ func (h *SetupHandlers) ConfigureDatabase(w http.ResponseWriter, r *http.Request
 	h.setupService.MarkDatabaseConfigured()
 
 	log.Println("✅ Database configured successfully")
-	http.Redirect(w, r, "/setup", http.StatusFound )
+	http.Redirect(w, r, "/setup", http.StatusFound)
 }
 
 // CreateAdminUser handles admin user creation
-func (h *SetupHandlers) CreateAdminUser(w http.ResponseWriter, r *http.Request ) {
+func (h *SetupHandlers) CreateAdminUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed )
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -275,20 +275,20 @@ func (h *SetupHandlers) CreateAdminUser(w http.ResponseWriter, r *http.Request )
 	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		http.Error(w, "Password hashing failed", http.StatusInternalServerError )
+		http.Error(w, "Password hashing failed", http.StatusInternalServerError)
 		return
 	}
 
 	// Connect to database
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
-		http.Error(w, "Database not configured", http.StatusBadRequest )
+		http.Error(w, "Database not configured", http.StatusBadRequest)
 		return
 	}
 
 	db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{})
 	if err != nil {
-		http.Error(w, "Database connection failed", http.StatusInternalServerError )
+		http.Error(w, "Database connection failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -299,12 +299,12 @@ func (h *SetupHandlers) CreateAdminUser(w http.ResponseWriter, r *http.Request )
 
 	// Create admin user
 	adminUser := models.AdminUser{
-		Username: username,
+		Username:     username,
 		PasswordHash: string(hashedPassword),
 	}
 
 	if err := db.Create(&adminUser).Error; err != nil {
-		http.Error(w, fmt.Sprintf("Failed to create admin user: %v", err ), http.StatusInternalServerError )
+		http.Error(w, fmt.Sprintf("Failed to create admin user: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -314,13 +314,13 @@ func (h *SetupHandlers) CreateAdminUser(w http.ResponseWriter, r *http.Request )
 	h.setupService.MarkAdminUserCreated()
 
 	log.Println("✅ Admin user created successfully")
-	http.Redirect(w, r, "/setup", http.StatusFound )
+	http.Redirect(w, r, "/setup", http.StatusFound)
 }
 
 // ConfigureAPIKeys handles API key configuration
-func (h *SetupHandlers) ConfigureAPIKeys(w http.ResponseWriter, r *http.Request ) {
+func (h *SetupHandlers) ConfigureAPIKeys(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed )
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -348,38 +348,38 @@ func (h *SetupHandlers) ConfigureAPIKeys(w http.ResponseWriter, r *http.Request 
 	h.setupService.MarkAPIKeysConfigured()
 
 	log.Println("✅ API keys configured successfully")
-	http.Redirect(w, r, "/setup", http.StatusFound )
+	http.Redirect(w, r, "/setup", http.StatusFound)
 }
 
 // SkipAPIKeys handles skipping API key configuration
-func (h *SetupHandlers) SkipAPIKeys(w http.ResponseWriter, r *http.Request ) {
+func (h *SetupHandlers) SkipAPIKeys(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed )
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	// Mark API keys as configured (even though skipped)
 	h.setupService.MarkAPIKeysConfigured()
 
-	w.WriteHeader(http.StatusOK )
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "skipped"})
 }
 
 // CompleteSetup handles setup completion
-func (h *SetupHandlers) CompleteSetup(w http.ResponseWriter, r *http.Request ) {
+func (h *SetupHandlers) CompleteSetup(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed )
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	if !h.setupService.CanCompleteSetup() {
-		http.Error(w, "Setup requirements not met", http.StatusBadRequest )
+		http.Error(w, "Setup requirements not met", http.StatusBadRequest)
 		return
 	}
 
 	// Complete setup and enter test mode
 	if err := h.setupService.CompleteSetup(); err != nil {
-		http.Error(w, fmt.Sprintf("Failed to complete setup: %v", err ), http.StatusInternalServerError )
+		http.Error(w, fmt.Sprintf("Failed to complete setup: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -388,10 +388,10 @@ func (h *SetupHandlers) CompleteSetup(w http.ResponseWriter, r *http.Request ) {
 
 	log.Println("🎉 Setup completed successfully - entering test mode")
 	log.Println("🔒 Setup wizard files removed for security")
-	
+
 	// Redirect to a completion page that will restart the app
 	w.Header().Set("Content-Type", "text/html")
-	w.WriteHeader(http.StatusOK )
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`
 <!DOCTYPE html>
 <html>
@@ -411,7 +411,7 @@ func (h *SetupHandlers) CompleteSetup(w http.ResponseWriter, r *http.Request ) {
     <p><a href="/">Continue to PropertyHub</a></p>
 </body>
 </html>
-	` ))
+	`))
 }
 
 // cleanupSetupFiles removes setup-related files for security
@@ -461,10 +461,10 @@ func (h *SetupHandlers) calculateProgress(progress map[string]bool) int {
 // saveToEnvFile saves environment variables to a file
 func (h *SetupHandlers) saveToEnvFile(key, value string) {
 	envFile := ".env"
-	
+
 	// Simple append approach for now
 	content := fmt.Sprintf("%s=%s\n", key, value)
-	
+
 	// Append to file
 	f, err := os.OpenFile(envFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -472,15 +472,15 @@ func (h *SetupHandlers) saveToEnvFile(key, value string) {
 		return
 	}
 	defer f.Close()
-	
+
 	f.WriteString(content)
 	log.Printf("💾 Saved %s to environment", key)
 }
 
 // RegisterSetupRoutes registers all setup wizard routes
-func RegisterSetupRoutes(mux *http.ServeMux, setupService *services.SetupService ) {
+func RegisterSetupRoutes(mux *http.ServeMux, setupService *services.SetupService) {
 	setupHandlers := NewSetupHandlers(setupService)
-	
+
 	mux.HandleFunc("/setup", setupHandlers.SetupWizardPage)
 	mux.HandleFunc("/setup/database", setupHandlers.ConfigureDatabase)
 	mux.HandleFunc("/setup/admin", setupHandlers.CreateAdminUser)
@@ -488,4 +488,3 @@ func RegisterSetupRoutes(mux *http.ServeMux, setupService *services.SetupService
 	mux.HandleFunc("/setup/apikeys/skip", setupHandlers.SkipAPIKeys)
 	mux.HandleFunc("/setup/complete", setupHandlers.CompleteSetup)
 }
-

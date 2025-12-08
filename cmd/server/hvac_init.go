@@ -3,22 +3,22 @@ package main
 import (
 	"chrisgross-ctrl-project/internal/jobs"
 	"chrisgross-ctrl-project/internal/services"
-	"log"
 	"gorm.io/gorm"
+	"log"
 )
 
 // InitializeHVACSystem sets up the HVAC (scheduled tasks) system
 // This is installed but not activated - will be turned on when building is complete
 func InitializeHVACSystem(db *gorm.DB, scraperAPIKey, fubAPIKey string) *jobs.JobManager {
 	log.Println("🌡️ Installing HVAC system (not activating)...")
-	
+
 	// Initialize services
 	fubService := services.NewEnhancedFUBIntegrationService(db, fubAPIKey)
 	biService := services.NewBusinessIntelligenceService(db)
-	
+
 	// Create JobManager (installed but not started)
 	jobManager := jobs.NewJobManager(db, nil, fubService, biService, nil)
-	
+
 	log.Println("✅ HVAC system installed (dormant)")
 	return jobManager
 }

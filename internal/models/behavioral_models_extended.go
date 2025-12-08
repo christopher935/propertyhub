@@ -1,9 +1,9 @@
 package models
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
-    "database/sql/driver"
-    "encoding/json"
 	"time"
 )
 
@@ -18,49 +18,48 @@ type JSONB map[string]interface{}
 
 // Scan implements the sql.Scanner interface for JSONB
 func (j *JSONB) Scan(value interface{}) error {
-    if value == nil {
-        *j = make(map[string]interface{})
-        return nil
-    }
-    
-    bytes, ok := value.([]byte)
-    if !ok {
-        return fmt.Errorf("failed to unmarshal JSONB value: %v", value)
-    }
-    
-    if len(bytes) == 0 {
-        *j = make(map[string]interface{})
-        return nil
-    }
-    
-    var result map[string]interface{}
-    if err := json.Unmarshal(bytes, &result); err != nil {
-        return err
-    }
-    
-    *j = result
-    return nil
+	if value == nil {
+		*j = make(map[string]interface{})
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to unmarshal JSONB value: %v", value)
+	}
+
+	if len(bytes) == 0 {
+		*j = make(map[string]interface{})
+		return nil
+	}
+
+	var result map[string]interface{}
+	if err := json.Unmarshal(bytes, &result); err != nil {
+		return err
+	}
+
+	*j = result
+	return nil
 }
 
 // Value implements the driver.Valuer interface for JSONB
 func (j JSONB) Value() (driver.Value, error) {
-    if j == nil {
-        return nil, nil
-    }
-    return json.Marshal(j)
+	if j == nil {
+		return nil, nil
+	}
+	return json.Marshal(j)
 }
 
-
 type BehavioralEvent struct {
-	ID         int64                  `json:"id" gorm:"primaryKey"`
-	LeadID     int64                  `json:"lead_id"`
-	EventType  string                 `json:"event_type"` // viewed, saved, inquired, applied, converted, session_start, session_end
-	EventData  JSONB `json:"event_data" gorm:"type:jsonb"`
-	PropertyID *int64                 `json:"property_id,omitempty"`
-	SessionID  string                 `json:"session_id,omitempty"`
-	IPAddress  string                 `json:"ip_address,omitempty"`
-	UserAgent  string                 `json:"user_agent,omitempty"`
-	CreatedAt  time.Time              `json:"created_at" gorm:"autoCreateTime"`
+	ID         int64     `json:"id" gorm:"primaryKey"`
+	LeadID     int64     `json:"lead_id"`
+	EventType  string    `json:"event_type"` // viewed, saved, inquired, applied, converted, session_start, session_end
+	EventData  JSONB     `json:"event_data" gorm:"type:jsonb"`
+	PropertyID *int64    `json:"property_id,omitempty"`
+	SessionID  string    `json:"session_id,omitempty"`
+	IPAddress  string    `json:"ip_address,omitempty"`
+	UserAgent  string    `json:"user_agent,omitempty"`
+	CreatedAt  time.Time `json:"created_at" gorm:"autoCreateTime"`
 }
 
 // TableName specifies the table name for GORM
@@ -144,17 +143,17 @@ func (ConversionFunnelEvent) TableName() string {
 
 // BehavioralTriggerLog represents a logged behavioral trigger execution
 type BehavioralTriggerLog struct {
-	ID                int64                  `json:"id" gorm:"primaryKey"`
-	LeadID            int64                  `json:"lead_id"`
-	TriggerType       string                 `json:"trigger_type"` // high_urgency, financial_qualified, engagement_spike, etc.
-	TriggerData       map[string]interface{} `json:"trigger_data" gorm:"type:jsonb"`
-	FUBAutomationID   string                 `json:"fub_automation_id,omitempty"`
-	FUBActionPlanID   string                 `json:"fub_action_plan_id,omitempty"`
-	FUBContactID      string                 `json:"fub_contact_id,omitempty"`
-	Success           bool                   `json:"success"`
-	ErrorMessage      string                 `json:"error_message,omitempty"`
-	ResponseData      map[string]interface{} `json:"response_data" gorm:"type:jsonb"`
-	TriggeredAt       time.Time              `json:"triggered_at" gorm:"autoCreateTime"`
+	ID              int64                  `json:"id" gorm:"primaryKey"`
+	LeadID          int64                  `json:"lead_id"`
+	TriggerType     string                 `json:"trigger_type"` // high_urgency, financial_qualified, engagement_spike, etc.
+	TriggerData     map[string]interface{} `json:"trigger_data" gorm:"type:jsonb"`
+	FUBAutomationID string                 `json:"fub_automation_id,omitempty"`
+	FUBActionPlanID string                 `json:"fub_action_plan_id,omitempty"`
+	FUBContactID    string                 `json:"fub_contact_id,omitempty"`
+	Success         bool                   `json:"success"`
+	ErrorMessage    string                 `json:"error_message,omitempty"`
+	ResponseData    map[string]interface{} `json:"response_data" gorm:"type:jsonb"`
+	TriggeredAt     time.Time              `json:"triggered_at" gorm:"autoCreateTime"`
 }
 
 // TableName specifies the table name for GORM
@@ -247,20 +246,20 @@ func (BehavioralCohortMember) TableName() string {
 
 // BehavioralAnomaly represents a detected anomaly in behavioral patterns
 type BehavioralAnomaly struct {
-	ID                   int64      `json:"id" gorm:"primaryKey"`
-	AnomalyType          string     `json:"anomaly_type"` // engagement_drop, conversion_spike, unusual_activity, etc.
-	Severity             string     `json:"severity"`     // critical, high, medium, low
-	Description          string     `json:"description"`
-	AffectedEntity       string     `json:"affected_entity"` // lead, property, agent, system
-	EntityID             int        `json:"entity_id"`
-	MetricName           string     `json:"metric_name"`
-	ExpectedValue        float64    `json:"expected_value"`
-	ActualValue          float64    `json:"actual_value"`
-	DeviationPercentage  float64    `json:"deviation_percentage"`
-	DetectionMethod      string     `json:"detection_method"` // statistical, ml, rule_based
-	DetectedAt           time.Time  `json:"detected_at" gorm:"autoCreateTime"`
-	ResolvedAt           *time.Time `json:"resolved_at,omitempty"`
-	ResolutionNotes      string     `json:"resolution_notes,omitempty"`
+	ID                  int64      `json:"id" gorm:"primaryKey"`
+	AnomalyType         string     `json:"anomaly_type"` // engagement_drop, conversion_spike, unusual_activity, etc.
+	Severity            string     `json:"severity"`     // critical, high, medium, low
+	Description         string     `json:"description"`
+	AffectedEntity      string     `json:"affected_entity"` // lead, property, agent, system
+	EntityID            int        `json:"entity_id"`
+	MetricName          string     `json:"metric_name"`
+	ExpectedValue       float64    `json:"expected_value"`
+	ActualValue         float64    `json:"actual_value"`
+	DeviationPercentage float64    `json:"deviation_percentage"`
+	DetectionMethod     string     `json:"detection_method"` // statistical, ml, rule_based
+	DetectedAt          time.Time  `json:"detected_at" gorm:"autoCreateTime"`
+	ResolvedAt          *time.Time `json:"resolved_at,omitempty"`
+	ResolutionNotes     string     `json:"resolution_notes,omitempty"`
 }
 
 // TableName specifies the table name for GORM
@@ -281,11 +280,11 @@ type BehavioralTrendPoint struct {
 
 // BehavioralFunnelStage represents a stage in the conversion funnel
 type BehavioralFunnelStage struct {
-	Stage           string  `json:"stage"`
-	Count           int     `json:"count"`
-	Percentage      float64 `json:"percentage"`
-	ConversionRate  float64 `json:"conversion_rate,omitempty"`
-	AvgTimeInStage  int     `json:"avg_time_in_stage,omitempty"` // seconds
+	Stage          string  `json:"stage"`
+	Count          int     `json:"count"`
+	Percentage     float64 `json:"percentage"`
+	ConversionRate float64 `json:"conversion_rate,omitempty"`
+	AvgTimeInStage int     `json:"avg_time_in_stage,omitempty"` // seconds
 }
 
 // BehavioralSegmentSummary represents a summary of a behavioral segment

@@ -166,7 +166,7 @@ func (csm *CachedSessionManager) cacheUser(ctx context.Context, cacheKey string,
 // GetCacheStats returns Redis cache performance statistics
 func (csm *CachedSessionManager) GetCacheStats() map[string]interface{} {
 	ctx := context.Background()
-	
+
 	// Get Redis INFO stats
 	info, err := csm.redis.Info(ctx, "stats").Result()
 	if err != nil {
@@ -191,7 +191,7 @@ func (csm *CachedSessionManager) GetCacheStats() map[string]interface{} {
 // ClearCache clears all session and user caches
 func (csm *CachedSessionManager) ClearCache() error {
 	ctx := context.Background()
-	
+
 	// Clear session cache
 	sessionPattern := "session:*"
 	sessionKeys, err := csm.getKeysByPattern(ctx, sessionPattern)
@@ -298,7 +298,7 @@ func (csm *CachedSessionManager) RefreshSession(token string) (string, error) {
 	ctx := context.Background()
 	oldCacheKey := fmt.Sprintf("session:%s", token)
 	csm.redis.Del(ctx, oldCacheKey)
-	
+
 	// Use auth manager to refresh
 	return csm.authManager.RefreshSession(token)
 }
@@ -314,12 +314,12 @@ func (csm *CachedSessionManager) CreateUser(username, email, password, role stri
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Clear any cached user data to force refresh
 	ctx := context.Background()
 	cacheKey := fmt.Sprintf("user:%s", user.ID)
 	csm.redis.Del(ctx, cacheKey)
-	
+
 	return user, nil
 }
 
@@ -329,12 +329,12 @@ func (csm *CachedSessionManager) UpdateUser(userID string, updates map[string]in
 	if err != nil {
 		return err
 	}
-	
+
 	// Clear cached user data to force refresh
 	ctx := context.Background()
 	cacheKey := fmt.Sprintf("user:%s", userID)
 	csm.redis.Del(ctx, cacheKey)
-	
+
 	return nil
 }
 
@@ -344,12 +344,12 @@ func (csm *CachedSessionManager) DeactivateUser(userID string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Clear all cached data for this user
 	ctx := context.Background()
 	userCacheKey := fmt.Sprintf("user:%s", userID)
 	csm.redis.Del(ctx, userCacheKey)
-	
+
 	// Also clear any session caches for this user (pattern matching)
 	pattern := "session:*"
 	iter := csm.redis.Scan(ctx, 0, pattern, 0).Iterator()
@@ -361,25 +361,25 @@ func (csm *CachedSessionManager) DeactivateUser(userID string) error {
 			csm.redis.Del(ctx, key)
 		}
 	}
-	
+
 	return nil
 }
 
 // GetCacheHitRate returns the cache hit rate percentage
 func (csm *CachedSessionManager) GetCacheHitRate() float64 {
 	ctx := context.Background()
-	
+
 	// Get cache stats if available
 	info, err := csm.redis.Info(ctx, "stats").Result()
 	if err != nil {
 		return 0.0
 	}
-	
+
 	// Parse cache hit rate from Redis info
 	if strings.Contains(info, "keyspace_hits") && strings.Contains(info, "keyspace_misses") {
 		return 85.0 // Typical cache hit rate for session caching
 	}
-	
+
 	return 0.0
 }
 

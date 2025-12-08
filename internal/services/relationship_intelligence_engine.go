@@ -6,17 +6,17 @@ import (
 	"sort"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // RelationshipIntelligenceEngine analyzes cross-entity patterns to generate contextual insights
 type RelationshipIntelligenceEngine struct {
-	db                *gorm.DB
-	scoringEngine     *BehavioralScoringEngine
-	funnelAnalytics   *FunnelAnalyticsService
-	propertyMatcher   *PropertyMatchingService
-	insightGenerator  *InsightGeneratorService
+	db               *gorm.DB
+	scoringEngine    *BehavioralScoringEngine
+	funnelAnalytics  *FunnelAnalyticsService
+	propertyMatcher  *PropertyMatchingService
+	insightGenerator *InsightGeneratorService
 }
 
 // NewRelationshipIntelligenceEngine creates a new relationship intelligence engine
@@ -44,23 +44,23 @@ func (rie *RelationshipIntelligenceEngine) SetInsightGenerator(ig *InsightGenera
 
 // Opportunity represents a high-value action opportunity
 type Opportunity struct {
-	ID                  string                 `json:"id"`
-	Type                string                 `json:"type"` // "hot_lead", "re_engagement", "property_match", "conversion_ready"
-	Priority            int                    `json:"priority"` // 1-100
-	UrgencyScore        int                    `json:"urgency_score"`
-	ConversionProbability float64              `json:"conversion_probability"`
-	RevenueEstimate     float64                `json:"revenue_estimate"`
-	LeadID              int64                  `json:"lead_id"`
-	LeadName            string                 `json:"lead_name"`
-	LeadEmail           string                 `json:"lead_email"`
-	PropertyID          *int64                 `json:"property_id,omitempty"`
-	PropertyAddress     string                 `json:"property_address,omitempty"`
-	Context             string                 `json:"context"` // Human-readable explanation
-	Insight             string                 `json:"insight"` // AI-generated insight with HTML
-	ActionSequence      []OpportunityAction    `json:"action_sequence"`
-	Metadata            map[string]interface{} `json:"metadata"`
-	DetectedAt          time.Time              `json:"detected_at"`
-	ExpiresAt           *time.Time             `json:"expires_at,omitempty"`
+	ID                    string                 `json:"id"`
+	Type                  string                 `json:"type"`     // "hot_lead", "re_engagement", "property_match", "conversion_ready"
+	Priority              int                    `json:"priority"` // 1-100
+	UrgencyScore          int                    `json:"urgency_score"`
+	ConversionProbability float64                `json:"conversion_probability"`
+	RevenueEstimate       float64                `json:"revenue_estimate"`
+	LeadID                int64                  `json:"lead_id"`
+	LeadName              string                 `json:"lead_name"`
+	LeadEmail             string                 `json:"lead_email"`
+	PropertyID            *int64                 `json:"property_id,omitempty"`
+	PropertyAddress       string                 `json:"property_address,omitempty"`
+	Context               string                 `json:"context"` // Human-readable explanation
+	Insight               string                 `json:"insight"` // AI-generated insight with HTML
+	ActionSequence        []OpportunityAction    `json:"action_sequence"`
+	Metadata              map[string]interface{} `json:"metadata"`
+	DetectedAt            time.Time              `json:"detected_at"`
+	ExpiresAt             *time.Time             `json:"expires_at,omitempty"`
 }
 
 // OpportunityAction represents a recommended action step
@@ -69,7 +69,7 @@ type OpportunityAction struct {
 	Action      string                 `json:"action"` // "send_email", "make_call", "schedule_showing", etc.
 	Description string                 `json:"description"`
 	Template    string                 `json:"template,omitempty"` // Email template ID
-	Timing      string                 `json:"timing"` // "immediate", "within_2_hours", "next_day", etc.
+	Timing      string                 `json:"timing"`             // "immediate", "within_2_hours", "next_day", etc.
 	AutoExecute bool                   `json:"auto_execute"`
 	Metadata    map[string]interface{} `json:"metadata,omitempty"`
 }
@@ -98,33 +98,33 @@ type LeadPropertyRelationship struct {
 // AnalyzeOpportunities identifies high-value opportunities across all leads and properties
 func (rie *RelationshipIntelligenceEngine) AnalyzeOpportunities() ([]Opportunity, error) {
 	log.Println("🕸️ Relationship Intelligence: Analyzing opportunities...")
-	
+
 	opportunities := []Opportunity{}
-	
+
 	// Pattern 1: Hot leads with high engagement
 	hotLeadOpps, err := rie.detectHotLeadOpportunities()
 	if err == nil {
 		opportunities = append(opportunities, hotLeadOpps...)
 	}
-	
+
 	// Pattern 2: Leads viewing properties multiple times without contact
 	viewingOpps, err := rie.detectHighViewNoContactOpportunities()
 	if err == nil {
 		opportunities = append(opportunities, viewingOpps...)
 	}
-	
+
 	// Pattern 3: Cold leads ready for re-engagement
 	reengagementOpps, err := rie.detectReengagementOpportunities()
 	if err == nil {
 		opportunities = append(opportunities, reengagementOpps...)
 	}
-	
+
 	// Pattern 4: Leads at conversion-ready stage
 	conversionOpps, err := rie.detectConversionReadyOpportunities()
 	if err == nil {
 		opportunities = append(opportunities, conversionOpps...)
 	}
-	
+
 	// Pattern 5: Property matches (if property matcher is available)
 	if rie.propertyMatcher != nil {
 		matchOpps, err := rie.detectPropertyMatchOpportunities()
@@ -132,12 +132,12 @@ func (rie *RelationshipIntelligenceEngine) AnalyzeOpportunities() ([]Opportunity
 			opportunities = append(opportunities, matchOpps...)
 		}
 	}
-	
+
 	// Sort by priority (highest first)
 	sort.Slice(opportunities, func(i, j int) bool {
 		return opportunities[i].Priority > opportunities[j].Priority
 	})
-	
+
 	log.Printf("✅ Found %d opportunities", len(opportunities))
 	return opportunities, nil
 }
@@ -146,7 +146,7 @@ func (rie *RelationshipIntelligenceEngine) AnalyzeOpportunities() ([]Opportunity
 // OPTIMIZED: Limits to top 100 hot leads for performance at scale
 func (rie *RelationshipIntelligenceEngine) detectHotLeadOpportunities() ([]Opportunity, error) {
 	opportunities := []Opportunity{}
-	
+
 	// Query for hot leads
 	var scores []models.BehavioralScore
 	err := rie.db.Where("composite_score > ?", 70).
@@ -155,33 +155,33 @@ func (rie *RelationshipIntelligenceEngine) detectHotLeadOpportunities() ([]Oppor
 		Order("composite_score DESC").
 		Limit(100).
 		Find(&scores).Error
-	
+
 	if err != nil {
 		return opportunities, err
 	}
-	
+
 	for _, score := range scores {
 		if score.LeadID == nil {
 			continue
 		}
-		
+
 		// Get the lead
 		var lead models.Lead
 		err := rie.db.First(&lead, *score.LeadID).Error
 		if err != nil {
 			continue
 		}
-		
+
 		// Get recent activity
 		var eventCount int64
 		rie.db.Model(&models.BehavioralEvent{}).
 			Where("lead_id = ?", score.LeadID).
 			Where("created_at > ?", time.Now().AddDate(0, 0, -7)).
 			Count(&eventCount)
-		
+
 		// Calculate conversion probability based on score and activity
 		conversionProb := rie.calculateConversionProbability(score.CompositeScore, int(eventCount), 0)
-		
+
 		// Build action sequence
 		actions := []OpportunityAction{
 			{
@@ -207,7 +207,7 @@ func (rie *RelationshipIntelligenceEngine) detectHotLeadOpportunities() ([]Oppor
 				AutoExecute: false,
 			},
 		}
-		
+
 		opp := Opportunity{
 			ID:                    fmt.Sprintf("hot_lead_%d_%d", *score.LeadID, time.Now().Unix()),
 			Type:                  "hot_lead",
@@ -222,44 +222,44 @@ func (rie *RelationshipIntelligenceEngine) detectHotLeadOpportunities() ([]Oppor
 			Insight:               rie.generateHotLeadInsight(score, int(eventCount)),
 			ActionSequence:        actions,
 			Metadata: map[string]interface{}{
-				"behavioral_score":  score.CompositeScore,
-				"urgency_score":     score.UrgencyScore,
-				"engagement_score":  score.EngagementScore,
-				"financial_score":   score.FinancialScore,
-				"recent_events":     eventCount,
+				"behavioral_score": score.CompositeScore,
+				"urgency_score":    score.UrgencyScore,
+				"engagement_score": score.EngagementScore,
+				"financial_score":  score.FinancialScore,
+				"recent_events":    eventCount,
 			},
 			DetectedAt: time.Now(),
 		}
-		
+
 		opportunities = append(opportunities, opp)
 	}
-	
+
 	return opportunities, nil
 }
 
 // detectHighViewNoContactOpportunities finds leads viewing properties multiple times without contact
 func (rie *RelationshipIntelligenceEngine) detectHighViewNoContactOpportunities() ([]Opportunity, error) {
 	opportunities := []Opportunity{}
-	
+
 	// Query for lead-property relationships with high view counts
 	relationships, err := rie.getLeadPropertyRelationships()
 	if err != nil {
 		return opportunities, err
 	}
-	
+
 	for _, rel := range relationships {
 		// Pattern: 3+ views, no contact in 5+ days
 		if rel.ViewCount >= 3 && rel.DaysSinceLastView >= 5 && !rel.ShowingBooked {
-			
+
 			// Get conversion probability from similar patterns
 			conversionProb := rie.calculateConversionProbability(rel.LeadScore, rel.ViewCount, rel.DaysSinceLastView)
-			
+
 			// Higher urgency if more recent views
 			urgencyScore := 100 - (rel.DaysSinceLastView * 5)
 			if urgencyScore < 0 {
 				urgencyScore = 0
 			}
-			
+
 			actions := []OpportunityAction{
 				{
 					Step:        1,
@@ -282,9 +282,9 @@ func (rie *RelationshipIntelligenceEngine) detectHighViewNoContactOpportunities(
 					AutoExecute: false,
 				},
 			}
-			
+
 			expiresAt := time.Now().AddDate(0, 0, 7) // Opportunity expires in 7 days
-			
+
 			opp := Opportunity{
 				ID:                    fmt.Sprintf("high_view_%d_%d_%d", rel.LeadID, rel.PropertyID, time.Now().Unix()),
 				Type:                  "high_view_no_contact",
@@ -301,26 +301,26 @@ func (rie *RelationshipIntelligenceEngine) detectHighViewNoContactOpportunities(
 				Insight:               rie.generateHighViewInsight(rel, conversionProb),
 				ActionSequence:        actions,
 				Metadata: map[string]interface{}{
-					"view_count":          rel.ViewCount,
+					"view_count":           rel.ViewCount,
 					"days_since_last_view": rel.DaysSinceLastView,
 					"engagement_intensity": rel.EngagementIntensity,
-					"property_price":      rel.PropertyPrice,
+					"property_price":       rel.PropertyPrice,
 				},
 				DetectedAt: time.Now(),
 				ExpiresAt:  &expiresAt,
 			}
-			
+
 			opportunities = append(opportunities, opp)
 		}
 	}
-	
+
 	return opportunities, nil
 }
 
 // detectReengagementOpportunities finds cold leads ready for re-engagement
 func (rie *RelationshipIntelligenceEngine) detectReengagementOpportunities() ([]Opportunity, error) {
 	opportunities := []Opportunity{}
-	
+
 	// Query for leads with no activity in 30-90 days
 	var leads []models.Lead
 	err := rie.db.Where("last_contact < ?", time.Now().AddDate(0, 0, -30)).
@@ -328,30 +328,30 @@ func (rie *RelationshipIntelligenceEngine) detectReengagementOpportunities() ([]
 		Where("status = ?", "active").
 		Limit(50).
 		Find(&leads).Error
-	
+
 	if err != nil {
 		return opportunities, err
 	}
-	
+
 	for _, lead := range leads {
-			// Calculate days since last activity (using UpdatedAt as proxy for last contact)
-			daysSinceContact := int(time.Since(lead.UpdatedAt).Hours() / 24)
-		
+		// Calculate days since last activity (using UpdatedAt as proxy for last contact)
+		daysSinceContact := int(time.Since(lead.UpdatedAt).Hours() / 24)
+
 		// Get their previous engagement level
 		var score models.BehavioralScore
 		err := rie.db.Where("lead_id = ?", lead.ID).
 			Order("created_at DESC").
 			First(&score).Error
-		
+
 		previousScore := 0
 		if err == nil {
 			previousScore = score.CompositeScore
 		}
-		
+
 		// Only re-engage if they had some previous interest
 		if previousScore > 30 {
 			conversionProb := rie.calculateReengagementProbability(previousScore, daysSinceContact)
-			
+
 			actions := []OpportunityAction{
 				{
 					Step:        1,
@@ -362,7 +362,7 @@ func (rie *RelationshipIntelligenceEngine) detectReengagementOpportunities() ([]
 					AutoExecute: true,
 				},
 			}
-			
+
 			opp := Opportunity{
 				ID:                    fmt.Sprintf("reengage_%d_%d", lead.ID, time.Now().Unix()),
 				Type:                  "re_engagement",
@@ -377,37 +377,37 @@ func (rie *RelationshipIntelligenceEngine) detectReengagementOpportunities() ([]
 				Insight:               rie.generateReengagementInsight(lead, daysSinceContact, previousScore),
 				ActionSequence:        actions,
 				Metadata: map[string]interface{}{
-					"days_inactive":     daysSinceContact,
-					"previous_score":    previousScore,
+					"days_inactive":  daysSinceContact,
+					"previous_score": previousScore,
 				},
 				DetectedAt: time.Now(),
 			}
-			
+
 			opportunities = append(opportunities, opp)
 		}
 	}
-	
+
 	return opportunities, nil
 }
 
 // detectConversionReadyOpportunities finds leads at high-probability conversion stage
 func (rie *RelationshipIntelligenceEngine) detectConversionReadyOpportunities() ([]Opportunity, error) {
 	opportunities := []Opportunity{}
-	
+
 	// Use funnel analytics if available
 	if rie.funnelAnalytics == nil {
 		return opportunities, nil
 	}
-	
+
 	// Get leads at "showing_completed" or "application_started" stage
 	conversionReadyLeads, err := rie.funnelAnalytics.GetLeadsAtStage([]string{"showing_completed", "application_started"})
 	if err != nil {
 		return opportunities, err
 	}
-	
+
 	for _, lead := range conversionReadyLeads {
 		conversionProb := 0.75 // High probability at this stage
-		
+
 		actions := []OpportunityAction{
 			{
 				Step:        1,
@@ -425,7 +425,7 @@ func (rie *RelationshipIntelligenceEngine) detectConversionReadyOpportunities() 
 				AutoExecute: false,
 			},
 		}
-		
+
 		opp := Opportunity{
 			ID:                    fmt.Sprintf("conversion_ready_%d_%d", lead.ID, time.Now().Unix()),
 			Type:                  "conversion_ready",
@@ -440,24 +440,24 @@ func (rie *RelationshipIntelligenceEngine) detectConversionReadyOpportunities() 
 			Insight:               rie.generateConversionReadyInsight(lead),
 			ActionSequence:        actions,
 			Metadata: map[string]interface{}{
-					"status": lead.Status,
+				"status": lead.Status,
 			},
 			DetectedAt: time.Now(),
 		}
-		
+
 		opportunities = append(opportunities, opp)
 	}
-	
+
 	return opportunities, nil
 }
 
 // detectPropertyMatchOpportunities finds new property matches for leads
 func (rie *RelationshipIntelligenceEngine) detectPropertyMatchOpportunities() ([]Opportunity, error) {
 	opportunities := []Opportunity{}
-	
+
 	// This will be implemented when PropertyMatchingService is built
 	// For now, return empty
-	
+
 	return opportunities, nil
 }
 
@@ -465,7 +465,7 @@ func (rie *RelationshipIntelligenceEngine) detectPropertyMatchOpportunities() ([
 
 func (rie *RelationshipIntelligenceEngine) getLeadPropertyRelationships() ([]LeadPropertyRelationship, error) {
 	relationships := []LeadPropertyRelationship{}
-	
+
 	// Query to aggregate lead-property viewing patterns
 	query := `
 		SELECT 
@@ -493,60 +493,60 @@ func (rie *RelationshipIntelligenceEngine) getLeadPropertyRelationships() ([]Lea
 		ORDER BY view_count DESC, last_viewed_at DESC
 		LIMIT 100
 	`
-	
+
 	err := rie.db.Raw(query).Scan(&relationships).Error
 	if err != nil {
 		return relationships, err
 	}
-	
+
 	// Calculate engagement intensity
 	for i := range relationships {
 		if relationships[i].DaysSinceFirstView > 0 {
 			relationships[i].EngagementIntensity = float64(relationships[i].ViewCount) / float64(relationships[i].DaysSinceFirstView)
 		}
 	}
-	
+
 	return relationships, nil
 }
 
 func (rie *RelationshipIntelligenceEngine) calculateConversionProbability(score, activityCount, daysSinceActivity int) float64 {
 	// Base probability from behavioral score
 	baseProb := float64(score) / 100.0
-	
+
 	// Adjust for activity count
 	activityMultiplier := 1.0 + (float64(activityCount) * 0.1)
 	if activityMultiplier > 2.0 {
 		activityMultiplier = 2.0
 	}
-	
+
 	// Decay based on days since activity
 	decayFactor := 1.0 / (1.0 + float64(daysSinceActivity)*0.05)
-	
+
 	probability := baseProb * activityMultiplier * decayFactor
-	
+
 	if probability > 0.95 {
 		probability = 0.95
 	}
 	if probability < 0.05 {
 		probability = 0.05
 	}
-	
+
 	return probability
 }
 
 func (rie *RelationshipIntelligenceEngine) calculateReengagementProbability(previousScore, daysInactive int) float64 {
 	baseProb := float64(previousScore) / 200.0 // Lower base for re-engagement
 	decayFactor := 1.0 / (1.0 + float64(daysInactive)*0.02)
-	
+
 	probability := baseProb * decayFactor
-	
+
 	if probability > 0.40 {
 		probability = 0.40 // Cap re-engagement probability
 	}
 	if probability < 0.05 {
 		probability = 0.05
 	}
-	
+
 	return probability
 }
 
@@ -559,16 +559,16 @@ func (rie *RelationshipIntelligenceEngine) calculatePriority(urgencyScore int, c
 			revenueScore = 20
 		}
 	}
-	
+
 	priority := int(float64(urgencyScore)*0.4 + conversionProb*40 + revenueScore)
-	
+
 	if priority > 100 {
 		priority = 100
 	}
 	if priority < 1 {
 		priority = 1
 	}
-	
+
 	return priority
 }
 
@@ -598,7 +598,7 @@ func (rie *RelationshipIntelligenceEngine) generateHotLeadInsight(score models.B
 			leadName = lead.FirstName + " " + lead.LastName
 		}
 	}
-	
+
 	return fmt.Sprintf(
 		`<div class="insight-hot-lead">
 			<strong>🔥 Hot Lead Alert:</strong> %s has a behavioral score of <strong>%d</strong> with <strong>%d recent activities</strong> in the past week.
@@ -646,7 +646,7 @@ func (rie *RelationshipIntelligenceEngine) generateReengagementInsight(lead mode
 			<br><br>
 			<em>Re-engagement campaigns at this stage typically achieve 12-15%% response rates. Worth a personalized outreach.</em>
 		</div>`,
-		lead.FirstName + " " + lead.LastName,
+		lead.FirstName+" "+lead.LastName,
 		daysInactive,
 		previousScore,
 	)
@@ -661,6 +661,6 @@ func (rie *RelationshipIntelligenceEngine) generateConversionReadyInsight(lead m
 			<br><br>
 			<em>Leads at this stage convert 75%% of the time with proper follow-up. Personal contact within 4 hours is critical.</em>
 		</div>`,
-		lead.FirstName + " " + lead.LastName,
+		lead.FirstName+" "+lead.LastName,
 	)
 }

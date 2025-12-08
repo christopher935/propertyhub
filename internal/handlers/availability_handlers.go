@@ -1,17 +1,17 @@
 package handlers
 
 import (
-	"os"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/services"
 	"chrisgross-ctrl-project/internal/utils"
+	"gorm.io/gorm"
 )
 
 type AvailabilityHandler struct {
@@ -144,7 +144,11 @@ func (h *AvailabilityHandler) RemoveBlackoutDate(w http.ResponseWriter, r *http.
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	// Extract blackout ID from URL path
 	pathParts := strings.Split(r.URL.Path, "/")
@@ -178,7 +182,11 @@ func (h *AvailabilityHandler) RemoveBlackoutDate(w http.ResponseWriter, r *http.
 // GetUpcomingBlackouts returns upcoming blackout dates
 func (h *AvailabilityHandler) GetUpcomingBlackouts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	blackouts, err := h.availabilityService.GetUpcomingBlackouts()
 	if err != nil {
@@ -196,7 +204,11 @@ func (h *AvailabilityHandler) GetUpcomingBlackouts(w http.ResponseWriter, r *htt
 // GetAvailabilityStats returns availability statistics
 func (h *AvailabilityHandler) GetAvailabilityStats(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	stats, err := h.availabilityService.GetAvailabilityStats()
 	if err != nil {
@@ -218,7 +230,11 @@ func (h *AvailabilityHandler) ValidateBooking(w http.ResponseWriter, r *http.Req
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	var request struct {
 		MLSId string `json:"mls_id"`
@@ -263,7 +279,11 @@ func (h *AvailabilityHandler) CleanupExpiredBlackouts(w http.ResponseWriter, r *
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	err := h.availabilityService.CleanupExpiredBlackouts()
 	if err != nil {

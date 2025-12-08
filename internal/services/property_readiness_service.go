@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // PropertyReadinessService handles automated property readiness validation

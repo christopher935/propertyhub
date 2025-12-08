@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/services"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // BIAdminHandlers provides BI-enhanced handlers for admin pages
@@ -107,15 +107,15 @@ func (h *BIAdminHandlers) GetCommunicationCenter(c *gin.Context) {
 func (h *BIAdminHandlers) GetPropertyPerformance(c *gin.Context) {
 	// Get all properties with engagement metrics
 	type PropertyMetrics struct {
-		PropertyID      int64
-		Address         string
-		TotalViews      int
-		HotLeadViews    int
-		WarmLeadViews   int
-		Saves           int
-		Applications    int
-		AvgLeadScore    float64
-		ConversionRate  float64
+		PropertyID     int64
+		Address        string
+		TotalViews     int
+		HotLeadViews   int
+		WarmLeadViews  int
+		Saves          int
+		Applications   int
+		AvgLeadScore   float64
+		ConversionRate float64
 	}
 
 	var metrics []PropertyMetrics
@@ -228,8 +228,8 @@ func (h *BIAdminHandlers) GetBehavioralIntelligenceDashboard(c *gin.Context) {
 	// Get stalled leads
 	var stalledLeads []struct {
 		models.Lead
-		Score       models.BehavioralScore
-		DaysSince   int
+		Score     models.BehavioralScore
+		DaysSince int
 	}
 	h.db.Raw(`
 		SELECT 
@@ -247,8 +247,8 @@ func (h *BIAdminHandlers) GetBehavioralIntelligenceDashboard(c *gin.Context) {
 	// Get trending up
 	var trendingLeads []struct {
 		models.Lead
-		Score         models.BehavioralScore
-		RecentEvents  int
+		Score        models.BehavioralScore
+		RecentEvents int
 	}
 	h.db.Raw(`
 		SELECT 
@@ -275,19 +275,19 @@ func (h *BIAdminHandlers) GetBehavioralIntelligenceDashboard(c *gin.Context) {
 	h.db.Model(&models.BehavioralScore{}).Count(&totalWithScores)
 	h.db.Model(&models.BehavioralEvent{}).Where("event_type = ?", "applied").
 		Distinct("lead_id").Count(&totalApplications)
-	
+
 	conversionRate := 0.0
 	if totalWithScores > 0 {
 		conversionRate = float64(totalApplications) / float64(totalWithScores) * 100
 	}
 
 	c.HTML(http.StatusOK, "behavioral-intelligence.html", gin.H{
-		"segments":        segments,
-		"topLeads":        topLeads,
-		"stalledLeads":    stalledLeads,
-		"trendingLeads":   trendingLeads,
-		"avgScore":        int(avgScore),
-		"conversionRate":  int(conversionRate),
+		"segments":       segments,
+		"topLeads":       topLeads,
+		"stalledLeads":   stalledLeads,
+		"trendingLeads":  trendingLeads,
+		"avgScore":       int(avgScore),
+		"conversionRate": int(conversionRate),
 	})
 }
 

@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // EnhancedFUBIntegrationService provides additional FUB integration capabilities

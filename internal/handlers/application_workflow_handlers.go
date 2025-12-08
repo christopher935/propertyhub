@@ -3,14 +3,15 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+	"chrisgross-ctrl-project/internal/middleware"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/services"
-	"chrisgross-ctrl-project/internal/middleware"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // ApplicationWorkflowHandlers handles Christopher's specific application workflow
@@ -26,7 +27,7 @@ func NewApplicationWorkflowHandlers(db *gorm.DB) *ApplicationWorkflowHandlers {
 	return &ApplicationWorkflowHandlers{
 		db:                db,
 		service:           services.NewApplicationWorkflowService(db),
-		behavioralService: services.NewBehavioralEventService(db),  // ADDED: Initialize tracking
+		behavioralService: services.NewBehavioralEventService(db), // ADDED: Initialize tracking
 	}
 }
 
@@ -46,7 +47,7 @@ func (awh *ApplicationWorkflowHandlers) GetPropertiesWithApplications(c *gin.Con
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
@@ -64,16 +65,16 @@ func (awh *ApplicationWorkflowHandlers) CreateApplicationNumber(c *gin.Context) 
 		})
 		return
 	}
-	
+
 	// Find or create property application group
 	var propertyGroup models.PropertyApplicationGroup
 	result := awh.db.Where("property_id = ?", uint(propertyID)).First(&propertyGroup)
-	
+
 	if result.Error != nil {
 		// Create new property group
 		propertyGroup = models.PropertyApplicationGroup{
-			PropertyID:         uint(propertyID),
-			PropertyAddress:    c.PostForm("property_address"),
+			PropertyID:          uint(propertyID),
+			PropertyAddress:     c.PostForm("property_address"),
 			ApplicationsCreated: 0,
 			ActiveApplications:  0,
 		}
@@ -84,7 +85,7 @@ func (awh *ApplicationWorkflowHandlers) CreateApplicationNumber(c *gin.Context) 
 			return
 		}
 	}
-	
+
 	// Create next application number
 	appNumber, err := propertyGroup.CreateNextApplicationNumber(awh.db)
 	if err != nil {
@@ -101,9 +102,9 @@ func (awh *ApplicationWorkflowHandlers) CreateApplicationNumber(c *gin.Context) 
 			sessionID := extractSessionIDFromGin(c)
 			ipAddress := c.ClientIP()
 			userAgent := c.Request.UserAgent()
-			
+
 			propertyIDInt64 := int64(propertyID)
-			
+
 			// Track application event (non-blocking)
 			go awh.behavioralService.TrackApplication(
 				leadID,
@@ -116,12 +117,12 @@ func (awh *ApplicationWorkflowHandlers) CreateApplicationNumber(c *gin.Context) 
 		}
 	}
 	// ============ END TRACKING ============
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
 			"application_number": appNumber,
-			"message": fmt.Sprintf("Created %s for %s", appNumber.ApplicationName, propertyGroup.PropertyAddress),
+			"message":            fmt.Sprintf("Created %s for %s", appNumber.ApplicationName, propertyGroup.PropertyAddress),
 		},
 	})
 }
@@ -129,21 +130,21 @@ func (awh *ApplicationWorkflowHandlers) CreateApplicationNumber(c *gin.Context) 
 // MoveApplicantToApplication moves an applicant between application numbers (Christopher's drag-and-drop)
 func (awh *ApplicationWorkflowHandlers) MoveApplicantToApplication(c *gin.Context) {
 	var request struct {
-		ApplicantID           uint   `json:"applicant_id"`
-		TargetApplicationID   uint   `json:"target_application_id"`
-		MovedBy               string `json:"moved_by"`
-		Reason                string `json:"reason,omitempty"`
+		ApplicantID         uint   `json:"applicant_id"`
+		TargetApplicationID uint   `json:"target_application_id"`
+		MovedBy             string `json:"moved_by"`
+		Reason              string `json:"reason,omitempty"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request data",
 		})
 		return
 	}
-	
+
 	// Use service to move applicant
-	err := awh.service.MoveApplicantToApplication(request.ApplicantID, request.TargetApplicationID, 
+	err := awh.service.MoveApplicantToApplication(request.ApplicantID, request.TargetApplicationID,
 		request.MovedBy, request.Reason)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -151,19 +152,19 @@ func (awh *ApplicationWorkflowHandlers) MoveApplicantToApplication(c *gin.Contex
 		})
 		return
 	}
-	
+
 	// Get applicant and application names for response
 	var applicant models.ApplicationApplicant
 	var application models.ApplicationNumber
 	awh.db.First(&applicant, request.ApplicantID)
 	awh.db.Preload("PropertyApplicationGroup").First(&application, request.TargetApplicationID)
-	
+
 	if awh.notificationHub != nil && application.PropertyApplicationGroup != nil {
 		propertyAddress := application.PropertyApplicationGroup.PropertyAddress
 		applicantName := applicant.ApplicantName
 		awh.notificationHub.SendApplicationAlert(propertyAddress, applicantName, application.ID)
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": fmt.Sprintf("%s moved to %s", applicant.ApplicantName, application.ApplicationName),
@@ -179,14 +180,14 @@ func (awh *ApplicationWorkflowHandlers) AssignAgentToApplication(c *gin.Context)
 		AgentEmail          string `json:"agent_email"`
 		AssignedBy          string `json:"assigned_by"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request data",
 		})
 		return
 	}
-	
+
 	// Get application number
 	var appNumber models.ApplicationNumber
 	if err := awh.db.First(&appNumber, request.ApplicationNumberID).Error; err != nil {
@@ -195,9 +196,9 @@ func (awh *ApplicationWorkflowHandlers) AssignAgentToApplication(c *gin.Context)
 		})
 		return
 	}
-	
+
 	// Assign agent
-	err := appNumber.AssignAgent(awh.db, request.AgentName, request.AgentPhone, 
+	err := appNumber.AssignAgent(awh.db, request.AgentName, request.AgentPhone,
 		request.AgentEmail, request.AssignedBy)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -205,7 +206,7 @@ func (awh *ApplicationWorkflowHandlers) AssignAgentToApplication(c *gin.Context)
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": fmt.Sprintf("Agent %s assigned to %s", request.AgentName, appNumber.ApplicationName),
@@ -221,14 +222,14 @@ func (awh *ApplicationWorkflowHandlers) UpdateApplicationStatus(c *gin.Context) 
 		Reason              string `json:"reason,omitempty"`
 		Notes               string `json:"notes,omitempty"`
 	}
-	
+
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request data",
 		})
 		return
 	}
-	
+
 	// Get application number
 	var appNumber models.ApplicationNumber
 	if err := awh.db.First(&appNumber, request.ApplicationNumberID).Error; err != nil {
@@ -237,7 +238,7 @@ func (awh *ApplicationWorkflowHandlers) UpdateApplicationStatus(c *gin.Context) 
 		})
 		return
 	}
-	
+
 	// Update status
 	err := appNumber.UpdateStatus(awh.db, request.Status, request.UpdatedBy, request.Reason)
 	if err != nil {
@@ -246,14 +247,14 @@ func (awh *ApplicationWorkflowHandlers) UpdateApplicationStatus(c *gin.Context) 
 		})
 		return
 	}
-	
+
 	// Add notes if provided
 	if request.Notes != "" {
-		appNumber.InternalNotes = appendNote(appNumber.InternalNotes, 
+		appNumber.InternalNotes = appendNote(appNumber.InternalNotes,
 			fmt.Sprintf("Notes added by %s: %s", request.UpdatedBy, request.Notes))
 		awh.db.Save(&appNumber)
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": fmt.Sprintf("%s status updated to %s", appNumber.ApplicationName, request.Status),
@@ -269,7 +270,7 @@ func (awh *ApplicationWorkflowHandlers) GetApplicantsWithoutApplication(c *gin.C
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
@@ -283,12 +284,12 @@ func (awh *ApplicationWorkflowHandlers) ProcessBuildiumEmail(applicantName, appl
 	// Find or create property group
 	var propertyGroup models.PropertyApplicationGroup
 	result := awh.db.Where("property_address = ?", propertyAddress).First(&propertyGroup)
-	
+
 	if result.Error != nil {
 		// Property group doesn't exist yet - applicant will be unassigned until admin creates application numbers
 		// This is fine - they'll show up in the "unassigned applicants" list
 	}
-	
+
 	// Create applicant record (initially unassigned)
 	applicant := &models.ApplicationApplicant{
 		ApplicantName:   applicantName,
@@ -297,16 +298,15 @@ func (awh *ApplicationWorkflowHandlers) ProcessBuildiumEmail(applicantName, appl
 		SourceEmail:     "buildium_notification",
 		FUBMatch:        false, // Will be updated by FUB matching process
 	}
-	
-	// Attempt FUB matching (placeholder for actual FUB integration)
-	// This would call your FUB service to find matching lead
-	fubLeadID, matchFound := awh.findFUBMatch(applicantEmail)
+
+	// Attempt FUB matching
+	fubLeadID, matchFound := awh.findFUBMatch(applicantName, applicantEmail, "")
 	if matchFound {
 		applicant.FUBLeadID = fubLeadID
 		applicant.FUBMatch = true
 		applicant.MatchScore = 0.9 // High confidence match
 	}
-	
+
 	return awh.db.Create(applicant).Error
 }
 
@@ -317,16 +317,45 @@ func (awh *ApplicationWorkflowHandlers) updateApplicantCounts(applicationNumberI
 	awh.db.Model(&models.ApplicationApplicant{}).
 		Where("application_number_id = ? AND deleted_at IS NULL", applicationNumberID).
 		Count(&count)
-	
+
 	awh.db.Model(&models.ApplicationNumber{}).
 		Where("id = ?", applicationNumberID).
 		Update("applicant_count", int(count))
 }
 
-func (awh *ApplicationWorkflowHandlers) findFUBMatch(email string) (string, bool) {
-	// Placeholder for FUB API integration
-	// In production, this would call FUB API to find lead by email
-	// Return leadID and whether match was found
+func (awh *ApplicationWorkflowHandlers) findFUBMatch(name, email, phone string) (string, bool) {
+	// Try to get FUB API client from config
+	fubAPIKey := os.Getenv("FUB_API_KEY")
+	if fubAPIKey == "" {
+		return "", false
+	}
+
+	fubClient := services.NewBehavioralFUBAPIClient(awh.db, fubAPIKey)
+
+	// Search by email first (most reliable)
+	if email != "" {
+		contacts, err := fubClient.SearchContactsByEmail(email)
+		if err == nil && len(contacts) > 0 {
+			return contacts[0].ID, true
+		}
+	}
+
+	// Fall back to phone search
+	if phone != "" {
+		contacts, err := fubClient.SearchContactsByPhone(phone)
+		if err == nil && len(contacts) > 0 {
+			return contacts[0].ID, true
+		}
+	}
+
+	// Fall back to name search
+	if name != "" {
+		contacts, err := fubClient.SearchContactsByName(name)
+		if err == nil && len(contacts) > 0 {
+			return contacts[0].ID, true
+		}
+	}
+
 	return "", false
 }
 

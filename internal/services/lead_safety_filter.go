@@ -43,15 +43,15 @@ func (sc *SafetyClassification) IsBlocked() bool {
 
 // LeadOverride represents agent-set overrides for a lead
 type LeadOverride struct {
-	ID              uint       `gorm:"primaryKey" json:"id"`
-	LeadID          string     `gorm:"uniqueIndex" json:"lead_id"`
-	DoNotContact    bool       `gorm:"default:false" json:"do_not_contact"`
-	PauseUntil      *time.Time `json:"pause_until,omitempty"`
-	CustomCooldown  *int       `json:"custom_cooldown,omitempty"` // Custom cooldown in hours
-	Reason          string     `json:"reason"`
-	SetBy           string     `json:"set_by"`     // Agent who set the override
-	CreatedAt       time.Time  `json:"created_at"`
-	UpdatedAt       time.Time  `json:"updated_at"`
+	ID             uint       `gorm:"primaryKey" json:"id"`
+	LeadID         string     `gorm:"uniqueIndex" json:"lead_id"`
+	DoNotContact   bool       `gorm:"default:false" json:"do_not_contact"`
+	PauseUntil     *time.Time `json:"pause_until,omitempty"`
+	CustomCooldown *int       `json:"custom_cooldown,omitempty"` // Custom cooldown in hours
+	Reason         string     `json:"reason"`
+	SetBy          string     `json:"set_by"` // Agent who set the override
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
 }
 
 // LeadRejection tracks properties that a lead has explicitly rejected
@@ -69,7 +69,7 @@ type LeadRejection struct {
 type LeadStageHistory struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	LeadID    string    `gorm:"index" json:"lead_id"`
-	Stage     string    `json:"stage"` // "new", "active", "showing", "application", "closing", "signed", "cold"
+	Stage     string    `json:"stage"`  // "new", "active", "showing", "application", "closing", "signed", "cold"
 	Source    string    `json:"source"` // "fub", "propertyhub", "manual"
 	ChangedAt time.Time `gorm:"index" json:"changed_at"`
 	ChangedBy string    `json:"changed_by"`
@@ -102,7 +102,7 @@ func (lsf *LeadSafetyFilter) ClassifyLead(leadData map[string]interface{}) Safet
 	if pausedUntil := lsf.checkPauseUntil(leadID); pausedUntil != nil {
 		if time.Now().Before(*pausedUntil) {
 			classification.Safe = false
-			classification.Reasons = append(classification.Reasons, 
+			classification.Reasons = append(classification.Reasons,
 				fmt.Sprintf("Lead paused until %s", pausedUntil.Format("Jan 2, 3:04 PM")))
 			return classification
 		}
@@ -113,7 +113,7 @@ func (lsf *LeadSafetyFilter) ClassifyLead(leadData map[string]interface{}) Safet
 	classification.Stage = stage
 	if stage == "closing" || stage == "signed" {
 		classification.ClosingRisk = true
-		classification.Warnings = append(classification.Warnings, 
+		classification.Warnings = append(classification.Warnings,
 			"Lead is in closing stage - avoid property recommendations")
 	}
 
@@ -121,13 +121,13 @@ func (lsf *LeadSafetyFilter) ClassifyLead(leadData map[string]interface{}) Safet
 	appStatus := lsf.checkApplicationStatus(leadID)
 	if appStatus == "approved" || appStatus == "lease_sent" {
 		classification.ClosingRisk = true
-		classification.Warnings = append(classification.Warnings, 
+		classification.Warnings = append(classification.Warnings,
 			fmt.Sprintf("Application status: %s - lead is closing", appStatus))
 	}
 
 	// Check 5: Recent agent contact (don't interfere with active conversations)
 	if recentContact := lsf.checkRecentAgentContact(leadID); recentContact {
-		classification.Warnings = append(classification.Warnings, 
+		classification.Warnings = append(classification.Warnings,
 			"Agent contacted lead recently - consider delaying automation")
 	}
 
@@ -146,7 +146,7 @@ func (lsf *LeadSafetyFilter) CheckPropertyRecommendationSafety(leadID string, pr
 	var rejection LeadRejection
 	err := lsf.db.Where("lead_id = ? AND property_id = ?", leadID, propertyID).
 		First(&rejection).Error
-	
+
 	if err == nil {
 		return false, fmt.Sprintf("Lead rejected this property: %s", rejection.Reason)
 	}
@@ -163,7 +163,7 @@ func (lsf *LeadSafetyFilter) CheckCommunicationSafety(leadID string, messageType
 	// Check 1: Time of day restrictions
 	hour := timeOfDay.Hour()
 	if hour >= 21 || hour < 8 {
-		return false, fmt.Sprintf("Outside communication hours (9pm-8am) - current time: %s", 
+		return false, fmt.Sprintf("Outside communication hours (9pm-8am) - current time: %s",
 			timeOfDay.Format("3:04 PM"))
 	}
 
@@ -187,7 +187,7 @@ func (lsf *LeadSafetyFilter) checkDoNotContact(leadID string) bool {
 	var override LeadOverride
 	err := lsf.db.Where("lead_id = ? AND do_not_contact = ?", leadID, true).
 		First(&override).Error
-	
+
 	return err == nil // Found = Do Not Contact is set
 }
 
@@ -196,11 +196,11 @@ func (lsf *LeadSafetyFilter) checkPauseUntil(leadID string) *time.Time {
 	var override LeadOverride
 	err := lsf.db.Where("lead_id = ?", leadID).
 		First(&override).Error
-	
+
 	if err == nil && override.PauseUntil != nil {
 		return override.PauseUntil
 	}
-	
+
 	return nil
 }
 
@@ -211,7 +211,7 @@ func (lsf *LeadSafetyFilter) detectLeadStage(leadID string) string {
 	err := lsf.db.Where("lead_id = ?", leadID).
 		Order("changed_at DESC").
 		First(&stageHistory).Error
-	
+
 	if err == nil {
 		return stageHistory.Stage
 	}
@@ -256,15 +256,15 @@ func (lsf *LeadSafetyFilter) getFUBStage(leadID string) string {
 func (lsf *LeadSafetyFilter) normalizeFUBStage(fubStage string) string {
 	// Map FUB stages to PropertyHub stages
 	stageMap := map[string]string{
-		"New Lead":        "new",
-		"Active":          "active",
-		"Showing":         "showing",
-		"Application":     "application",
-		"Closing":         "closing",
-		"Signed":          "signed",
-		"Cold":            "cold",
-		"Lost":            "cold",
-		"Dead":            "cold",
+		"New Lead":    "new",
+		"Active":      "active",
+		"Showing":     "showing",
+		"Application": "application",
+		"Closing":     "closing",
+		"Signed":      "signed",
+		"Cold":        "cold",
+		"Lost":        "cold",
+		"Dead":        "cold",
 	}
 
 	normalized, exists := stageMap[fubStage]
@@ -280,7 +280,7 @@ func (lsf *LeadSafetyFilter) normalizeFUBStage(fubStage string) string {
 func (lsf *LeadSafetyFilter) checkApplicationStatus(leadID string) string {
 	// TODO: Query applications table
 	// For now, return empty (will be implemented when application system is built)
-	
+
 	// Placeholder query structure:
 	// var application Application
 	// err := lsf.db.Where("lead_id = ?", leadID).
@@ -289,7 +289,7 @@ func (lsf *LeadSafetyFilter) checkApplicationStatus(leadID string) string {
 	// if err == nil {
 	// 	return application.Status
 	// }
-	
+
 	return ""
 }
 
@@ -299,16 +299,16 @@ func (lsf *LeadSafetyFilter) checkRecentAgentContact(leadID string) bool {
 	var recentDecision struct {
 		CreatedAt time.Time
 	}
-	
+
 	twoHoursAgo := time.Now().Add(-2 * time.Hour)
-	
+
 	err := lsf.db.Table("decision_log_entries").
 		Select("created_at").
-		Where("lead_id = ? AND initiated_by = ? AND created_at > ?", 
+		Where("lead_id = ? AND initiated_by = ? AND created_at > ?",
 			leadID, "admin_manual", twoHoursAgo).
 		Order("created_at DESC").
 		First(&recentDecision).Error
-	
+
 	return err == nil // Found recent agent contact
 }
 
@@ -359,7 +359,7 @@ func (lsf *LeadSafetyFilter) GetLeadRejections(leadID string) ([]LeadRejection, 
 	err := lsf.db.Where("lead_id = ?", leadID).
 		Order("rejected_at DESC").
 		Find(&rejections).Error
-	
+
 	return rejections, err
 }
 
@@ -369,7 +369,7 @@ func (lsf *LeadSafetyFilter) GetLeadStageHistory(leadID string) ([]LeadStageHist
 	err := lsf.db.Where("lead_id = ?", leadID).
 		Order("changed_at DESC").
 		Find(&history).Error
-	
+
 	return history, err
 }
 

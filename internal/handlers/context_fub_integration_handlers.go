@@ -141,8 +141,8 @@ func (h *ContextFUBIntegrationHandlers) GetContextFUBAnalytics(c *gin.Context) {
 // GetContextFUBStatus handles GET /api/v1/context-fub/status
 func (h *ContextFUBIntegrationHandlers) GetContextFUBStatus(c *gin.Context) {
 	status := gin.H{
-		"service_status":        "operational",
-		"behavioral_bridge":     h.behavioralBridge != nil,
+		"service_status":       "operational",
+		"behavioral_bridge":    h.behavioralBridge != nil,
 		"context_intelligence": "active",
 		"last_updated":         time.Now(),
 		"version":              "2.1.0-enterprise",
@@ -155,64 +155,64 @@ func (h *ContextFUBIntegrationHandlers) GetContextFUBStatus(c *gin.Context) {
 func (h *ContextFUBIntegrationHandlers) getHoustonMarketIntelligence(location string, propertyType string, priceRange string) map[string]interface{} {
 	marketIntelligence := map[string]interface{}{
 		"market_overview": map[string]interface{}{
-			"city":                "Houston",
-			"state":              "Texas", 
-			"market_status":      "active",
-			"trend":              "rising",
-			"last_updated":       time.Now().Format("2006-01-02"),
-			"data_source":        "Houston MLS & Market Analytics",
+			"city":          "Houston",
+			"state":         "Texas",
+			"market_status": "active",
+			"trend":         "rising",
+			"last_updated":  time.Now().Format("2006-01-02"),
+			"data_source":   "Houston MLS & Market Analytics",
 		},
 		"rental_market": map[string]interface{}{
-			"median_rent":           2850,
-			"rent_growth_yoy":       0.074,
+			"median_rent":            2850,
+			"rent_growth_yoy":        0.074,
 			"average_days_on_market": 14,
-			"occupancy_rate":        0.943,
-			"rental_yield":          0.058,
+			"occupancy_rate":         0.943,
+			"rental_yield":           0.058,
 			"popular_neighborhoods": []string{
-				"The Heights", "Montrose", "River Oaks", "Galleria", 
+				"The Heights", "Montrose", "River Oaks", "Galleria",
 				"Medical Center", "Downtown", "Midtown", "West University",
 			},
 		},
 		"sales_market": map[string]interface{}{
-			"median_home_price":     425000,
-			"price_growth_yoy":      0.069,
+			"median_home_price":      425000,
+			"price_growth_yoy":       0.069,
 			"average_days_on_market": 28,
-			"months_of_inventory":   2.8,
-			"sale_to_list_ratio":    0.987,
-			"new_listings":          1450,
-			"homes_sold":            1320,
+			"months_of_inventory":    2.8,
+			"sale_to_list_ratio":     0.987,
+			"new_listings":           1450,
+			"homes_sold":             1320,
 		},
 		"neighborhood_insights": h.getNeighborhoodInsights(location),
 		"investment_metrics": map[string]interface{}{
-			"cap_rate_range":      "4.5%-7.2%",
-			"cash_on_cash_return": 0.089,
+			"cap_rate_range":        "4.5%-7.2%",
+			"cash_on_cash_return":   0.089,
 			"appreciation_forecast": 0.055,
-			"rental_demand":       "high",
-			"investor_activity":   "increasing",
+			"rental_demand":         "high",
+			"investor_activity":     "increasing",
 		},
 		"market_factors": map[string]interface{}{
-			"job_growth":           0.032,
-			"population_growth":    0.018,
-			"major_employers":      []string{"Texas Medical Center", "ExxonMobil", "Shell", "NASA", "Port of Houston"},
+			"job_growth":              0.032,
+			"population_growth":       0.018,
+			"major_employers":         []string{"Texas Medical Center", "ExxonMobil", "Shell", "NASA", "Port of Houston"},
 			"infrastructure_projects": []string{"I-45 Expansion", "Metro Rail Extension", "Port Expansion"},
 			"economic_indicators": map[string]interface{}{
-				"unemployment_rate": 0.038,
-				"gdp_growth":       0.041,
+				"unemployment_rate":  0.038,
+				"gdp_growth":         0.041,
 				"business_formation": "strong",
 			},
 		},
-		"seasonal_patterns": h.getSeasonalPatterns(),
+		"seasonal_patterns":    h.getSeasonalPatterns(),
 		"competitive_analysis": h.getCompetitiveAnalysis(propertyType, priceRange),
 		"forecasts": map[string]interface{}{
 			"next_quarter": map[string]interface{}{
-				"price_forecast":   "continued growth",
-				"inventory_trend":  "tightening",
-				"demand_outlook":   "strong",
+				"price_forecast":  "continued growth",
+				"inventory_trend": "tightening",
+				"demand_outlook":  "strong",
 			},
 			"next_year": map[string]interface{}{
-				"price_growth":     0.048,
-				"market_outlook":   "favorable",
-				"risk_factors":     []string{"interest rates", "supply chain", "energy sector volatility"},
+				"price_growth":   0.048,
+				"market_outlook": "favorable",
+				"risk_factors":   []string{"interest rates", "supply chain", "energy sector volatility"},
 			},
 		},
 	}
@@ -236,11 +236,11 @@ func (h *ContextFUBIntegrationHandlers) getHoustonMarketIntelligence(location st
 
 func (h *ContextFUBIntegrationHandlers) getNeighborhoodInsights(location string) map[string]interface{} {
 	neighborhoodData := map[string]interface{}{
-		"walk_score":       75,
-		"school_rating":    8.2,
-		"crime_index":      "low",
-		"commute_time":     "22 minutes to downtown",
-		"amenities_score":  9.1,
+		"walk_score":         75,
+		"school_rating":      8.2,
+		"crime_index":        "low",
+		"commute_time":       "22 minutes to downtown",
+		"amenities_score":    9.1,
 		"future_development": "mixed-use project planned",
 	}
 
@@ -260,48 +260,48 @@ func (h *ContextFUBIntegrationHandlers) getSeasonalPatterns() map[string]interfa
 		"spring": map[string]interface{}{
 			"activity_level": "peak",
 			"price_movement": "strongest appreciation",
-			"inventory":     "increasing",
+			"inventory":      "increasing",
 		},
 		"summer": map[string]interface{}{
 			"activity_level": "high",
 			"price_movement": "continued growth",
-			"inventory":     "stabilizing",
+			"inventory":      "stabilizing",
 		},
 		"fall": map[string]interface{}{
 			"activity_level": "moderate",
 			"price_movement": "slower growth",
-			"inventory":     "declining",
+			"inventory":      "declining",
 		},
 		"winter": map[string]interface{}{
 			"activity_level": "lower",
 			"price_movement": "stable",
-			"inventory":     "lowest",
+			"inventory":      "lowest",
 		},
 	}
 }
 
 func (h *ContextFUBIntegrationHandlers) getCompetitiveAnalysis(propertyType, priceRange string) map[string]interface{} {
 	return map[string]interface{}{
-		"market_competition": "high",
-		"buyer_demand":      "strong",
-		"seller_advantage":   true,
-		"negotiation_power": "seller-favored",
+		"market_competition":         "high",
+		"buyer_demand":               "strong",
+		"seller_advantage":           true,
+		"negotiation_power":          "seller-favored",
 		"average_offers_per_listing": 3.2,
-		"cash_offer_percentage": 0.28,
-		"above_asking_percentage": 0.15,
+		"cash_offer_percentage":      0.28,
+		"above_asking_percentage":    0.15,
 	}
 }
 
 func (h *ContextFUBIntegrationHandlers) getLocationSpecificInsights(location string) map[string]interface{} {
 	return map[string]interface{}{
 		"proximity_scores": map[string]interface{}{
-			"downtown":      8.5,
+			"downtown":       8.5,
 			"medical_center": 7.2,
-			"airports":      6.8,
+			"airports":       6.8,
 			"major_highways": 9.1,
 		},
 		"development_pipeline": "moderate",
-		"zoning_changes":      "none planned",
+		"zoning_changes":       "none planned",
 		"infrastructure_score": 8.3,
 	}
 }
@@ -312,17 +312,17 @@ func (h *ContextFUBIntegrationHandlers) getPropertyTypeInsights(propertyType str
 	switch strings.ToLower(propertyType) {
 	case "rental":
 		insights = map[string]interface{}{
-			"rental_demand":     "very high",
-			"tenant_retention":  0.847,
-			"rental_growth":     0.074,
-			"vacancy_rate":      0.057,
+			"rental_demand":    "very high",
+			"tenant_retention": 0.847,
+			"rental_growth":    0.074,
+			"vacancy_rate":     0.057,
 		}
 	case "sales":
 		insights = map[string]interface{}{
-			"buyer_demand":      "high",
+			"buyer_demand":       "high",
 			"price_appreciation": 0.069,
-			"sale_velocity":     "fast",
-			"market_timing":     "favorable for sellers",
+			"sale_velocity":      "fast",
+			"market_timing":      "favorable for sellers",
 		}
 	}
 
@@ -808,7 +808,7 @@ func (h *ContextFUBIntegrationHandlers) determineSalesWorkflowType(engagement, f
 
 func (h *ContextFUBIntegrationHandlers) determineMixedWorkflowType(engagement, financial, urgency float64, triggerType string) string {
 	avgScore := (engagement + financial + urgency) / 3.0
-	
+
 	if avgScore >= 0.7 {
 		return "MIXED_HIGH_INTENT"
 	} else if avgScore >= 0.5 {
@@ -856,7 +856,7 @@ func (h *ContextFUBIntegrationHandlers) getSalesRecommendedAction(engagement, fi
 
 func (h *ContextFUBIntegrationHandlers) getMixedRecommendedAction(engagement, financial, urgency float64) string {
 	avgScore := (engagement + financial + urgency) / 3.0
-	
+
 	if avgScore >= 0.7 {
 		return "comprehensive_consultation"
 	} else if avgScore >= 0.5 {
@@ -929,7 +929,7 @@ func (h *ContextFUBIntegrationHandlers) getPropertyTypeBreakdown(since time.Time
 
 func (h *ContextFUBIntegrationHandlers) getConversionMetrics(since time.Time, propertyType string) map[string]interface{} {
 	return map[string]interface{}{
-		"conversion_rate":      0.23,
+		"conversion_rate":       0.23,
 		"average_time_to_close": "14 days",
 		"success_by_urgency": map[string]float64{
 			"high":   0.78,
@@ -941,10 +941,10 @@ func (h *ContextFUBIntegrationHandlers) getConversionMetrics(since time.Time, pr
 
 func (h *ContextFUBIntegrationHandlers) getBehavioralInsights(since time.Time, propertyType string) map[string]interface{} {
 	return map[string]interface{}{
-		"top_trigger_types": []string{"property_viewed", "inquiry_submitted", "application_started"},
-		"peak_activity_hours": []int{9, 10, 11, 14, 15, 16},
+		"top_trigger_types":        []string{"property_viewed", "inquiry_submitted", "application_started"},
+		"peak_activity_hours":      []int{9, 10, 11, 14, 15, 16},
 		"average_engagement_score": 0.64,
-		"behavioral_patterns": "Users show higher conversion rates when contacted within 15 minutes",
+		"behavioral_patterns":      "Users show higher conversion rates when contacted within 15 minutes",
 	}
 }
 
@@ -1005,7 +1005,7 @@ func (h *ContextFUBIntegrationHandlers) detectAdvancedPropertyCategory(propertyC
 // calculatePropertySpecificBehavioralScore computes behavioral scoring based on property category
 func (h *ContextFUBIntegrationHandlers) calculatePropertySpecificBehavioralScore(propertyCategory string, behaviorData map[string]interface{}) float64 {
 	baseScore := 0.3
-	
+
 	switch strings.ToLower(propertyCategory) {
 	case "rental":
 		if moveInDate, exists := behaviorData["move_in_urgency"]; exists {
@@ -1020,7 +1020,7 @@ func (h *ContextFUBIntegrationHandlers) calculatePropertySpecificBehavioralScore
 				}
 			}
 		}
-		
+
 		if applicationReady, exists := behaviorData["application_ready"]; exists {
 			if ready, ok := applicationReady.(bool); ok && ready {
 				baseScore += 0.2
@@ -1033,7 +1033,7 @@ func (h *ContextFUBIntegrationHandlers) calculatePropertySpecificBehavioralScore
 				baseScore += 0.3
 			}
 		}
-		
+
 		if tourRequests, exists := behaviorData["property_tour_requests"]; exists {
 			if requests, ok := tourRequests.(float64); ok {
 				baseScore += requests * 0.1
@@ -1046,7 +1046,7 @@ func (h *ContextFUBIntegrationHandlers) calculatePropertySpecificBehavioralScore
 				baseScore += 0.25
 			}
 		}
-		
+
 		if cashFlowAnalysis, exists := behaviorData["cash_flow_analysis_time"]; exists {
 			if analysisTime, ok := cashFlowAnalysis.(float64); ok && analysisTime > 300 {
 				baseScore += 0.15
@@ -1149,7 +1149,7 @@ func (h *ContextFUBIntegrationHandlers) calculatePatternMatchConfidence(behavior
 	}
 
 	confidenceScores := []float64{}
-	
+
 	for _, historicalPattern := range historicalPatterns {
 		similarity := h.calculatePatternSimilarity(behaviorPattern, historicalPattern)
 		confidenceScores = append(confidenceScores, similarity)
@@ -1162,7 +1162,7 @@ func (h *ContextFUBIntegrationHandlers) calculatePatternMatchConfidence(behavior
 	}
 
 	confidence := totalConfidence / float64(len(confidenceScores))
-	
+
 	if len(confidenceScores) >= 3 {
 		consistency := h.calculatePatternConsistency(confidenceScores)
 		confidence = confidence * (1.0 + consistency*0.2)
@@ -1221,14 +1221,14 @@ func (h *ContextFUBIntegrationHandlers) calculateOptimalNextActionTime(urgencySc
 // generatePatternAnalysis creates comprehensive behavioral pattern analysis
 func (h *ContextFUBIntegrationHandlers) generatePatternAnalysis(behaviorData map[string]interface{}, comparisonData []map[string]interface{}) map[string]interface{} {
 	analysis := map[string]interface{}{
-		"pattern_type":        "unknown",
-		"behavior_category":   "standard",
-		"predictive_score":    0.0,
-		"confidence_level":    0.0,
-		"key_indicators":      []string{},
-		"anomalies":          []string{},
-		"trend_direction":     "stable",
-		"recommendations":     []string{},
+		"pattern_type":      "unknown",
+		"behavior_category": "standard",
+		"predictive_score":  0.0,
+		"confidence_level":  0.0,
+		"key_indicators":    []string{},
+		"anomalies":         []string{},
+		"trend_direction":   "stable",
+		"recommendations":   []string{},
 	}
 
 	if sessionCount, exists := behaviorData["session_count"]; exists {
@@ -1279,7 +1279,7 @@ func (h *ContextFUBIntegrationHandlers) generatePatternAnalysis(behaviorData map
 // calculateAdvancedPriority computes priority using advanced scoring algorithms
 func (h *ContextFUBIntegrationHandlers) calculateAdvancedPriority(engagementScore, financialScore, urgencyScore, marketFactorScore float64, propertyCategory string) string {
 	var engagementWeight, financialWeight, urgencyWeight, marketWeight float64
-	
+
 	switch strings.ToLower(propertyCategory) {
 	case "rental":
 		engagementWeight = 0.25
@@ -1309,9 +1309,9 @@ func (h *ContextFUBIntegrationHandlers) calculateAdvancedPriority(engagementScor
 	}
 
 	priorityScore := (engagementScore * engagementWeight) +
-					(financialScore * financialWeight) +
-					(urgencyScore * urgencyWeight) +
-					(marketFactorScore * marketWeight)
+		(financialScore * financialWeight) +
+		(urgencyScore * urgencyWeight) +
+		(marketFactorScore * marketWeight)
 
 	if priorityScore >= 0.85 {
 		return "CRITICAL"
@@ -1491,7 +1491,7 @@ func (h *ContextFUBIntegrationHandlers) adjustToBusinessHours(t time.Time) time.
 
 func (h *ContextFUBIntegrationHandlers) calculatePredictiveScore(behaviorData map[string]interface{}, comparisonData []map[string]interface{}) float64 {
 	baseScore := 0.3
-	
+
 	if sessionCount, exists := behaviorData["session_count"]; exists {
 		if count, ok := sessionCount.(float64); ok {
 			baseScore += (count / 10.0) * 0.3
@@ -1613,7 +1613,7 @@ func (h *ContextFUBIntegrationHandlers) generatePatternRecommendations(analysis 
 				}...)
 			case "thorough_investigator":
 				recommendations = append(recommendations, []string{
-					"share_neighborhood_investment_data", 
+					"share_neighborhood_investment_data",
 					"provide_comparative_market_analysis",
 					"offer_property_tour_with_detailed_walkthrough",
 				}...)
@@ -1658,7 +1658,7 @@ func (h *ContextFUBIntegrationHandlers) generatePatternRecommendations(analysis 
 // determineAdvancedWorkflowType determines workflow using advanced behavioral scoring
 func (h *ContextFUBIntegrationHandlers) determineAdvancedWorkflowType(behavioralScore, financialScore, urgencyScore float64, triggerType, propertyCategory string) string {
 	combinedScore := (behavioralScore * 0.4) + (financialScore * 0.35) + (urgencyScore * 0.25)
-	
+
 	switch strings.ToLower(propertyCategory) {
 	case "rental":
 		if combinedScore >= 0.85 && urgencyScore >= 0.8 {
@@ -1669,7 +1669,7 @@ func (h *ContextFUBIntegrationHandlers) determineAdvancedWorkflowType(behavioral
 			return "RENTAL_QUALIFIED_BEHAVIORAL_NURTURE"
 		}
 		return "RENTAL_BEHAVIORAL_DEVELOPMENT"
-		
+
 	case "sales":
 		if combinedScore >= 0.85 && financialScore >= 0.7 {
 			return "SALES_QUALIFIED_HIGH_INTENT"
@@ -1679,7 +1679,7 @@ func (h *ContextFUBIntegrationHandlers) determineAdvancedWorkflowType(behavioral
 			return "SALES_BEHAVIORAL_QUALIFIED"
 		}
 		return "SALES_BEHAVIORAL_EDUCATION"
-		
+
 	case "investment":
 		if combinedScore >= 0.80 && behavioralScore >= 0.7 {
 			return "INVESTMENT_SERIOUS_ANALYSIS"
@@ -1687,7 +1687,7 @@ func (h *ContextFUBIntegrationHandlers) determineAdvancedWorkflowType(behavioral
 			return "INVESTMENT_BEHAVIORAL_QUALIFIED"
 		}
 		return "INVESTMENT_BEHAVIORAL_EDUCATION"
-		
+
 	default:
 		if combinedScore >= 0.80 {
 			return "ADVANCED_HIGH_PRIORITY"

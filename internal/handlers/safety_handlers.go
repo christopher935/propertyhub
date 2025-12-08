@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"os"
 	"encoding/json"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -36,7 +36,11 @@ func NewSafetyHandlers(db *gorm.DB) *SafetyHandlers {
 // GetSafetyConfig returns the current safety configuration
 func (h *SafetyHandlers) GetSafetyConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	config := h.configManager.GetConfig()
 
@@ -52,7 +56,11 @@ func (h *SafetyHandlers) GetSafetyConfig(w http.ResponseWriter, r *http.Request)
 // UpdateSafetyMode updates the safety mode
 func (h *SafetyHandlers) UpdateSafetyMode(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	var request struct {
 		Mode       int    `json:"mode"`
@@ -87,24 +95,28 @@ func (h *SafetyHandlers) UpdateSafetyMode(w http.ResponseWriter, r *http.Request
 // GetModeRecommendation returns mode transition recommendations
 func (h *SafetyHandlers) GetModeRecommendation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	// Query real performance metrics from database
 	var totalCampaigns, successfulCampaigns, failedCampaigns int64
 	h.db.Table("campaign_execution_logs").Count(&totalCampaigns)
 	h.db.Table("campaign_execution_logs").Where("status = ?", "success").Count(&successfulCampaigns)
 	h.db.Table("campaign_execution_logs").Where("status = ?", "failed").Count(&failedCampaigns)
-	
+
 	var complaintCount, unsubscribeCount int64
 	h.db.Table("email_complaints").Count(&complaintCount)
 	h.db.Table("unsubscribes").Count(&unsubscribeCount)
-	
+
 	// Calculate rates
 	successRate := 0.0
 	if totalCampaigns > 0 {
 		successRate = float64(successfulCampaigns) / float64(totalCampaigns)
 	}
-	
+
 	complaintRate := 0.0
 	unsubscribeRate := 0.0
 	var totalEmails int64
@@ -113,21 +125,21 @@ func (h *SafetyHandlers) GetModeRecommendation(w http.ResponseWriter, r *http.Re
 		complaintRate = float64(complaintCount) / float64(totalEmails)
 		unsubscribeRate = float64(unsubscribeCount) / float64(totalEmails)
 	}
-	
+
 	// Calculate average engagement rate from campaigns
 	var avgEngagementRate float64
 	h.db.Table("email_campaigns").
 		Select("COALESCE(AVG((opened_count::float + clicked_count::float) / NULLIF(sent_count, 0)), 0)").
 		Where("sent_count > 0").
 		Scan(&avgEngagementRate)
-	
+
 	// Get days in current mode from config
 	config := h.configManager.GetConfig()
 	daysInCurrentMode := 0
 	if !config.LastModified.IsZero() {
 		daysInCurrentMode = int(time.Since(config.LastModified).Hours() / 24)
 	}
-	
+
 	metrics := safety.SafetyMetrics{
 		TotalCampaigns:        int(totalCampaigns),
 		SuccessfulCampaigns:   int(successfulCampaigns),
@@ -149,7 +161,11 @@ func (h *SafetyHandlers) GetModeRecommendation(w http.ResponseWriter, r *http.Re
 // GetTransitionHistory returns the mode transition history
 func (h *SafetyHandlers) GetTransitionHistory(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	history := h.modeManager.GetTransitionHistory()
 
@@ -162,7 +178,11 @@ func (h *SafetyHandlers) GetTransitionHistory(w http.ResponseWriter, r *http.Req
 // GetTransitionPlan returns the mode transition plan
 func (h *SafetyHandlers) GetTransitionPlan(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	plan := h.modeManager.GetModeTransitionPlan()
 
@@ -172,7 +192,11 @@ func (h *SafetyHandlers) GetTransitionPlan(w http.ResponseWriter, r *http.Reques
 // RequestOverride requests a safety override
 func (h *SafetyHandlers) RequestOverride(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	var request safety.OverrideRequest
 
@@ -199,7 +223,11 @@ func (h *SafetyHandlers) RequestOverride(w http.ResponseWriter, r *http.Request)
 // GetActiveOverrides returns all active overrides
 func (h *SafetyHandlers) GetActiveOverrides(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	overrides := h.overrideManager.GetActiveOverrides()
 
@@ -212,7 +240,11 @@ func (h *SafetyHandlers) GetActiveOverrides(w http.ResponseWriter, r *http.Reque
 // RevokeOverride revokes an active override
 func (h *SafetyHandlers) RevokeOverride(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	// Extract override ID from URL path
 	pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
@@ -248,7 +280,11 @@ func (h *SafetyHandlers) RevokeOverride(w http.ResponseWriter, r *http.Request) 
 // ActivateEmergencyStop activates emergency stop procedures
 func (h *SafetyHandlers) ActivateEmergencyStop(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	var request struct {
 		ActivatedBy string `json:"activated_by"`
@@ -280,7 +316,11 @@ func (h *SafetyHandlers) ActivateEmergencyStop(w http.ResponseWriter, r *http.Re
 // DeactivateEmergencyStop deactivates emergency stop procedures
 func (h *SafetyHandlers) DeactivateEmergencyStop(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	var request struct {
 		DeactivatedBy string `json:"deactivated_by"`
@@ -308,7 +348,11 @@ func (h *SafetyHandlers) DeactivateEmergencyStop(w http.ResponseWriter, r *http.
 // GetEmergencyState returns the current emergency state
 func (h *SafetyHandlers) GetEmergencyState(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	state := h.overrideManager.GetEmergencyState()
 
@@ -318,7 +362,11 @@ func (h *SafetyHandlers) GetEmergencyState(w http.ResponseWriter, r *http.Reques
 // UpdateSafetySettings updates specific safety settings
 func (h *SafetyHandlers) UpdateSafetySettings(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	var request struct {
 		ModifiedBy string                 `json:"modified_by"`
@@ -345,7 +393,11 @@ func (h *SafetyHandlers) UpdateSafetySettings(w http.ResponseWriter, r *http.Req
 // GetPerformanceMetrics returns current performance metrics
 func (h *SafetyHandlers) GetPerformanceMetrics(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	// Mock performance metrics for demonstration
 	metrics := map[string]interface{}{
@@ -368,7 +420,11 @@ func (h *SafetyHandlers) GetPerformanceMetrics(w http.ResponseWriter, r *http.Re
 // ExpireOverrides manually triggers override expiration check
 func (h *SafetyHandlers) ExpireOverrides(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	if err := h.overrideManager.ExpireOverrides(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -387,7 +443,11 @@ func (h *SafetyHandlers) ExpireOverrides(w http.ResponseWriter, r *http.Request)
 // GetOverrideStats returns override statistics
 func (h *SafetyHandlers) GetOverrideStats(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	stats := h.overrideManager.GetOverrideStats()
 

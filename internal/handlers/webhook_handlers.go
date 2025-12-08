@@ -30,17 +30,17 @@ type WebhookHandlers struct {
 
 // WebhookEvent represents an incoming webhook event
 type WebhookEvent struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	Source      string    `gorm:"not null" json:"source"`      // "twilio", "fub", "har", etc.
-	EventType   string    `gorm:"not null" json:"event_type"`  // "sms_received", "lead_updated", etc.
-	Payload     string    `gorm:"type:text" json:"payload"`    // JSON payload
-	Headers     string    `gorm:"type:text" json:"headers"`    // HTTP headers
-	Signature   string    `json:"signature,omitempty"`         // Webhook signature
+	ID          uint       `gorm:"primaryKey" json:"id"`
+	Source      string     `gorm:"not null" json:"source"`     // "twilio", "fub", "har", etc.
+	EventType   string     `gorm:"not null" json:"event_type"` // "sms_received", "lead_updated", etc.
+	Payload     string     `gorm:"type:text" json:"payload"`   // JSON payload
+	Headers     string     `gorm:"type:text" json:"headers"`   // HTTP headers
+	Signature   string     `json:"signature,omitempty"`        // Webhook signature
 	ProcessedAt *time.Time `json:"processed_at,omitempty"`
-	Status      string    `gorm:"default:'pending'" json:"status"` // "pending", "processed", "failed"
-	ErrorMsg    string    `gorm:"type:text" json:"error_msg,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	Status      string     `gorm:"default:'pending'" json:"status"` // "pending", "processed", "failed"
+	ErrorMsg    string     `gorm:"type:text" json:"error_msg,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
 // TwilioSMSWebhook represents Twilio SMS webhook payload
@@ -204,7 +204,7 @@ func (w *WebhookHandlers) ProcessInboundEmail(c *gin.Context) {
 	// Log the webhook event
 	payloadJSON, _ := json.Marshal(emailData)
 	headersJSON, _ := json.Marshal(w.getRequestHeaders(c.Request))
-	
+
 	event := WebhookEvent{
 		Source:    "email",
 		EventType: "email_received",
@@ -235,11 +235,11 @@ func (w *WebhookHandlers) GetWebhookEvents(c *gin.Context) {
 	limit := c.DefaultQuery("limit", "50")
 
 	query := w.db.Model(&WebhookEvent{})
-	
+
 	if source != "" {
 		query = query.Where("source = ?", source)
 	}
-	
+
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
@@ -300,8 +300,8 @@ func (w *WebhookHandlers) GetWebhookStats(c *gin.Context) {
 		Count(&recentCount)
 
 	utils.SuccessResponse(c, gin.H{
-		"total_events":    totalCount,
-		"recent_events":   recentCount,
+		"total_events":     totalCount,
+		"recent_events":    recentCount,
 		"status_breakdown": statusCounts,
 		"source_breakdown": sourceCounts,
 	})
@@ -318,7 +318,7 @@ func (w *WebhookHandlers) processTwilioSMS(eventID uint, smsData TwilioSMSWebhoo
 
 	// Simple keyword processing
 	response := w.generateSMSResponse(message)
-	
+
 	// Send response via Twilio
 	if err := w.sendTwilioSMS(phoneNumber, response); err != nil {
 		w.markEventFailed(eventID, fmt.Sprintf("Failed to send SMS response: %v", err))
@@ -353,7 +353,7 @@ func (w *WebhookHandlers) processInboundEmail(eventID uint, emailData InboundEma
 
 	// Process the email content
 	response := w.generateEmailResponse(emailData.Subject, emailData.Body)
-	
+
 	// Send auto-response if configured
 	if response != "" {
 		// Here you would integrate with your email sending service
@@ -436,20 +436,20 @@ func (w *WebhookHandlers) markEventFailed(eventID uint, errorMsg string) {
 
 func (w *WebhookHandlers) generateSMSResponse(message string) string {
 	message = strings.ToLower(message)
-	
+
 	// Simple keyword-based responses
 	if strings.Contains(message, "showing") || strings.Contains(message, "tour") {
 		return "Great! I'd love to show you some properties. You can schedule a showing at https://chrisgross-ctrl-project.com/book-showing or reply with your preferred times."
 	}
-	
+
 	if strings.Contains(message, "rent") || strings.Contains(message, "lease") {
 		return "I have several rental properties available! Visit https://chrisgross-ctrl-project.com to see current listings or reply with your budget and preferred area."
 	}
-	
+
 	if strings.Contains(message, "buy") || strings.Contains(message, "purchase") {
 		return "I'd be happy to help you find the perfect home! Visit our listings at https://chrisgross-ctrl-project.com or reply with your budget and preferred areas."
 	}
-	
+
 	// Default response
 	return "Thank you for reaching out! I'm Christopher Gross, your Houston real estate expert. Reply with 'SHOWINGS' for tours, 'RENT' for rentals, or call (713) 555-0123."
 }
@@ -457,11 +457,11 @@ func (w *WebhookHandlers) generateSMSResponse(message string) string {
 func (w *WebhookHandlers) generateEmailResponse(subject, body string) string {
 	// Generate contextual email responses based on content
 	body = strings.ToLower(body)
-	
+
 	if strings.Contains(body, "showing") || strings.Contains(body, "tour") {
 		return "Thank you for your interest in touring our properties! You can schedule a showing online at https://chrisgross-ctrl-project.com/book-showing"
 	}
-	
+
 	// Return empty string if no auto-response needed
 	return ""
 }
@@ -509,12 +509,12 @@ func (w *WebhookHandlers) processInquiry(contact, message, source string) error 
 	// Create contact inquiry record
 	// This would integrate with your existing contact/booking system
 	fmt.Printf("Processing %s inquiry from %s: %s\n", source, contact, message)
-	
+
 	// Here you would:
 	// 1. Create or update contact record
 	// 2. Trigger FUB lead creation
 	// 3. Set up appropriate follow-up sequences
-	
+
 	return nil
 }
 
@@ -543,7 +543,7 @@ func parseInt(s string, defaultVal int) int {
 // RegisterWebhookRoutes registers all webhook routes
 func RegisterWebhookRoutes(r *gin.Engine, db *gorm.DB) {
 	webhooks := NewWebhookHandlers(db)
-	
+
 	// Webhook endpoints (no authentication for external services)
 	webhookGroup := r.Group("/webhooks")
 	{
@@ -551,7 +551,7 @@ func RegisterWebhookRoutes(r *gin.Engine, db *gorm.DB) {
 		webhookGroup.POST("/fub", webhooks.ProcessFUBWebhook)
 		webhookGroup.POST("/email", webhooks.ProcessInboundEmail)
 	}
-	
+
 	// Admin API for webhook management
 	api := r.Group("/api/v1")
 	{

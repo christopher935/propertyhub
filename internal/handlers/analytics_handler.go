@@ -15,38 +15,38 @@ type AnalyticsHandler struct {
 
 type AnalyticsData struct {
 	// Executive KPIs
-	TotalSalesVolume    int64
-	SalesVolumeChange   float64
-	OccupancyRate       float64
-	OccupancyChange     float64
-	ActiveBookings      int64
-	BookingsChange      float64
-	ConversionRate      float64
-	ConversionChange    float64
+	TotalSalesVolume  int64
+	SalesVolumeChange float64
+	OccupancyRate     float64
+	OccupancyChange   float64
+	ActiveBookings    int64
+	BookingsChange    float64
+	ConversionRate    float64
+	ConversionChange  float64
 
 	// Behavioral Intelligence
-	HighScoreLeads         int64
-	HighScoreLeadsChange   float64
-	FUBSafeRecipients      int64
-	FUBSafeChange          float64
-	AvgResponseTime        int
+	HighScoreLeads          int64
+	HighScoreLeadsChange    float64
+	FUBSafeRecipients       int64
+	FUBSafeChange           float64
+	AvgResponseTime         int
 	ResponseTimeImprovement float64
-	ActiveCampaigns        int64
-	CampaignsChange        int64
+	ActiveCampaigns         int64
+	CampaignsChange         int64
 
 	// TREC Compliance
-	ComplianceScore  int
-	DNCListSize      int64
-	SafetyFlags      int64
-	AuditLogCount    int64
+	ComplianceScore int
+	DNCListSize     int64
+	SafetyFlags     int64
+	AuditLogCount   int64
 
 	// HAR Data removed - HAR blocked access
 
 	// Chart Data
-	RevenueLabels      string // JSON array
-	RevenueData        string // JSON array
-	PropertyMixLabels  string // JSON array
-	PropertyMixData    string // JSON array
+	RevenueLabels     string // JSON array
+	RevenueData       string // JSON array
+	PropertyMixLabels string // JSON array
+	PropertyMixData   string // JSON array
 }
 
 func NewAnalyticsHandler(db *gorm.DB) *AnalyticsHandler {
@@ -116,18 +116,18 @@ func (h *AnalyticsHandler) getTotalSalesVolume() int64 {
 func (h *AnalyticsHandler) getSalesVolumeChange() float64 {
 	var currentMonth, lastMonth int64
 	now := time.Now()
-	
+
 	h.DB.Table("bookings").
 		Where("status = ?", "confirmed").
 		Where("created_at >= ?", time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)).
 		Count(&currentMonth)
-	
+
 	h.DB.Table("bookings").
 		Where("status = ?", "confirmed").
 		Where("created_at >= ?", time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, time.UTC)).
 		Where("created_at < ?", time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)).
 		Count(&lastMonth)
-	
+
 	if lastMonth == 0 {
 		return 0
 	}
@@ -136,14 +136,14 @@ func (h *AnalyticsHandler) getSalesVolumeChange() float64 {
 
 func (h *AnalyticsHandler) getOccupancyRate() float64 {
 	var totalProperties, occupiedProperties int64
-	
+
 	h.DB.Table("properties").Where("status = ?", "active").Count(&totalProperties)
 	h.DB.Table("bookings").
 		Where("status = ?", "confirmed").
 		Where("check_in <= ?", time.Now()).
 		Where("check_out >= ?", time.Now()).
 		Count(&occupiedProperties)
-	
+
 	if totalProperties == 0 {
 		return 0
 	}
@@ -169,10 +169,10 @@ func (h *AnalyticsHandler) getBookingsChange() float64 {
 
 func (h *AnalyticsHandler) getConversionRate() float64 {
 	var totalLeads, convertedLeads int64
-	
+
 	h.DB.Table("leads").Count(&totalLeads)
 	h.DB.Table("leads").Where("status = ?", "converted").Count(&convertedLeads)
-	
+
 	if totalLeads == 0 {
 		return 0
 	}
@@ -239,25 +239,25 @@ func (h *AnalyticsHandler) getAuditLogCount() int64 {
 func (h *AnalyticsHandler) getRevenueChartData() (string, string) {
 	labels := []string{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
 	data := []int{45000, 52000, 48000, 61000, 58000, 67000, 72000, 69000, 75000, 82000, 78000, 85000}
-	
+
 	labelsJSON, _ := json.Marshal(labels)
 	dataJSON, _ := json.Marshal(data)
-	
+
 	return string(labelsJSON), string(dataJSON)
 }
 
 func (h *AnalyticsHandler) getPropertyMixChartData() (string, string) {
 	labels := []string{"For Sale", "For Rent", "Sold", "Rented"}
 	data := make([]int64, 4)
-	
+
 	h.DB.Table("properties").Where("listing_type = ?", "for_sale").Count(&data[0])
 	h.DB.Table("properties").Where("listing_type = ?", "for_rent").Count(&data[1])
 	h.DB.Table("properties").Where("listing_type = ?", "sold").Count(&data[2])
 	h.DB.Table("properties").Where("listing_type = ?", "rented").Count(&data[3])
-	
+
 	labelsJSON, _ := json.Marshal(labels)
 	dataJSON, _ := json.Marshal(data)
-	
+
 	return string(labelsJSON), string(dataJSON)
 }
 
@@ -279,4 +279,3 @@ func (h *AnalyticsHandler) getBookingCount() int64 {
 	h.DB.Table("bookings").Where("status IN (?)", []string{"confirmed", "pending"}).Count(&count)
 	return count
 }
-

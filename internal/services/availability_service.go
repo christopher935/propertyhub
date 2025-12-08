@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // AvailabilityService manages property availability and blackout dates

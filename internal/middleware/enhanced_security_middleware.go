@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/security"
+	"gorm.io/gorm"
 )
 
 // SecurityMiddleware provides comprehensive security features

@@ -9,9 +9,9 @@ import (
 // ContactDataResponse represents a contact with decrypted sensitive fields
 type ContactDataResponse struct {
 	ID         uint      `json:"id"`
-	Name       string    `json:"name"`        // Decrypted
-	Phone      string    `json:"phone"`       // Decrypted
-	Email      string    `json:"email"`       // Decrypted
+	Name       string    `json:"name"`  // Decrypted
+	Phone      string    `json:"phone"` // Decrypted
+	Email      string    `json:"email"` // Decrypted
 	Message    string    `json:"message"`
 	PropertyID string    `json:"property_id"`
 	Urgent     bool      `json:"urgent"`

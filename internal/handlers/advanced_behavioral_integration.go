@@ -26,16 +26,16 @@ func (h *ContextFUBIntegrationHandlers) ProcessAdvancedBehavioralTriggers(c *gin
 	}
 
 	propertyCategory := h.detectAdvancedPropertyCategory(request.PropertyContext, request.BehaviorContext)
-	
+
 	behavioralScore := h.calculatePropertySpecificBehavioralScore(propertyCategory, request.BehaviorContext)
-	
+
 	historicalContext := []map[string]interface{}{
 		request.UserContext,
 	}
-	
+
 	// REMOVED: unused triggerConditions variable
 	h.evaluateAdvancedTriggerConditions(request.TriggerData, historicalContext)
-	
+
 	workflowType := h.determineAdvancedWorkflowType(
 		behavioralScore,
 		0.6,
@@ -46,17 +46,17 @@ func (h *ContextFUBIntegrationHandlers) ProcessAdvancedBehavioralTriggers(c *gin
 
 	historicalPatterns := []map[string]interface{}{request.UserContext}
 	patternConfidence := h.calculatePatternMatchConfidence(request.BehaviorContext, historicalPatterns)
-	
+
 	marketConditions := map[string]interface{}{
 		"inventory_level": "balanced",
 		"market_tempo":    "normal",
 	}
 	nextActionTime := h.calculateOptimalNextActionTime(0.6, behavioralScore, propertyCategory, marketConditions)
-	
+
 	patternAnalysis := h.generatePatternAnalysis(request.BehaviorContext, historicalPatterns)
-	
+
 	advancedPriority := h.calculateAdvancedPriority(behavioralScore, 0.6, 0.5, 0.7, propertyCategory)
-	
+
 	triggerMessage := h.generateAdvancedTriggerMessage(request.TriggerData, patternAnalysis)
 
 	response := ContextFUBTriggerResponse{
@@ -123,7 +123,7 @@ func (h *ContextFUBIntegrationHandlers) GetAdvancedBehavioralMetrics(c *gin.Cont
 
 	metrics := gin.H{
 		"advanced_triggers":    h.getAdvancedTriggerCount(since, category),
-		"behavioral_patterns": h.getBehavioralPatternMetrics(since, category),
+		"behavioral_patterns":  h.getBehavioralPatternMetrics(since, category),
 		"conversion_analytics": h.getAdvancedConversionMetrics(since, category),
 		"category_breakdown":   h.getCategoryBreakdown(since),
 		"confidence_metrics":   h.getConfidenceMetrics(since, category),
@@ -140,7 +140,7 @@ func (h *ContextFUBIntegrationHandlers) getAdvancedTriggerCount(since time.Time,
 		"total_advanced_triggers": 156,
 		"successful_triggers":     134,
 		"failed_triggers":         22,
-		"success_rate":           0.859,
+		"success_rate":            0.859,
 	}
 }
 
@@ -148,22 +148,22 @@ func (h *ContextFUBIntegrationHandlers) getBehavioralPatternMetrics(since time.T
 	return map[string]interface{}{
 		"pattern_types_identified": []string{
 			"high_engagement",
-			"deep_researcher", 
+			"deep_researcher",
 			"thorough_investigator",
 			"quick_decision_maker",
 		},
-		"average_confidence":       0.74,
-		"pattern_consistency":      0.82,
-		"anomaly_detection_rate":   0.03,
+		"average_confidence":     0.74,
+		"pattern_consistency":    0.82,
+		"anomaly_detection_rate": 0.03,
 	}
 }
 
 func (h *ContextFUBIntegrationHandlers) getAdvancedConversionMetrics(since time.Time, category string) map[string]interface{} {
 	return map[string]interface{}{
-		"advanced_conversion_rate":  0.34,
-		"average_time_to_convert":   "18 days",
-		"high_confidence_converts":  0.58,
-		"pattern_match_converts":    0.42,
+		"advanced_conversion_rate": 0.34,
+		"average_time_to_convert":  "18 days",
+		"high_confidence_converts": 0.58,
+		"pattern_match_converts":   0.42,
 	}
 }
 
@@ -178,19 +178,19 @@ func (h *ContextFUBIntegrationHandlers) getCategoryBreakdown(since time.Time) ma
 
 func (h *ContextFUBIntegrationHandlers) getConfidenceMetrics(since time.Time, category string) map[string]interface{} {
 	return map[string]interface{}{
-		"average_confidence":    0.74,
-		"high_confidence_rate":  0.42,
-		"confidence_accuracy":   0.88,
+		"average_confidence":   0.74,
+		"high_confidence_rate": 0.42,
+		"confidence_accuracy":  0.88,
 	}
 }
 
 func (h *ContextFUBIntegrationHandlers) getWorkflowPerformance(since time.Time, category string) map[string]interface{} {
 	return map[string]interface{}{
 		"workflow_types": map[string]interface{}{
-			"RENTAL_IMMEDIATE_QUALIFIED":  map[string]interface{}{"count": 45, "success": 0.91},
-			"SALES_PRE_APPROVED_URGENT":   map[string]interface{}{"count": 32, "success": 0.84},
-			"MIXED_HIGH_INTENT":           map[string]interface{}{"count": 28, "success": 0.79},
-			"INVESTMENT_ANALYSIS_READY":   map[string]interface{}{"count": 19, "success": 0.95},
+			"RENTAL_IMMEDIATE_QUALIFIED": map[string]interface{}{"count": 45, "success": 0.91},
+			"SALES_PRE_APPROVED_URGENT":  map[string]interface{}{"count": 32, "success": 0.84},
+			"MIXED_HIGH_INTENT":          map[string]interface{}{"count": 28, "success": 0.79},
+			"INVESTMENT_ANALYSIS_READY":  map[string]interface{}{"count": 19, "success": 0.95},
 		},
 		"average_workflow_success": 0.87,
 	}
@@ -257,20 +257,20 @@ func (h *ContextFUBIntegrationHandlers) GetAdvancedBehavioralInsights(c *gin.Con
 	}
 
 	behaviorData := map[string]interface{}{
-		"session_count":           5,
-		"total_time_spent":        1800.0,
+		"session_count":            5,
+		"total_time_spent":         1800.0,
 		"average_session_duration": 360.0,
-		"page_views":              24,
-		"interaction_count":       18,
-		"form_starts":             3,
-		"form_completions":        1,
-		"contact_attempts":        2,
+		"page_views":               24,
+		"interaction_count":        18,
+		"form_starts":              3,
+		"form_completions":         1,
+		"contact_attempts":         2,
 	}
 
 	propertyContext := map[string]interface{}{
 		"property_type": "sales",
-		"location":     "Houston Heights",
-		"price_range":  "$400,000-$500,000",
+		"location":      "Houston Heights",
+		"price_range":   "$400,000-$500,000",
 	}
 
 	insights := h.generateComprehensiveInsights(sessionID, behaviorData, propertyContext)
@@ -285,7 +285,7 @@ func (h *ContextFUBIntegrationHandlers) generateComprehensiveInsights(sessionID 
 	behavioralScore := h.calculatePropertySpecificBehavioralScore(propertyCategory, behaviorData)
 	historicalData := []map[string]interface{}{behaviorData}
 	patternAnalysis := h.generatePatternAnalysis(behaviorData, historicalData)
-	
+
 	location := ""
 	priceRange := ""
 	if loc, exists := propertyContext["location"]; exists {
@@ -298,18 +298,18 @@ func (h *ContextFUBIntegrationHandlers) generateComprehensiveInsights(sessionID 
 			priceRange = priceStr
 		}
 	}
-	
+
 	marketIntel := h.getHoustonMarketIntelligence(location, propertyCategory, priceRange)
 
 	return map[string]interface{}{
-		"session_id":         sessionID,
-		"property_category":  propertyCategory,
-		"behavioral_score":   behavioralScore,
-		"pattern_analysis":   patternAnalysis,
+		"session_id":          sessionID,
+		"property_category":   propertyCategory,
+		"behavioral_score":    behavioralScore,
+		"pattern_analysis":    patternAnalysis,
 		"market_intelligence": marketIntel,
-		"recommendations":    h.generateActionRecommendations(behavioralScore, propertyCategory),
-		"next_steps":        h.generateNextSteps(behavioralScore, propertyCategory),
-		"generated_at":      time.Now(),
+		"recommendations":     h.generateActionRecommendations(behavioralScore, propertyCategory),
+		"next_steps":          h.generateNextSteps(behavioralScore, propertyCategory),
+		"generated_at":        time.Now(),
 	}
 }
 
@@ -389,8 +389,8 @@ func (h *ContextFUBIntegrationHandlers) UpdateAdvancedBehavioralProfile(c *gin.C
 		"property_category": propertyCategory,
 		"behavioral_score":  behavioralScore,
 		"pattern_analysis":  patternAnalysis,
-		"last_updated":     time.Now(),
-		"update_version":   "2.1",
+		"last_updated":      time.Now(),
+		"update_version":    "2.1",
 	}
 
 	c.JSON(http.StatusOK, gin.H{"profile": updatedProfile})
@@ -410,22 +410,22 @@ func (h *ContextFUBIntegrationHandlers) GetBehavioralTriggerHistory(c *gin.Conte
 
 	history := []map[string]interface{}{
 		{
-			"trigger_id":       "trig_1696350000000",
-			"session_id":       "sess_abc123",
+			"trigger_id":        "trig_1696350000000",
+			"session_id":        "sess_abc123",
 			"property_category": "sales",
 			"behavioral_score":  0.78,
-			"workflow_type":    "SALES_ENGAGED_QUALIFIED",
-			"success":          true,
-			"triggered_at":     time.Now().Add(-2 * time.Hour),
+			"workflow_type":     "SALES_ENGAGED_QUALIFIED",
+			"success":           true,
+			"triggered_at":      time.Now().Add(-2 * time.Hour),
 		},
 		{
-			"trigger_id":       "trig_1696340000000", 
-			"session_id":       "sess_def456",
+			"trigger_id":        "trig_1696340000000",
+			"session_id":        "sess_def456",
 			"property_category": "rental",
 			"behavioral_score":  0.85,
-			"workflow_type":    "RENTAL_IMMEDIATE_QUALIFIED",
-			"success":          true,
-			"triggered_at":     time.Now().Add(-4 * time.Hour),
+			"workflow_type":     "RENTAL_IMMEDIATE_QUALIFIED",
+			"success":           true,
+			"triggered_at":      time.Now().Add(-4 * time.Hour),
 		},
 	}
 

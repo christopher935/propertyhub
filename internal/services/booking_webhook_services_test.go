@@ -29,7 +29,7 @@ func TestProcessWebhook_FUB(t *testing.T) {
 	ws := NewWebhookService(db)
 
 	payload := map[string]interface{}{
-		"event": "person.created",
+		"event":   "person.created",
 		"eventId": "test-event-123",
 		"data": map[string]interface{}{
 			"id":        "fub-lead-456",

@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // PhotoProtectionService provides enhanced photo validation and protection

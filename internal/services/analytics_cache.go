@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/repositories"
+	"github.com/redis/go-redis/v9"
 )
 
 // AnalyticsCacheService provides high-performance analytics caching

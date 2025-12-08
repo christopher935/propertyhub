@@ -27,39 +27,39 @@ type SMSEmailAutomationService struct {
 
 // AutomationRule defines when and how to send automated messages
 type AutomationRule struct {
-	ID          uint   `gorm:"primaryKey" json:"id"`
-	Name        string `gorm:"not null" json:"name"`
-	TriggerType string `gorm:"not null" json:"trigger_type"` // "booking_created", "lead_imported", "time_delay"
-	Conditions  string `gorm:"type:json" json:"conditions"`  // JSON conditions
-	MessageType string `gorm:"not null" json:"message_type"` // "sms", "email", "both"
-	Template    string `gorm:"type:text" json:"template"`
-	DelayHours  int    `gorm:"default:0" json:"delay_hours"`
-	Active      bool   `gorm:"default:true" json:"active"`
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	Name        string    `gorm:"not null" json:"name"`
+	TriggerType string    `gorm:"not null" json:"trigger_type"` // "booking_created", "lead_imported", "time_delay"
+	Conditions  string    `gorm:"type:json" json:"conditions"`  // JSON conditions
+	MessageType string    `gorm:"not null" json:"message_type"` // "sms", "email", "both"
+	Template    string    `gorm:"type:text" json:"template"`
+	DelayHours  int       `gorm:"default:0" json:"delay_hours"`
+	Active      bool      `gorm:"default:true" json:"active"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 // AutomationExecution tracks automation executions
 type AutomationExecution struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	RuleID      uint      `gorm:"not null" json:"rule_id"`
-	ContactID   string    `gorm:"not null" json:"contact_id"` // FUB contact ID
-	TriggerData string    `gorm:"type:json" json:"trigger_data"`
-	Status      string    `gorm:"default:'pending'" json:"status"` // "pending", "sent", "failed"
+	ID          uint       `gorm:"primaryKey" json:"id"`
+	RuleID      uint       `gorm:"not null" json:"rule_id"`
+	ContactID   string     `gorm:"not null" json:"contact_id"` // FUB contact ID
+	TriggerData string     `gorm:"type:json" json:"trigger_data"`
+	Status      string     `gorm:"default:'pending'" json:"status"` // "pending", "sent", "failed"
 	SentAt      *time.Time `json:"sent_at,omitempty"`
-	ErrorMsg    string    `gorm:"type:text" json:"error_msg,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ErrorMsg    string     `gorm:"type:text" json:"error_msg,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
 // AutomationFUBContact represents a Follow Up Boss contact for automation
 type AutomationFUBContact struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
-	Source   string `json:"source"`
-	Tags     []string `json:"tags"`
+	ID           string                 `json:"id"`
+	Name         string                 `json:"name"`
+	Email        string                 `json:"email"`
+	Phone        string                 `json:"phone"`
+	Source       string                 `json:"source"`
+	Tags         []string               `json:"tags"`
 	CustomFields map[string]interface{} `json:"customFields"`
 }
 
@@ -88,7 +88,7 @@ func NewSMSEmailAutomationService(db *gorm.DB) *SMSEmailAutomationService {
 		db:          db,
 		fubAPIKey:   os.Getenv("FUB_API_KEY"),
 		twilioSID:   os.Getenv("TWILIO_ACCOUNT_SID"),
-		twilioToken: os.Getenv("TWILIO_AUTH_TOKEN"), 
+		twilioToken: os.Getenv("TWILIO_AUTH_TOKEN"),
 		twilioPhone: os.Getenv("TWILIO_PHONE_NUMBER"),
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
@@ -141,7 +141,7 @@ func (s *SMSEmailAutomationService) TriggerAutomation(triggerType string, data m
 // scheduleDelayedExecution schedules a delayed automation execution
 func (s *SMSEmailAutomationService) scheduleDelayedExecution(executionID uint, delay time.Duration) {
 	time.Sleep(delay)
-	
+
 	// Reload the execution to make sure it's still valid
 	var execution AutomationExecution
 	if err := s.db.First(&execution, executionID).Error; err != nil {
@@ -219,7 +219,7 @@ func (s *SMSEmailAutomationService) getFUBContact(contactID string) (*Automation
 	}
 
 	url := fmt.Sprintf("https://api.followupboss.com/v1/people/%s", contactID)
-	
+
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -282,7 +282,7 @@ func (s *SMSEmailAutomationService) sendSMSViaFUB(contact *AutomationFUBContact,
 // sendFUBMessage sends a message via Follow Up Boss API
 func (s *SMSEmailAutomationService) sendFUBMessage(message FUBMessage) error {
 	url := "https://api.followupboss.com/v1/communications"
-	
+
 	jsonData, err := json.Marshal(message)
 	if err != nil {
 		return err
@@ -312,7 +312,7 @@ func (s *SMSEmailAutomationService) sendFUBMessage(message FUBMessage) error {
 // renderTemplate renders a message template with data
 func (s *SMSEmailAutomationService) renderTemplate(template string, data map[string]interface{}, contact *AutomationFUBContact) string {
 	message := template
-	
+
 	// Replace placeholders with actual data
 	replacements := map[string]string{
 		"{{name}}":        contact.Name,
@@ -379,7 +379,7 @@ func (s *SMSEmailAutomationService) markExecutionFailed(executionID uint, errorM
 			"status":    "failed",
 			"error_msg": errorMsg,
 		})
-	
+
 	log.Printf("❌ Automation execution %d failed: %s", executionID, errorMsg)
 }
 
@@ -436,7 +436,7 @@ func (s *SMSEmailAutomationService) SetupDefaultAutomationRules() error {
 		// Check if rule already exists
 		var existing AutomationRule
 		result := s.db.Where("name = ?", rule.Name).First(&existing)
-		
+
 		if result.Error == gorm.ErrRecordNotFound {
 			// Create new rule
 			if err := s.db.Create(&rule).Error; err != nil {
@@ -492,7 +492,7 @@ func (s *SMSEmailAutomationService) ProcessPendingAutomations() error {
 
 	err := s.db.Where("status = 'pending' AND created_at < ?", cutoff).
 		Find(&pendingExecutions).Error
-	
+
 	if err != nil {
 		return err
 	}

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"fmt"
 	"chrisgross-ctrl-project/internal/models"
+	"fmt"
 	"time"
 )
 

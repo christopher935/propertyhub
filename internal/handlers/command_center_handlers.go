@@ -209,16 +209,16 @@ func (h *CommandCenterHandlers) generateShowingRequestItems() ([]CommandCenterIt
 	items := []CommandCenterItem{}
 
 	var bookings []struct {
-		ID             uint
-		Name           string
-		Email          string
-		Phone          string
-		PropertyID     uint
-		ShowingDate    time.Time
-		Status         string
-		CreatedAt      time.Time
-		PropertyCity   string
-		PropertyStreet string
+		ID              uint
+		Name            string
+		Email           string
+		Phone           string
+		PropertyID      uint
+		ShowingDate     time.Time
+		Status          string
+		CreatedAt       time.Time
+		PropertyCity    string
+		PropertyStreet  string
 		PropertyAddress string
 	}
 

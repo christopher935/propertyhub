@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 	"time"
-	
+
 	"github.com/nfnt/resize"
 )
 
@@ -27,11 +27,11 @@ type PhotoProcessingService struct {
 	mutex       sync.RWMutex
 
 	// Configuration
-	maxWidth         int
-	maxHeight        int
-	quality          int
+	maxWidth          int
+	maxHeight         int
+	quality           int
 	generateOptimized bool
-	generateThumbs   bool
+	generateThumbs    bool
 
 	// Statistics
 	totalJobs      int
@@ -82,16 +82,16 @@ func NewPhotoProcessingService(inputDir, outputDir string) *PhotoProcessingServi
 	}
 
 	return &PhotoProcessingService{
-		inputDir:       inputDir,
-		outputDir:      outputDir,
-		workerCount:    workerCount,
-		jobQueue:       make(chan PhotoJob, 100),
-		resultQueue:    make(chan PhotoResult, 100),
-		maxWidth:         1920,
-		maxHeight:        1080,
-		quality:          85,
+		inputDir:          inputDir,
+		outputDir:         outputDir,
+		workerCount:       workerCount,
+		jobQueue:          make(chan PhotoJob, 100),
+		resultQueue:       make(chan PhotoResult, 100),
+		maxWidth:          1920,
+		maxHeight:         1080,
+		quality:           85,
 		generateOptimized: true,
-		generateThumbs:   true,
+		generateThumbs:    true,
 	}
 }
 

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/security"
+	"gorm.io/gorm"
 )
 
 // DataMigrationService handles CSV imports using only actual model fields
@@ -28,14 +28,14 @@ func NewDataMigrationService(db *gorm.DB) *DataMigrationService {
 
 // MigrationResult represents the result of a data migration
 type MigrationResult struct {
-	TotalRows     int                    `json:"total_rows"`
-	SuccessCount  int                    `json:"success_count"`
-	ErrorCount    int                    `json:"error_count"`
-	SkippedCount  int                    `json:"skipped_count"`
-	Errors        []MigrationError       `json:"errors"`
-	Summary       map[string]interface{} `json:"summary"`
-	ProcessedAt   time.Time              `json:"processed_at"`
-	Duration      time.Duration          `json:"duration"`
+	TotalRows    int                    `json:"total_rows"`
+	SuccessCount int                    `json:"success_count"`
+	ErrorCount   int                    `json:"error_count"`
+	SkippedCount int                    `json:"skipped_count"`
+	Errors       []MigrationError       `json:"errors"`
+	Summary      map[string]interface{} `json:"summary"`
+	ProcessedAt  time.Time              `json:"processed_at"`
+	Duration     time.Duration          `json:"duration"`
 }
 
 // MigrationError represents an error during migration
@@ -98,14 +98,14 @@ func (dms *DataMigrationService) ImportCustomers(csvReader io.Reader, skipDuplic
 		}
 
 		result.TotalRows++
-		
+
 		// Extract basic fields that exist in Lead model
 		firstName := dms.getColumnValue(record, columnMap, "first_name")
 		lastName := dms.getColumnValue(record, columnMap, "last_name")
 		email := strings.ToLower(strings.TrimSpace(dms.getColumnValue(record, columnMap, "email")))
 		phone := dms.getColumnValue(record, columnMap, "phone")
 		source := dms.getColumnValue(record, columnMap, "source")
-		
+
 		// Validate required fields
 		if firstName == "" || lastName == "" || email == "" || !strings.Contains(email, "@") {
 			result.ErrorCount++
@@ -169,7 +169,7 @@ func (dms *DataMigrationService) ImportCustomers(csvReader io.Reader, skipDuplic
 		"total_processed":    result.TotalRows,
 	}
 
-	log.Printf("Customer import completed: %d success, %d errors, %d skipped", 
+	log.Printf("Customer import completed: %d success, %d errors, %d skipped",
 		result.SuccessCount, result.ErrorCount, result.SkippedCount)
 
 	return result, nil
@@ -560,7 +560,7 @@ func (dms *DataMigrationService) ImportBookings(csvReader io.Reader, skipDuplica
 
 	result.Duration = time.Since(startTime)
 	result.Summary = map[string]interface{}{
-		"imported_bookings": result.SuccessCount,
+		"imported_bookings":  result.SuccessCount,
 		"duplicate_bookings": result.SkippedCount,
 		"total_processed":    result.TotalRows,
 	}

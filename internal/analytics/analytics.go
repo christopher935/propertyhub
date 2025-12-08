@@ -46,11 +46,11 @@ type EventProperties map[string]interface{}
 type UserSegment string
 
 const (
-	SegmentNewUser      UserSegment = "new_user"
+	SegmentNewUser       UserSegment = "new_user"
 	SegmentReturningUser UserSegment = "returning_user"
-	SegmentPowerUser    UserSegment = "power_user"
-	SegmentPremiumUser  UserSegment = "premium_user"
-	SegmentInactiveUser UserSegment = "inactive_user"
+	SegmentPowerUser     UserSegment = "power_user"
+	SegmentPremiumUser   UserSegment = "premium_user"
+	SegmentInactiveUser  UserSegment = "inactive_user"
 )
 
 // ConversionFunnelStep represents a step in the conversion funnel
@@ -64,31 +64,31 @@ type ConversionFunnelStep struct {
 
 // ConversionFunnel represents the complete conversion funnel
 type ConversionFunnel struct {
-	Steps         []ConversionFunnelStep `json:"steps"`
-	TotalVisitors int                    `json:"total_visitors"`
-	Conversions   int                    `json:"conversions"`
-	ConversionRate float64              `json:"conversion_rate"`
-	Period        string                 `json:"period"`
+	Steps          []ConversionFunnelStep `json:"steps"`
+	TotalVisitors  int                    `json:"total_visitors"`
+	Conversions    int                    `json:"conversions"`
+	ConversionRate float64                `json:"conversion_rate"`
+	Period         string                 `json:"period"`
 }
 
 // UserBehavior represents aggregated user behavior data
 type UserBehavior struct {
-	UserID              string        `json:"user_id"`
-	SessionID           string        `json:"session_id"`
-	TotalPageViews      int           `json:"total_page_views"`
-	UniquePages         int           `json:"unique_pages"`
-	SessionDuration     time.Duration `json:"session_duration"`
-	BounceRate          float64       `json:"bounce_rate"`
-	PropertiesViewed    int           `json:"properties_viewed"`
-	SearchQueries       int           `json:"search_queries"`
-	BookingAttempts     int           `json:"booking_attempts"`
-	CompletedBookings   int           `json:"completed_bookings"`
-	ConversionRate      float64       `json:"conversion_rate"`
-	LastActivity        time.Time     `json:"last_activity"`
-	UserSegment         UserSegment   `json:"user_segment"`
-	DeviceType          string        `json:"device_type"`
-	TrafficSource       string        `json:"traffic_source"`
-	ReferrerDomain      string        `json:"referrer_domain"`
+	UserID            string        `json:"user_id"`
+	SessionID         string        `json:"session_id"`
+	TotalPageViews    int           `json:"total_page_views"`
+	UniquePages       int           `json:"unique_pages"`
+	SessionDuration   time.Duration `json:"session_duration"`
+	BounceRate        float64       `json:"bounce_rate"`
+	PropertiesViewed  int           `json:"properties_viewed"`
+	SearchQueries     int           `json:"search_queries"`
+	BookingAttempts   int           `json:"booking_attempts"`
+	CompletedBookings int           `json:"completed_bookings"`
+	ConversionRate    float64       `json:"conversion_rate"`
+	LastActivity      time.Time     `json:"last_activity"`
+	UserSegment       UserSegment   `json:"user_segment"`
+	DeviceType        string        `json:"device_type"`
+	TrafficSource     string        `json:"traffic_source"`
+	ReferrerDomain    string        `json:"referrer_domain"`
 }
 
 // PropertyPerformance represents property analytics data
@@ -112,37 +112,37 @@ type PropertyPerformance struct {
 
 // BusinessMetrics represents high-level business metrics
 type BusinessMetrics struct {
-	Date                time.Time `json:"date"`
-	TotalRevenue        float64   `json:"total_revenue"`
-	BookingRevenue      float64   `json:"booking_revenue"`
-	SubscriptionRevenue float64   `json:"subscription_revenue"`
-	TotalBookings       int       `json:"total_bookings"`
-	NewUsers            int       `json:"new_users"`
-	ActiveUsers         int       `json:"active_users"`
-	ChurnRate           float64   `json:"churn_rate"`
-	CustomerAcquisition float64   `json:"customer_acquisition"`
-	AverageOrderValue   float64   `json:"average_order_value"`
-	LifetimeValue       float64   `json:"lifetime_value"`
-	ConversionRate      float64   `json:"conversion_rate"`
+	Date                time.Time      `json:"date"`
+	TotalRevenue        float64        `json:"total_revenue"`
+	BookingRevenue      float64        `json:"booking_revenue"`
+	SubscriptionRevenue float64        `json:"subscription_revenue"`
+	TotalBookings       int            `json:"total_bookings"`
+	NewUsers            int            `json:"new_users"`
+	ActiveUsers         int            `json:"active_users"`
+	ChurnRate           float64        `json:"churn_rate"`
+	CustomerAcquisition float64        `json:"customer_acquisition"`
+	AverageOrderValue   float64        `json:"average_order_value"`
+	LifetimeValue       float64        `json:"lifetime_value"`
+	ConversionRate      float64        `json:"conversion_rate"`
 	TrafficSources      map[string]int `json:"traffic_sources"`
-	TopPerformingPages  []string  `json:"top_performing_pages"`
-	ErrorRate           float64   `json:"error_rate"`
-	AverageLoadTime     float64   `json:"average_load_time"`
+	TopPerformingPages  []string       `json:"top_performing_pages"`
+	ErrorRate           float64        `json:"error_rate"`
+	AverageLoadTime     float64        `json:"average_load_time"`
 }
 
 // NewAnalyticsEngine creates a new analytics engine
 func NewAnalyticsEngine() *AnalyticsEngine {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	engine := &AnalyticsEngine{
 		eventQueue: make(chan *models.AnalyticsEvent, 10000),
 		ctx:        ctx,
 		cancel:     cancel,
 	}
-	
+
 	// Start event processing goroutine
 	go engine.processEvents()
-	
+
 	return engine
 }
 
@@ -161,7 +161,7 @@ func (a *AnalyticsEngine) TrackEvent(userID, sessionID string, eventType EventTy
 		Path:       getStringProperty(properties, "path"),
 		CreatedAt:  time.Now(),
 	}
-	
+
 	select {
 	case a.eventQueue <- event:
 	default:
@@ -178,7 +178,7 @@ func (a *AnalyticsEngine) TrackPageView(userID, sessionID, path, referrer, ipAdd
 		"user_agent": userAgent,
 		"timestamp":  time.Now(),
 	}
-	
+
 	a.TrackEvent(userID, sessionID, EventPageView, properties)
 }
 
@@ -187,11 +187,11 @@ func (a *AnalyticsEngine) TrackPropertyView(userID, sessionID, propertyID string
 	if properties == nil {
 		properties = make(EventProperties)
 	}
-	
+
 	properties["property_id"] = propertyID
 	properties["view_duration"] = viewDuration
 	properties["timestamp"] = time.Now()
-	
+
 	a.TrackEvent(userID, sessionID, EventPropertyView, properties)
 }
 
@@ -203,7 +203,7 @@ func (a *AnalyticsEngine) TrackSearchQuery(userID, sessionID, query string, resu
 		"filters":       filters,
 		"timestamp":     time.Now(),
 	}
-	
+
 	a.TrackEvent(userID, sessionID, EventSearchQuery, properties)
 }
 
@@ -215,7 +215,7 @@ func (a *AnalyticsEngine) TrackBookingEvent(userID, sessionID, bookingID, proper
 		"amount":      amount,
 		"timestamp":   time.Now(),
 	}
-	
+
 	a.TrackEvent(userID, sessionID, eventType, properties)
 }
 
@@ -224,11 +224,11 @@ func (a *AnalyticsEngine) TrackConversion(userID, sessionID, conversionType stri
 	if properties == nil {
 		properties = make(EventProperties)
 	}
-	
+
 	properties["conversion_type"] = conversionType
 	properties["value"] = value
 	properties["timestamp"] = time.Now()
-	
+
 	a.TrackEvent(userID, sessionID, EventType("conversion"), properties)
 }
 
@@ -240,7 +240,7 @@ func (a *AnalyticsEngine) TrackError(userID, sessionID, errorType, errorMessage,
 		"stack_trace":   stackTrace,
 		"timestamp":     time.Now(),
 	}
-	
+
 	a.TrackEvent(userID, sessionID, EventError, properties)
 }
 
@@ -262,7 +262,7 @@ func (a *AnalyticsEngine) processEvent(event *models.AnalyticsEvent) {
 	// This would typically save to database via repository
 	// For now, we'll log it
 	log.Printf("Processing analytics event: %s for user %s", event.EventType, event.UserID)
-	
+
 	// Additional processing based on event type
 	switch EventType(event.EventType) {
 	case EventBookingComplete:
@@ -305,7 +305,7 @@ func (a *AnalyticsEngine) GetUserSegment(userID string, behavior *UserBehavior) 
 	if behavior == nil {
 		return SegmentNewUser
 	}
-	
+
 	// Logic to determine user segment
 	if behavior.TotalPageViews > 100 && behavior.CompletedBookings > 5 {
 		return SegmentPowerUser
@@ -314,7 +314,7 @@ func (a *AnalyticsEngine) GetUserSegment(userID string, behavior *UserBehavior) 
 	} else if time.Since(behavior.LastActivity) > 30*24*time.Hour {
 		return SegmentInactiveUser
 	}
-	
+
 	return SegmentNewUser
 }
 
@@ -337,7 +337,7 @@ func (a *AnalyticsEngine) GenerateFunnelAnalysis(startDate, endDate time.Time) *
 		{Name: "Booking Start", Count: 2500, Percentage: 25.0, DropoffRate: 50.0},
 		{Name: "Booking Complete", Count: 1250, Percentage: 12.5, DropoffRate: 50.0},
 	}
-	
+
 	return &ConversionFunnel{
 		Steps:          steps,
 		TotalVisitors:  10000,
@@ -365,11 +365,11 @@ func (a *AnalyticsEngine) GenerateBusinessMetrics(date time.Time) *BusinessMetri
 		LifetimeValue:       892.35,
 		ConversionRate:      12.5,
 		TrafficSources: map[string]int{
-			"organic":     4500,
-			"direct":      3200,
-			"social":      1800,
-			"paid":        2100,
-			"referral":    1200,
+			"organic":  4500,
+			"direct":   3200,
+			"social":   1800,
+			"paid":     2100,
+			"referral": 1200,
 		},
 		TopPerformingPages: []string{
 			"/properties/search",
@@ -414,6 +414,6 @@ func (at *AbandonmentTracker) TrackAbandonmentRecovery(userID, sessionID, bookin
 		"recovery_method": recoveryMethod,
 		"timestamp":       time.Now(),
 	}
-	
+
 	at.engine.TrackEvent(userID, sessionID, EventType("abandonment_recovery"), properties)
 }

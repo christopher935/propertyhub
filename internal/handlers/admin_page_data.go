@@ -26,7 +26,7 @@ type UserData struct {
 // Use this helper in ALL admin page handlers to ensure consistency
 func GetAdminPageData(c *gin.Context, pageTitle string) AdminPageData {
 	user := getUserFromContext(c)
-	
+
 	return AdminPageData{
 		PageTitle:         pageTitle,
 		User:              user,
@@ -45,23 +45,23 @@ func getUserFromContext(c *gin.Context) UserData {
 			Initials: "GU",
 		}
 	}
-	
+
 	userName, _ := c.Get("user_name")
 	userEmail, _ := c.Get("user_email")
 	userRole, _ := c.Get("user_role")
-	
+
 	name := "Admin"
 	if userName != nil {
 		name = userName.(string)
 	}
-	
+
 	role := "Administrator"
 	if userRole != nil {
 		role = userRole.(string)
 	}
-	
+
 	initials := getInitials(name)
-	
+
 	return UserData{
 		ID:       userID.(int64),
 		Name:     name,
@@ -76,19 +76,19 @@ func getInitials(name string) string {
 	if name == "" {
 		return "??"
 	}
-	
+
 	parts := splitName(name)
 	if len(parts) == 0 {
 		return "??"
 	}
-	
+
 	if len(parts) == 1 {
 		if len(parts[0]) > 0 {
 			return string(parts[0][0])
 		}
 		return "??"
 	}
-	
+
 	first := ""
 	last := ""
 	if len(parts[0]) > 0 {
@@ -97,7 +97,7 @@ func getInitials(name string) string {
 	if len(parts[len(parts)-1]) > 0 {
 		last = string(parts[len(parts)-1][0])
 	}
-	
+
 	return first + last
 }
 
@@ -105,7 +105,7 @@ func getInitials(name string) string {
 func splitName(name string) []string {
 	var parts []string
 	current := ""
-	
+
 	for _, char := range name {
 		if char == ' ' {
 			if current != "" {
@@ -116,11 +116,11 @@ func splitName(name string) []string {
 			current += string(char)
 		}
 	}
-	
+
 	if current != "" {
 		parts = append(parts, current)
 	}
-	
+
 	return parts
 }
 

@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"chrisgross-ctrl-project/internal/config"
+	"chrisgross-ctrl-project/internal/models"
+	"chrisgross-ctrl-project/internal/scraper"
+	"chrisgross-ctrl-project/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/config"
-        "chrisgross-ctrl-project/internal/scraper"
 	"log"
-	"chrisgross-ctrl-project/internal/models"
-	"chrisgross-ctrl-project/internal/services"
 )
 
 // PreListingHandlers handles pre-listing workflow with AI property valuation and email processing
@@ -682,7 +682,7 @@ func (h *PreListingHandlers) ResolveAlert(w http.ResponseWriter, r *http.Request
 // RegisterPreListingRoutes registers all pre-listing workflow routes
 func RegisterPreListingRoutes(mux *http.ServeMux, db *gorm.DB, config *config.Config, scraperService *scraper.ScraperService) {
 	handler := NewPreListingHandlers(db, config, scraperService)
-	
+
 	// Pre-listing management endpoints
 	mux.HandleFunc("/api/v1/pre-listing/stats", handler.GetPreListingStats)
 	mux.HandleFunc("/api/v1/pre-listing/items", handler.GetPreListingItems)
@@ -697,18 +697,18 @@ func RegisterPreListingRoutes(mux *http.ServeMux, db *gorm.DB, config *config.Co
 	})
 	mux.HandleFunc("/api/v1/pre-listing/create", handler.CreateManualPreListing)
 	mux.HandleFunc("/api/v1/pre-listing/timeline/", handler.GetPreListingTimeline)
-	
+
 	// Email processing endpoints
 	mux.HandleFunc("/api/v1/pre-listing/email/process", handler.ProcessEmail)
 	mux.HandleFunc("/api/v1/pre-listing/email/stats", handler.GetEmailProcessingStats)
 	mux.HandleFunc("/api/v1/pre-listing/email/incoming", handler.GetIncomingEmails)
 	mux.HandleFunc("/api/v1/pre-listing/email/reprocess/", handler.ReprocessEmail)
-	
+
 	// Overdue and alert management
 	mux.HandleFunc("/api/v1/pre-listing/overdue/check", handler.CheckOverdueItems)
 	mux.HandleFunc("/api/v1/pre-listing/overdue/items", handler.GetOverdueItems)
 	mux.HandleFunc("/api/v1/pre-listing/alerts", handler.GetAlerts)
 	mux.HandleFunc("/api/v1/pre-listing/alerts/resolve/", handler.ResolveAlert)
-	
+
 	log.Println("✅ Pre-listing workflow routes registered successfully")
 }

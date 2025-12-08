@@ -22,20 +22,20 @@ func NewOverrideManager(db *gorm.DB) *OverrideManager {
 
 // EmergencyState represents the global emergency stop state
 type EmergencyState struct {
-	Active    bool      `json:"active"`
-	Reason    string    `json:"reason"`
+	Active bool   `json:"active"`
+	Reason string `json:"reason"`
 	// ActivatedBy string  `json:"activated_by"`
 	ActivatedAt time.Time `json:"activated_at"`
 }
 
 // GlobalOverride represents system-wide automation overrides
 type GlobalOverride struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	Type        string    `gorm:"uniqueIndex" json:"type"` // "emergency_stop", "maintenance_mode"
-	Active      bool      `json:"active"`
-	Reason      string    `json:"reason"`
+	ID     uint   `gorm:"primaryKey" json:"id"`
+	Type   string `gorm:"uniqueIndex" json:"type"` // "emergency_stop", "maintenance_mode"
+	Active bool   `json:"active"`
+	Reason string `json:"reason"`
 	// ActivatedBy string    `json:"activated_by"`
-	ActivatedAt time.Time `json:"activated_at"`
+	ActivatedAt   time.Time  `json:"activated_at"`
 	DeactivatedAt *time.Time `json:"deactivated_at,omitempty"`
 }
 
@@ -44,7 +44,7 @@ func (om *OverrideManager) SetDoNotContact(leadID string, reason string, setBy s
 	// Check if override already exists
 	var override LeadOverride
 	err := om.db.Where("lead_id = ?", leadID).First(&override).Error
-	
+
 	if err == gorm.ErrRecordNotFound {
 		// Create new override
 		override = LeadOverride{
@@ -75,7 +75,7 @@ func (om *OverrideManager) SetDoNotContact(leadID string, reason string, setBy s
 func (om *OverrideManager) ClearDoNotContact(leadID string, clearedBy string) error {
 	var override LeadOverride
 	err := om.db.Where("lead_id = ?", leadID).First(&override).Error
-	
+
 	if err == gorm.ErrRecordNotFound {
 		return nil // Already clear
 	} else if err != nil {
@@ -99,7 +99,7 @@ func (om *OverrideManager) ClearDoNotContact(leadID string, clearedBy string) er
 func (om *OverrideManager) SetPauseUntil(leadID string, pauseUntil time.Time, reason string, setBy string) error {
 	var override LeadOverride
 	err := om.db.Where("lead_id = ?", leadID).First(&override).Error
-	
+
 	if err == gorm.ErrRecordNotFound {
 		// Create new override
 		override = LeadOverride{
@@ -122,7 +122,7 @@ func (om *OverrideManager) SetPauseUntil(leadID string, pauseUntil time.Time, re
 		return err
 	}
 
-	log.Printf("⏸️  Automation paused for lead %s until %s by %s: %s", 
+	log.Printf("⏸️  Automation paused for lead %s until %s by %s: %s",
 		leadID, pauseUntil.Format("Jan 2, 3:04 PM"), setBy, reason)
 	return nil
 }
@@ -131,7 +131,7 @@ func (om *OverrideManager) SetPauseUntil(leadID string, pauseUntil time.Time, re
 func (om *OverrideManager) ClearPauseUntil(leadID string, clearedBy string) error {
 	var override LeadOverride
 	err := om.db.Where("lead_id = ?", leadID).First(&override).Error
-	
+
 	if err == gorm.ErrRecordNotFound {
 		return nil // Already clear
 	} else if err != nil {
@@ -155,7 +155,7 @@ func (om *OverrideManager) ClearPauseUntil(leadID string, clearedBy string) erro
 func (om *OverrideManager) SetCustomCooldown(leadID string, cooldownHours int, reason string, setBy string) error {
 	var override LeadOverride
 	err := om.db.Where("lead_id = ?", leadID).First(&override).Error
-	
+
 	if err == gorm.ErrRecordNotFound {
 		// Create new override
 		override = LeadOverride{
@@ -178,7 +178,7 @@ func (om *OverrideManager) SetCustomCooldown(leadID string, cooldownHours int, r
 		return err
 	}
 
-	log.Printf("⏱️  Custom cooldown set for lead %s: %d hours by %s: %s", 
+	log.Printf("⏱️  Custom cooldown set for lead %s: %d hours by %s: %s",
 		leadID, cooldownHours, setBy, reason)
 	return nil
 }
@@ -187,7 +187,7 @@ func (om *OverrideManager) SetCustomCooldown(leadID string, cooldownHours int, r
 func (om *OverrideManager) GetLeadOverride(leadID string) (*LeadOverride, error) {
 	var override LeadOverride
 	err := om.db.Where("lead_id = ?", leadID).First(&override).Error
-	
+
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil // No override set
 	} else if err != nil {
@@ -201,15 +201,15 @@ func (om *OverrideManager) GetLeadOverride(leadID string) (*LeadOverride, error)
 func (om *OverrideManager) ActivateEmergencyStop(reason string, activatedBy string) error {
 	var globalOverride GlobalOverride
 	err := om.db.Where("type = ?", "emergency_stop").First(&globalOverride).Error
-	
+
 	now := time.Now()
-	
+
 	if err == gorm.ErrRecordNotFound {
 		// Create new emergency stop
 		globalOverride = GlobalOverride{
-			Type:        "emergency_stop",
-			Active:      true,
-			Reason:      reason,
+			Type:   "emergency_stop",
+			Active: true,
+			Reason: reason,
 			// ActivatedBy: activatedBy,
 			ActivatedAt: now,
 		}
@@ -237,7 +237,7 @@ func (om *OverrideManager) ActivateEmergencyStop(reason string, activatedBy stri
 func (om *OverrideManager) DeactivateEmergencyStop(deactivatedBy string) error {
 	var globalOverride GlobalOverride
 	err := om.db.Where("type = ?", "emergency_stop").First(&globalOverride).Error
-	
+
 	if err == gorm.ErrRecordNotFound {
 		return nil // No emergency stop active
 	} else if err != nil {
@@ -262,7 +262,7 @@ func (om *OverrideManager) DeactivateEmergencyStop(deactivatedBy string) error {
 func (om *OverrideManager) GetEmergencyState() EmergencyState {
 	var globalOverride GlobalOverride
 	err := om.db.Where("type = ? AND active = ?", "emergency_stop", true).First(&globalOverride).Error
-	
+
 	if err == gorm.ErrRecordNotFound {
 		return EmergencyState{Active: false}
 	} else if err != nil {
@@ -271,8 +271,8 @@ func (om *OverrideManager) GetEmergencyState() EmergencyState {
 	}
 
 	return EmergencyState{
-		Active:      globalOverride.Active,
-		Reason:      globalOverride.Reason,
+		Active: globalOverride.Active,
+		Reason: globalOverride.Reason,
 		// ActivatedBy: globalOverride.ActivatedBy,
 		ActivatedAt: globalOverride.ActivatedAt,
 	}
@@ -287,16 +287,16 @@ func (om *OverrideManager) IsEmergencyStopActive() bool {
 // GetAllLeadOverrides returns all leads with active overrides
 func (om *OverrideManager) GetAllLeadOverrides() ([]LeadOverride, error) {
 	var overrides []LeadOverride
-	err := om.db.Where("do_not_contact = ? OR pause_until IS NOT NULL OR custom_cooldown IS NOT NULL", 
+	err := om.db.Where("do_not_contact = ? OR pause_until IS NOT NULL OR custom_cooldown IS NOT NULL",
 		true).Find(&overrides).Error
-	
+
 	return overrides, err
 }
 
 // RemoveAllOverrides removes all overrides for a lead
 func (om *OverrideManager) RemoveAllOverrides(leadID string, removedBy string) error {
 	err := om.db.Where("lead_id = ?", leadID).Delete(&LeadOverride{}).Error
-	
+
 	if err != nil {
 		log.Printf("❌ Error removing overrides for lead %s: %v", leadID, err)
 		return err

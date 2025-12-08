@@ -467,7 +467,7 @@ func TestFUBErrorHandler_RetryLogic(t *testing.T) {
 	operation := "test_operation"
 	fn := func() (*http.Response, error) {
 		attemptCount++
-		
+
 		if attemptCount < maxAttempts {
 			rec := httptest.NewRecorder()
 			rec.WriteHeader(http.StatusTooManyRequests)
@@ -530,7 +530,7 @@ func TestFieldMapping_LeadToFUBContact(t *testing.T) {
 	assert.Equal(t, "Martinez", contact["lastName"])
 	assert.Equal(t, "alex@example.com", contact["email"])
 	assert.Equal(t, "+15559876543", contact["phone"])
-	
+
 	customFields := contact["customFields"].(map[string]interface{})
 	assert.Equal(t, "rental", customFields["property_category"])
 	assert.Equal(t, "downtown", customFields["houston_location"])
@@ -621,8 +621,8 @@ func TestRentalCommissionCalculation(t *testing.T) {
 	service := NewBehavioralFUBIntegrationService(db, "test_api_key")
 
 	testCases := []struct {
-		name              string
-		monthlyRent       float64
+		name               string
+		monthlyRent        float64
 		expectedCommission float64
 	}{
 		{"Luxury Rental $5000", 5000, 4500},
@@ -655,9 +655,9 @@ func TestSalesCommissionCalculation(t *testing.T) {
 	service := NewBehavioralFUBIntegrationService(db, "test_api_key")
 
 	testCases := []struct {
-		name                string
-		propertyValue       float64
-		expectedCommission  float64 
+		name               string
+		propertyValue      float64
+		expectedCommission float64
 	}{
 		{"Luxury $3M", 3000000, 54000},
 		{"Mid-Range $750K", 750000, 13500},

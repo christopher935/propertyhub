@@ -37,16 +37,16 @@ type EncryptionStatus struct {
 
 // EncryptionStatistics represents encryption system statistics
 type EncryptionStatistics struct {
-	TotalEncryptions    int64     `json:"total_encryptions"`
-	TotalDecryptions    int64     `json:"total_decryptions"`
-	EncryptionErrors    int64     `json:"encryption_errors"`
-	DecryptionErrors    int64     `json:"decryption_errors"`
-	AverageEncryptTime  float64   `json:"average_encrypt_time_ms"`
-	AverageDecryptTime  float64   `json:"average_decrypt_time_ms"`
-	KeyRotations        int64     `json:"key_rotations"`
-	LastKeyRotation     time.Time `json:"last_key_rotation"`
-	SecurityEvents      int64     `json:"security_events"`
-	ComplianceStatus    string    `json:"compliance_status"`
+	TotalEncryptions   int64     `json:"total_encryptions"`
+	TotalDecryptions   int64     `json:"total_decryptions"`
+	EncryptionErrors   int64     `json:"encryption_errors"`
+	DecryptionErrors   int64     `json:"decryption_errors"`
+	AverageEncryptTime float64   `json:"average_encrypt_time_ms"`
+	AverageDecryptTime float64   `json:"average_decrypt_time_ms"`
+	KeyRotations       int64     `json:"key_rotations"`
+	LastKeyRotation    time.Time `json:"last_key_rotation"`
+	SecurityEvents     int64     `json:"security_events"`
+	ComplianceStatus   string    `json:"compliance_status"`
 }
 
 // GetEncryptionStatus returns the current encryption system status
@@ -54,7 +54,7 @@ func (h *EncryptionHandler) GetEncryptionStatus(w http.ResponseWriter, r *http.R
 	status := EncryptionStatus{
 		Enabled:           h.encryptionManager != nil,
 		KeyRotationDate:   time.Now().AddDate(0, 0, -30), // Example: 30 days ago
-		EncryptedFields:   150, // Example count
+		EncryptedFields:   150,                           // Example count
 		KeyVersion:        "v1.2.0",
 		SecurityLevel:     "AES-256-GCM",
 		LastHealthCheck:   time.Now(),
@@ -79,22 +79,22 @@ func (h *EncryptionHandler) GetEncryptionStatistics(w http.ResponseWriter, r *ht
 	}
 
 	statistics := EncryptionStatistics{
-		TotalEncryptions:    5420,  // Example metrics
-		TotalDecryptions:    12350,
-		EncryptionErrors:    2,
-		DecryptionErrors:    1,
-		AverageEncryptTime:  0.8,
-		AverageDecryptTime:  0.6,
-		KeyRotations:        3,
-		LastKeyRotation:     time.Now().AddDate(0, 0, -15),
-		SecurityEvents:      0,
-		ComplianceStatus:    "COMPLIANT",
+		TotalEncryptions:   5420, // Example metrics
+		TotalDecryptions:   12350,
+		EncryptionErrors:   2,
+		DecryptionErrors:   1,
+		AverageEncryptTime: 0.8,
+		AverageDecryptTime: 0.6,
+		KeyRotations:       3,
+		LastKeyRotation:    time.Now().AddDate(0, 0, -15),
+		SecurityEvents:     0,
+		ComplianceStatus:   "COMPLIANT",
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success":    true,
-		"statistics": statistics,
+		"success":     true,
+		"statistics":  statistics,
 		"period_days": daysBack,
 	})
 }

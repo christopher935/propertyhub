@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
+	"chrisgross-ctrl-project/internal/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/models"
 )
 
 // BehavioralAnalyticsHandlers provides API endpoints for behavioral analytics
@@ -26,9 +26,9 @@ func NewBehavioralAnalyticsHandlers(db *gorm.DB) *BehavioralAnalyticsHandlers {
 
 // GetBehavioralTrends returns time-series data for trend charts
 func (h *BehavioralAnalyticsHandlers) GetBehavioralTrends(c *gin.Context) {
-	period := c.DefaultQuery("period", "daily")   // daily, weekly, monthly
-	metric := c.DefaultQuery("metric", "all")      // active_users, engagement, conversions, all
-	days := c.DefaultQuery("days", "30")          // Number of days to look back
+	period := c.DefaultQuery("period", "daily") // daily, weekly, monthly
+	metric := c.DefaultQuery("metric", "all")   // active_users, engagement, conversions, all
+	days := c.DefaultQuery("days", "30")        // Number of days to look back
 
 	daysInt, _ := strconv.Atoi(days)
 	startDate := time.Now().AddDate(0, 0, -daysInt)
@@ -38,7 +38,7 @@ func (h *BehavioralAnalyticsHandlers) GetBehavioralTrends(c *gin.Context) {
 	// Active Users Trend
 	if metric == "active_users" || metric == "all" {
 		var activeUsersTrend []models.BehavioralTrendPoint
-		
+
 		query := `
 			SELECT 
 				DATE(created_at) as date,
@@ -48,15 +48,15 @@ func (h *BehavioralAnalyticsHandlers) GetBehavioralTrends(c *gin.Context) {
 			GROUP BY DATE(created_at)
 			ORDER BY date
 		`
-		
+
 		type TrendResult struct {
 			Date  time.Time
 			Value int64
 		}
-		
+
 		var results []TrendResult
 		h.db.Raw(query, startDate).Scan(&results)
-		
+
 		for _, r := range results {
 			activeUsersTrend = append(activeUsersTrend, models.BehavioralTrendPoint{
 				Date:  r.Date.Format("2006-01-02"),
@@ -64,14 +64,14 @@ func (h *BehavioralAnalyticsHandlers) GetBehavioralTrends(c *gin.Context) {
 				Label: "Active Users",
 			})
 		}
-		
+
 		trends["active_users"] = activeUsersTrend
 	}
 
 	// Engagement Trend (events per user)
 	if metric == "engagement" || metric == "all" {
 		var engagementTrend []models.BehavioralTrendPoint
-		
+
 		query := `
 			SELECT 
 				DATE(created_at) as date,
@@ -81,15 +81,15 @@ func (h *BehavioralAnalyticsHandlers) GetBehavioralTrends(c *gin.Context) {
 			GROUP BY DATE(created_at)
 			ORDER BY date
 		`
-		
+
 		type TrendResult struct {
 			Date  time.Time
 			Value float64
 		}
-		
+
 		var results []TrendResult
 		h.db.Raw(query, startDate).Scan(&results)
-		
+
 		for _, r := range results {
 			engagementTrend = append(engagementTrend, models.BehavioralTrendPoint{
 				Date:  r.Date.Format("2006-01-02"),
@@ -97,14 +97,14 @@ func (h *BehavioralAnalyticsHandlers) GetBehavioralTrends(c *gin.Context) {
 				Label: "Avg Events/User",
 			})
 		}
-		
+
 		trends["engagement"] = engagementTrend
 	}
 
 	// Conversion Trend
 	if metric == "conversions" || metric == "all" {
 		var conversionTrend []models.BehavioralTrendPoint
-		
+
 		query := `
 			SELECT 
 				DATE(created_at) as date,
@@ -114,15 +114,15 @@ func (h *BehavioralAnalyticsHandlers) GetBehavioralTrends(c *gin.Context) {
 			GROUP BY DATE(created_at)
 			ORDER BY date
 		`
-		
+
 		type TrendResult struct {
 			Date  time.Time
 			Value int64
 		}
-		
+
 		var results []TrendResult
 		h.db.Raw(query, startDate).Scan(&results)
-		
+
 		for _, r := range results {
 			conversionTrend = append(conversionTrend, models.BehavioralTrendPoint{
 				Date:  r.Date.Format("2006-01-02"),
@@ -130,7 +130,7 @@ func (h *BehavioralAnalyticsHandlers) GetBehavioralTrends(c *gin.Context) {
 				Label: "Conversions",
 			})
 		}
-		
+
 		trends["conversions"] = conversionTrend
 	}
 
@@ -153,7 +153,7 @@ func (h *BehavioralAnalyticsHandlers) GetConversionFunnel(c *gin.Context) {
 
 	// Define funnel stages in order
 	stages := []string{"viewed", "saved", "inquired", "applied", "converted"}
-	
+
 	var funnelStages []models.BehavioralFunnelStage
 	var totalViewed int64
 
@@ -194,7 +194,7 @@ func (h *BehavioralAnalyticsHandlers) GetConversionFunnel(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"funnel": funnelStages,
+		"funnel":       funnelStages,
 		"total_viewed": totalViewed,
 		"conversion_rate": func() float64 {
 			if totalViewed > 0 && len(funnelStages) > 0 {
@@ -213,7 +213,7 @@ func (h *BehavioralAnalyticsHandlers) GetConversionFunnel(c *gin.Context) {
 // GetBehavioralSegments returns behavioral segment breakdown
 func (h *BehavioralAnalyticsHandlers) GetBehavioralSegments(c *gin.Context) {
 	segments := []string{"high_engagement", "medium_engagement", "low_engagement", "dormant"}
-	
+
 	var segmentSummaries []models.BehavioralSegmentSummary
 
 	for _, segment := range segments {
@@ -323,9 +323,9 @@ func (h *BehavioralAnalyticsHandlers) GetActivityHeatmap(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"heatmap": heatmapCells,
+		"heatmap":      heatmapCells,
 		"max_activity": maxActivity,
-		"days": daysInt,
+		"days":         daysInt,
 	})
 }
 
@@ -337,7 +337,7 @@ func (h *BehavioralAnalyticsHandlers) GetActivityHeatmap(c *gin.Context) {
 func (h *BehavioralAnalyticsHandlers) GetBehavioralAnomalies(c *gin.Context) {
 	severity := c.DefaultQuery("severity", "all") // critical, high, medium, low, all
 	limit := c.DefaultQuery("limit", "20")
-	
+
 	limitInt, _ := strconv.Atoi(limit)
 
 	query := h.db.Model(&models.BehavioralAnomaly{}).
@@ -354,7 +354,7 @@ func (h *BehavioralAnalyticsHandlers) GetBehavioralAnomalies(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"anomalies": anomalies,
-		"count": len(anomalies),
+		"count":     len(anomalies),
 	})
 }
 
@@ -367,7 +367,7 @@ func (h *BehavioralAnalyticsHandlers) GetAIRecommendations(c *gin.Context) {
 	status := c.DefaultQuery("status", "pending") // pending, accepted, rejected, expired, completed
 	priority := c.DefaultQuery("priority", "all") // urgent, high, medium, low, all
 	limit := c.DefaultQuery("limit", "20")
-	
+
 	limitInt, _ := strconv.Atoi(limit)
 
 	query := h.db.Model(&models.BehavioralRecommendation{}).
@@ -403,7 +403,7 @@ func (h *BehavioralAnalyticsHandlers) GetAIRecommendations(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"recommendations": enriched,
-		"count": len(enriched),
+		"count":           len(enriched),
 	})
 }
 
@@ -415,7 +415,7 @@ func (h *BehavioralAnalyticsHandlers) GetAIRecommendations(c *gin.Context) {
 func (h *BehavioralAnalyticsHandlers) GetBehavioralCohorts(c *gin.Context) {
 	cohortType := c.DefaultQuery("type", "weekly") // weekly, monthly
 	limit := c.DefaultQuery("limit", "12")
-	
+
 	limitInt, _ := strconv.Atoi(limit)
 
 	var cohorts []models.BehavioralCohort
@@ -466,7 +466,7 @@ func (h *BehavioralAnalyticsHandlers) GetBehavioralCohorts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"cohorts": cohortRetention,
-		"type": cohortType,
+		"type":    cohortType,
 	})
 }
 

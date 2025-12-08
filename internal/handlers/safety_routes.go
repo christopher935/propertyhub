@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"net/http"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 // RegisterSafetyRoutes registers all safety-related routes

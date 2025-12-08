@@ -6,18 +6,18 @@ import (
 
 // UserProfile represents extended profile information for admin users
 type UserProfile struct {
-	ID        int64     `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserID    int64     `gorm:"uniqueIndex;not null" json:"user_id"`
-	FirstName string    `gorm:"size:100" json:"first_name"`
-	LastName  string    `gorm:"size:100" json:"last_name"`
-	Phone     string    `gorm:"size:50" json:"phone"`
-	Company   string    `gorm:"size:200" json:"company"`
-	Department string   `gorm:"size:100" json:"department"`
-	JobTitle  string    `gorm:"size:100" json:"job_title"`
-	AvatarURL string    `gorm:"type:text" json:"avatar_url"`
-	Bio       string    `gorm:"type:text" json:"bio"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID         int64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID     int64     `gorm:"uniqueIndex;not null" json:"user_id"`
+	FirstName  string    `gorm:"size:100" json:"first_name"`
+	LastName   string    `gorm:"size:100" json:"last_name"`
+	Phone      string    `gorm:"size:50" json:"phone"`
+	Company    string    `gorm:"size:200" json:"company"`
+	Department string    `gorm:"size:100" json:"department"`
+	JobTitle   string    `gorm:"size:100" json:"job_title"`
+	AvatarURL  string    `gorm:"type:text" json:"avatar_url"`
+	Bio        string    `gorm:"type:text" json:"bio"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 // TableName specifies the table name for UserProfile

@@ -16,7 +16,7 @@ func (a *ActivityHubAdapter) BroadcastEvent(event services.ActivityEventData) {
 	if a.hub == nil {
 		return
 	}
-	
+
 	hubEvent := ActivityEvent{
 		Type:       event.Type,
 		SessionID:  event.SessionID,
@@ -28,7 +28,7 @@ func (a *ActivityHubAdapter) BroadcastEvent(event services.ActivityEventData) {
 		Score:      event.Score,
 		EventData:  event.EventData,
 	}
-	
+
 	a.hub.BroadcastEvent(hubEvent)
 }
 

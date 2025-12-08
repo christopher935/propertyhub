@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"encoding/json"
-	"net/http"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 // CookieConsentPreferences represents user's cookie consent choices
@@ -29,20 +29,20 @@ func HasBehavioralConsent(c *gin.Context) bool {
 			// Users must explicitly opt-in
 			return false
 		}
-		
+
 		var prefs CookieConsentPreferences
 		if err := json.Unmarshal([]byte(consentHeader), &prefs); err != nil {
 			return false
 		}
 		return prefs.Behavioral
 	}
-	
+
 	// Parse consent cookie
 	var prefs CookieConsentPreferences
 	if err := json.Unmarshal([]byte(consentCookie), &prefs); err != nil {
 		return false
 	}
-	
+
 	return prefs.Behavioral
 }
 
@@ -54,19 +54,19 @@ func HasAnalyticsConsent(c *gin.Context) bool {
 		if consentHeader == "" {
 			return false
 		}
-		
+
 		var prefs CookieConsentPreferences
 		if err := json.Unmarshal([]byte(consentHeader), &prefs); err != nil {
 			return false
 		}
 		return prefs.Analytics
 	}
-	
+
 	var prefs CookieConsentPreferences
 	if err := json.Unmarshal([]byte(consentCookie), &prefs); err != nil {
 		return false
 	}
-	
+
 	return prefs.Analytics
 }
 
@@ -78,19 +78,19 @@ func HasMarketingConsent(c *gin.Context) bool {
 		if consentHeader == "" {
 			return false
 		}
-		
+
 		var prefs CookieConsentPreferences
 		if err := json.Unmarshal([]byte(consentHeader), &prefs); err != nil {
 			return false
 		}
 		return prefs.Marketing
 	}
-	
+
 	var prefs CookieConsentPreferences
 	if err := json.Unmarshal([]byte(consentCookie), &prefs); err != nil {
 		return false
 	}
-	
+
 	return prefs.Marketing
 }
 
@@ -100,7 +100,7 @@ func SaveConsentCookie(c *gin.Context, prefs CookieConsentPreferences) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Set cookie for 365 days
 	c.SetCookie(
 		"phCookieConsent",
@@ -111,7 +111,7 @@ func SaveConsentCookie(c *gin.Context, prefs CookieConsentPreferences) error {
 		false, // secure (set to true in production with HTTPS)
 		false, // httpOnly (false so JS can read it)
 	)
-	
+
 	return nil
 }
 
@@ -122,13 +122,13 @@ func CookieConsentHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid consent data"})
 		return
 	}
-	
+
 	// Save consent to cookie
 	if err := SaveConsentCookie(c, prefs); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save consent"})
 		return
 	}
-	
+
 	// TODO: Log consent to database for compliance audit trail
 	// This would involve creating a consent_log table and storing:
 	// - User ID (if authenticated)
@@ -136,7 +136,7 @@ func CookieConsentHandler(c *gin.Context) {
 	// - Timestamp
 	// - Consent preferences
 	// - User Agent
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Cookie consent preferences saved",

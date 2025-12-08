@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/security"
+	"gorm.io/gorm"
 )
 
 // CreatePropertyRequest represents the request body for creating a property

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -253,11 +253,11 @@ func ErrorResponse(c *gin.Context, statusCode int, message string, err error) {
 		"success": false,
 		"error":   message,
 	}
-	
+
 	if err != nil {
 		response["details"] = err.Error()
 	}
-	
+
 	c.JSON(statusCode, response)
 }
 

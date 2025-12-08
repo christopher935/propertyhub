@@ -29,58 +29,58 @@ func NewFUBSyncStatusHandlers(db *gorm.DB, fubAPIKey string) *FUBSyncStatusHandl
 
 // FUBSyncStatusResponse represents the sync status dashboard response
 type FUBSyncStatusResponse struct {
-	Status              string                 `json:"status"`
-	LastSync            *time.Time             `json:"last_sync"`
-	PendingItems        int64                  `json:"pending_items"`
-	ErrorCount          int64                  `json:"error_count"`
-	TotalLeads          int64                  `json:"total_leads"`
-	SyncedLeads         int64                  `json:"synced_leads"`
-	UnsyncedLeads       int64                  `json:"unsynced_leads"`
-	LeadsWithErrors     int64                  `json:"leads_with_errors"`
-	SyncSuccessRate     float64                `json:"sync_success_rate"`
-	AverageSyncTime     float64                `json:"average_sync_time_seconds"`
-	HealthStatus        string                 `json:"health_status"`
-	HealthChecks        map[string]interface{} `json:"health_checks"`
-	RecentErrors        []SyncErrorInfo        `json:"recent_errors"`
-	SyncActivity        []SyncActivityInfo     `json:"sync_activity"`
-	IntegrationMetrics  IntegrationMetrics     `json:"integration_metrics"`
-	Timestamp           time.Time              `json:"timestamp"`
+	Status             string                 `json:"status"`
+	LastSync           *time.Time             `json:"last_sync"`
+	PendingItems       int64                  `json:"pending_items"`
+	ErrorCount         int64                  `json:"error_count"`
+	TotalLeads         int64                  `json:"total_leads"`
+	SyncedLeads        int64                  `json:"synced_leads"`
+	UnsyncedLeads      int64                  `json:"unsynced_leads"`
+	LeadsWithErrors    int64                  `json:"leads_with_errors"`
+	SyncSuccessRate    float64                `json:"sync_success_rate"`
+	AverageSyncTime    float64                `json:"average_sync_time_seconds"`
+	HealthStatus       string                 `json:"health_status"`
+	HealthChecks       map[string]interface{} `json:"health_checks"`
+	RecentErrors       []SyncErrorInfo        `json:"recent_errors"`
+	SyncActivity       []SyncActivityInfo     `json:"sync_activity"`
+	IntegrationMetrics IntegrationMetrics     `json:"integration_metrics"`
+	Timestamp          time.Time              `json:"timestamp"`
 }
 
 // SyncErrorInfo represents information about a sync error
 type SyncErrorInfo struct {
-	LeadID      uint      `json:"lead_id"`
-	FUBLeadID   string    `json:"fub_lead_id"`
-	ErrorType   string    `json:"error_type"`
-	ErrorMsg    string    `json:"error_message"`
-	OccurredAt  time.Time `json:"occurred_at"`
-	RetryCount  int       `json:"retry_count"`
-	CanRetry    bool      `json:"can_retry"`
+	LeadID     uint      `json:"lead_id"`
+	FUBLeadID  string    `json:"fub_lead_id"`
+	ErrorType  string    `json:"error_type"`
+	ErrorMsg   string    `json:"error_message"`
+	OccurredAt time.Time `json:"occurred_at"`
+	RetryCount int       `json:"retry_count"`
+	CanRetry   bool      `json:"can_retry"`
 }
 
 // SyncActivityInfo represents recent sync activity
 type SyncActivityInfo struct {
-	LeadID      uint      `json:"lead_id"`
-	FUBLeadID   string    `json:"fub_lead_id"`
-	LeadName    string    `json:"lead_name"`
-	SyncType    string    `json:"sync_type"`
-	Status      string    `json:"status"`
-	SyncedAt    time.Time `json:"synced_at"`
-	Duration    float64   `json:"duration_seconds"`
+	LeadID    uint      `json:"lead_id"`
+	FUBLeadID string    `json:"fub_lead_id"`
+	LeadName  string    `json:"lead_name"`
+	SyncType  string    `json:"sync_type"`
+	Status    string    `json:"status"`
+	SyncedAt  time.Time `json:"synced_at"`
+	Duration  float64   `json:"duration_seconds"`
 }
 
 // IntegrationMetrics represents comprehensive integration performance metrics
 type IntegrationMetrics struct {
-	ContactsCreated   int64   `json:"contacts_created"`
-	ContactsUpdated   int64   `json:"contacts_updated"`
-	DealsCreated      int64   `json:"deals_created"`
-	TasksCreated      int64   `json:"tasks_created"`
-	NotesAdded        int64   `json:"notes_added"`
-	EventsLogged      int64   `json:"events_logged"`
-	WebhooksProcessed int64   `json:"webhooks_processed"`
-	ActionPlansTriggered int64 `json:"action_plans_triggered"`
-	AverageResponseTime float64 `json:"average_response_time_ms"`
-	SuccessRate       float64 `json:"success_rate"`
+	ContactsCreated      int64   `json:"contacts_created"`
+	ContactsUpdated      int64   `json:"contacts_updated"`
+	DealsCreated         int64   `json:"deals_created"`
+	TasksCreated         int64   `json:"tasks_created"`
+	NotesAdded           int64   `json:"notes_added"`
+	EventsLogged         int64   `json:"events_logged"`
+	WebhooksProcessed    int64   `json:"webhooks_processed"`
+	ActionPlansTriggered int64   `json:"action_plans_triggered"`
+	AverageResponseTime  float64 `json:"average_response_time_ms"`
+	SuccessRate          float64 `json:"success_rate"`
 }
 
 // GetFUBSyncStatus handles GET /api/fub/sync-status
@@ -144,22 +144,22 @@ func (h *FUBSyncStatusHandlers) buildSyncStatusResponse() FUBSyncStatusResponse 
 	}
 
 	return FUBSyncStatusResponse{
-		Status:              status,
-		LastSync:            lastSync,
-		PendingItems:        unsyncedLeads,
-		ErrorCount:          leadsWithErrors,
-		TotalLeads:          totalLeads,
-		SyncedLeads:         syncedLeads,
-		UnsyncedLeads:       unsyncedLeads,
-		LeadsWithErrors:     leadsWithErrors,
-		SyncSuccessRate:     syncSuccessRate,
-		AverageSyncTime:     2.5,
-		HealthStatus:        healthStatus,
-		HealthChecks:        healthChecks,
-		RecentErrors:        recentErrors,
-		SyncActivity:        syncActivity,
-		IntegrationMetrics:  integrationMetrics,
-		Timestamp:           now,
+		Status:             status,
+		LastSync:           lastSync,
+		PendingItems:       unsyncedLeads,
+		ErrorCount:         leadsWithErrors,
+		TotalLeads:         totalLeads,
+		SyncedLeads:        syncedLeads,
+		UnsyncedLeads:      unsyncedLeads,
+		LeadsWithErrors:    leadsWithErrors,
+		SyncSuccessRate:    syncSuccessRate,
+		AverageSyncTime:    2.5,
+		HealthStatus:       healthStatus,
+		HealthChecks:       healthChecks,
+		RecentErrors:       recentErrors,
+		SyncActivity:       syncActivity,
+		IntegrationMetrics: integrationMetrics,
+		Timestamp:          now,
 	}
 }
 
@@ -327,8 +327,8 @@ func (h *FUBSyncStatusHandlers) checkFUBAPIHealth() map[string]interface{} {
 
 	if time.Since(lastSync) > 30*time.Minute {
 		return map[string]interface{}{
-			"status":  "warning",
-			"message": "No recent sync activity",
+			"status":    "warning",
+			"message":   "No recent sync activity",
 			"last_sync": lastSync,
 		}
 	}
@@ -389,8 +389,8 @@ func (h *FUBSyncStatusHandlers) checkWebhookHealth() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"status":             status,
-		"message":            message,
+		"status":            status,
+		"message":           message,
 		"unprocessed_count": unprocessedCount,
 	}
 }
@@ -424,9 +424,9 @@ func (h *FUBSyncStatusHandlers) checkErrorRate() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"status":     status,
-		"message":    message,
-		"error_rate": errorRate,
+		"status":      status,
+		"message":     message,
+		"error_rate":  errorRate,
 		"error_count": leadsWithErrors,
 	}
 }
@@ -459,7 +459,7 @@ func (h *FUBSyncStatusHandlers) RetryFailedSyncs(c *gin.Context) {
 
 		fubLead.SyncErrors = []string{}
 		fubLead.LastSyncedAt = time.Now()
-		
+
 		if err := h.db.Save(&fubLead).Error; err != nil {
 			errors = append(errors, fmt.Sprintf("Failed to retry lead %d: %v", leadID, err))
 			failedCount++
@@ -498,11 +498,11 @@ func (h *FUBSyncStatusHandlers) GetFUBIntegrationHealth(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":       overallStatus,
-		"checks":       healthChecks,
-		"timestamp":    time.Now(),
-		"service":      "FUB Integration",
-		"version":      "1.0.0",
+		"status":    overallStatus,
+		"checks":    healthChecks,
+		"timestamp": time.Now(),
+		"service":   "FUB Integration",
+		"version":   "1.0.0",
 	})
 }
 

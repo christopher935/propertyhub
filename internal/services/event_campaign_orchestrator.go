@@ -7,23 +7,23 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // EventCampaignOrchestrator connects behavioral events to intelligent campaign execution
 // This is the "symphony conductor" that orchestrates automation at scale for 13,000+ leads
 type EventCampaignOrchestrator struct {
-	db                 *gorm.DB
-	automationService  *SMSEmailAutomationService
-	eventMappings      map[string]CampaignMapping
+	db                *gorm.DB
+	automationService *SMSEmailAutomationService
+	eventMappings     map[string]CampaignMapping
 }
 
 // CampaignMapping defines how an event type maps to campaigns
 type CampaignMapping struct {
 	EventType       string
 	CampaignName    string
-	TargetingRules  func(map[string]interface{}) ([]string, error) // Returns FUB contact IDs
+	TargetingRules  func(map[string]interface{}) ([]string, error)       // Returns FUB contact IDs
 	TemplateBuilder func(map[string]interface{}) (string, string, error) // Returns subject, body
 	Priority        int
 	CooldownHours   int // Minimum hours between campaigns of this type per lead
@@ -31,12 +31,12 @@ type CampaignMapping struct {
 
 // CampaignExecutionLog tracks orchestration actions for analytics
 type CampaignExecutionLog struct {
-	EventType       string    `json:"event_type"`
-	CampaignName    string    `json:"campaign_name"`
-	TargetsFound    int       `json:"targets_found"`
-	MessagesSent    int       `json:"messages_sent"`
-	ExecutedAt      time.Time `json:"executed_at"`
-	EventData       string    `json:"event_data"`
+	EventType    string    `json:"event_type"`
+	CampaignName string    `json:"campaign_name"`
+	TargetsFound int       `json:"targets_found"`
+	MessagesSent int       `json:"messages_sent"`
+	ExecutedAt   time.Time `json:"executed_at"`
+	EventData    string    `json:"event_data"`
 }
 
 // NewEventCampaignOrchestrator creates the orchestration service
@@ -60,82 +60,86 @@ func (eco *EventCampaignOrchestrator) initializeEventMappings() {
 	eco.eventMappings = map[string]CampaignMapping{
 		// Property price reduced → Notify warm leads who viewed it
 		"price_changed": {
-			EventType:      "price_changed",
-			CampaignName:   "Price Reduction Alert",
-			TargetingRules: func(data map[string]interface{}) ([]string, error) { return eco.findLeadsWhoViewedProperty(data) },
+			EventType:       "price_changed",
+			CampaignName:    "Price Reduction Alert",
+			TargetingRules:  func(data map[string]interface{}) ([]string, error) { return eco.findLeadsWhoViewedProperty(data) },
 			TemplateBuilder: func(data map[string]interface{}) (string, string, error) { return eco.buildPriceChangeTemplate(data) },
-			Priority:       1,
-			CooldownHours:  24,
+			Priority:        1,
+			CooldownHours:   24,
 		},
-		
+
 		// New property listed → Notify leads with matching preferences
 		"new_listing": {
-			EventType:      "new_listing",
-			CampaignName:   "New Property Match",
-			TargetingRules: func(data map[string]interface{}) ([]string, error) { return eco.findLeadsMatchingProperty(data) },
+			EventType:       "new_listing",
+			CampaignName:    "New Property Match",
+			TargetingRules:  func(data map[string]interface{}) ([]string, error) { return eco.findLeadsMatchingProperty(data) },
 			TemplateBuilder: func(data map[string]interface{}) (string, string, error) { return eco.buildNewListingTemplate(data) },
-			Priority:       2,
-			CooldownHours:  12,
+			Priority:        2,
+			CooldownHours:   12,
 		},
-		
+
 		// Lead scored HOT → Agent alert + personalized outreach
 		"lead_scored_hot": {
-			EventType:      "lead_scored_hot",
-			CampaignName:   "Hot Lead Engagement",
-			TargetingRules: func(data map[string]interface{}) ([]string, error) { return eco.findHotLead(data) },
+			EventType:       "lead_scored_hot",
+			CampaignName:    "Hot Lead Engagement",
+			TargetingRules:  func(data map[string]interface{}) ([]string, error) { return eco.findHotLead(data) },
 			TemplateBuilder: func(data map[string]interface{}) (string, string, error) { return eco.buildHotLeadTemplate(data) },
-			Priority:       1,
-			CooldownHours:  48,
+			Priority:        1,
+			CooldownHours:   48,
 		},
-		
+
 		// Showing completed → Follow-up with attendee
 		"showing_completed": {
 			EventType:      "showing_completed",
 			CampaignName:   "Showing Follow-Up",
 			TargetingRules: func(data map[string]interface{}) ([]string, error) { return eco.findShowingAttendee(data) },
-			TemplateBuilder: func(data map[string]interface{}) (string, string, error) { return eco.buildShowingFollowUpTemplate(data) },
-			Priority:       1,
-			CooldownHours:  2,
+			TemplateBuilder: func(data map[string]interface{}) (string, string, error) {
+				return eco.buildShowingFollowUpTemplate(data)
+			},
+			Priority:      1,
+			CooldownHours: 2,
 		},
-		
+
 		// Application submitted → Confirmation + next steps
 		"application_submitted": {
 			EventType:      "application_submitted",
 			CampaignName:   "Application Confirmation",
 			TargetingRules: func(data map[string]interface{}) ([]string, error) { return eco.findApplicant(data) },
-			TemplateBuilder: func(data map[string]interface{}) (string, string, error) { return eco.buildApplicationConfirmationTemplate(data) },
-			Priority:       1,
-			CooldownHours:  0,
+			TemplateBuilder: func(data map[string]interface{}) (string, string, error) {
+				return eco.buildApplicationConfirmationTemplate(data)
+			},
+			Priority:      1,
+			CooldownHours: 0,
 		},
-		
+
 		// Property back on market → Notify previous interested leads
 		"property_relisted": {
-			EventType:      "property_relisted",
-			CampaignName:   "Property Available Again",
-			TargetingRules: func(data map[string]interface{}) ([]string, error) { return eco.findPreviouslyInterestedLeads(data) },
+			EventType:       "property_relisted",
+			CampaignName:    "Property Available Again",
+			TargetingRules:  func(data map[string]interface{}) ([]string, error) { return eco.findPreviouslyInterestedLeads(data) },
 			TemplateBuilder: func(data map[string]interface{}) (string, string, error) { return eco.buildRelistedTemplate(data) },
-			Priority:       2,
-			CooldownHours:  24,
+			Priority:        2,
+			CooldownHours:   24,
 		},
-		
+
 		// Lead inactive for 30 days → Re-engagement campaign
 		"lead_dormant": {
-			EventType:      "lead_dormant",
-			CampaignName:   "Re-Engagement Outreach",
-			TargetingRules: func(data map[string]interface{}) ([]string, error) { return eco.findDormantLead(data) },
+			EventType:       "lead_dormant",
+			CampaignName:    "Re-Engagement Outreach",
+			TargetingRules:  func(data map[string]interface{}) ([]string, error) { return eco.findDormantLead(data) },
 			TemplateBuilder: func(data map[string]interface{}) (string, string, error) { return eco.buildReengagementTemplate(data) },
-			Priority:       3,
-			CooldownHours:  168, // 7 days
+			Priority:        3,
+			CooldownHours:   168, // 7 days
 		},
-		
+
 		// Lease ending soon (from Friday Report data) → Renewal campaign
 		"lease_ending_soon": {
-			EventType:      "lease_ending_soon",
-			CampaignName:   "Lease Renewal Opportunity",
-			TargetingRules: func(data map[string]interface{}) ([]string, error) { return eco.findTenantByProperty(data) },
+			EventType:       "lease_ending_soon",
+			CampaignName:    "Lease Renewal Opportunity",
+			TargetingRules:  func(data map[string]interface{}) ([]string, error) { return eco.findTenantByProperty(data) },
 			TemplateBuilder: func(data map[string]interface{}) (string, string, error) { return eco.buildLeaseRenewalTemplate(data) },
-			Priority:       2,
-			CooldownHours:  72,
+			Priority:        2,
+			CooldownHours:   72,
 		},
 	}
 }
@@ -256,7 +260,7 @@ func (eco *EventCampaignOrchestrator) findLeadsWhoViewedProperty(eventData map[s
 func (eco *EventCampaignOrchestrator) findLeadsMatchingProperty(eventData map[string]interface{}) ([]string, error) {
 	// Extract property attributes
 	zipCode, _ := eventData["zip_code"].(string)
-	_ , _ = eventData["price"].(float64)
+	_, _ = eventData["price"].(float64)
 	_, _ = eventData["bedrooms"].(float64)
 
 	if zipCode == "" {
@@ -426,7 +430,7 @@ func (eco *EventCampaignOrchestrator) buildPriceChangeTemplate(eventData map[str
 	reduction := oldPrice - newPrice
 
 	subject := fmt.Sprintf("🏡 Price Reduced: %s - Now $%d!", address, newPrice)
-	
+
 	body := fmt.Sprintf(`Hi {{first_name}},
 
 Great news! The property you viewed at %s just reduced its price by $%d!
@@ -456,7 +460,7 @@ func (eco *EventCampaignOrchestrator) buildNewListingTemplate(eventData map[stri
 	baths := int(bathsFloat)
 
 	subject := fmt.Sprintf("🆕 New Listing Alert: %d/%d at %s", beds, baths, address)
-	
+
 	body := fmt.Sprintf(`Hi {{first_name}},
 
 A new property just hit the market that matches your search preferences!
@@ -480,7 +484,7 @@ func (eco *EventCampaignOrchestrator) buildHotLeadTemplate(eventData map[string]
 	_, _ = eventData["overall_score"].(float64)
 
 	subject := "🌟 Your Houston Property Search - Let's Find Your Perfect Home"
-	
+
 	body := fmt.Sprintf(`Hi {{first_name}},
 
 I noticed you've been actively searching for properties in Houston. I'd love to help you find the perfect place!
@@ -505,7 +509,7 @@ func (eco *EventCampaignOrchestrator) buildShowingFollowUpTemplate(eventData map
 	propertyAddress, _ := eventData["property_address"].(string)
 
 	subject := fmt.Sprintf("How was your showing at %s?", propertyAddress)
-	
+
 	body := fmt.Sprintf(`Hi {{first_name}},
 
 Thanks for viewing %s today! I hope you loved it as much as I thought you would.
@@ -529,7 +533,7 @@ func (eco *EventCampaignOrchestrator) buildApplicationConfirmationTemplate(event
 	propertyAddress, _ := eventData["property_address"].(string)
 
 	subject := "✅ Application Received - Next Steps"
-	
+
 	body := fmt.Sprintf(`Hi {{first_name}},
 
 Great news! We've received your application for %s.
@@ -558,7 +562,7 @@ func (eco *EventCampaignOrchestrator) buildRelistedTemplate(eventData map[string
 	price := int(priceFloat)
 
 	subject := fmt.Sprintf("🔄 Back on Market: %s", address)
-	
+
 	body := fmt.Sprintf(`Hi {{first_name}},
 
 Remember %s that you were interested in?
@@ -580,7 +584,7 @@ Christopher Gross
 // buildReengagementTemplate - Re-engages dormant leads
 func (eco *EventCampaignOrchestrator) buildReengagementTemplate(eventData map[string]interface{}) (string, string, error) {
 	subject := "Still looking for a place in Houston? 🏡"
-	
+
 	body := `Hi {{first_name}},
 
 It's been a while since we last connected! Are you still searching for a property in Houston?
@@ -606,7 +610,7 @@ func (eco *EventCampaignOrchestrator) buildLeaseRenewalTemplate(eventData map[st
 	leaseEndDate, _ := eventData["lease_end_date"].(string)
 
 	subject := fmt.Sprintf("Time to Renew: %s", propertyAddress)
-	
+
 	body := fmt.Sprintf(`Hi {{first_name}},
 
 Your lease at %s ends on %s.
@@ -643,17 +647,17 @@ func (eco *EventCampaignOrchestrator) logCampaignExecution(contactID, eventType,
 	execution := models.CampaignExecution{
 		Status: "sent",
 	}
-	
+
 	executedAt := time.Now()
 	execution.ExecutedAt = &executedAt
-	
+
 	eco.db.Table("campaign_executions").Create(&execution)
 }
 
 // recordExecutionSummary records high-level campaign metrics
 func (eco *EventCampaignOrchestrator) recordExecutionSummary(eventType, campaignName string, targetsFound, sent int, eventData map[string]interface{}) {
 	eventDataJSON, _ := json.Marshal(eventData)
-	
+
 	log := CampaignExecutionLog{
 		EventType:    eventType,
 		CampaignName: campaignName,
@@ -670,13 +674,13 @@ func (eco *EventCampaignOrchestrator) recordExecutionSummary(eventType, campaign
 // isRecentDuplicate checks if same event was processed recently (prevents spam)
 func (eco *EventCampaignOrchestrator) isRecentDuplicate(eventType string, eventData map[string]interface{}, cooldownHours int) bool {
 	cutoff := time.Now().Add(-time.Duration(cooldownHours) * time.Hour)
-	
+
 	// Check if similar campaign was executed recently
 	var count int64
 	eco.db.Table("campaign_execution_logs").
 		Where("event_type = ? AND executed_at > ?", eventType, cutoff).
 		Count(&count)
-	
+
 	return count > 0
 }
 
@@ -687,11 +691,11 @@ func (eco *EventCampaignOrchestrator) getFUBContactIDForLead(leadID int64) (stri
 		Select("fub_contact_id").
 		Where("id = ?", leadID).
 		Scan(&contactID).Error
-	
+
 	if err != nil {
 		return "", err
 	}
-	
+
 	return contactID, nil
 }
 
@@ -699,13 +703,13 @@ func (eco *EventCampaignOrchestrator) getFUBContactIDForLead(leadID int64) (stri
 func (eco *EventCampaignOrchestrator) deduplicateAndFilter(contactIDs []string) []string {
 	seen := make(map[string]bool)
 	result := []string{}
-	
+
 	for _, id := range contactIDs {
 		if id != "" && !seen[id] {
 			seen[id] = true
 			result = append(result, id)
 		}
 	}
-	
+
 	return result
 }

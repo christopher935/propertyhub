@@ -6,10 +6,10 @@ import (
 	"log"
 	"time"
 
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/security"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // BookingService handles booking operations

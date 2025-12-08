@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
+	"chrisgross-ctrl-project/internal/models"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/models"
 )
 
 // FUBOperation represents a queued FUB API operation

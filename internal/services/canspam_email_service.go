@@ -2,75 +2,75 @@ package services
 
 import (
 	"fmt"
+	"html/template"
 	"strings"
 	"time"
-	"html/template"
-	
+
 	"gorm.io/gorm"
 )
 
 // CANSPAMEmailService handles CAN-SPAM compliant email templating
 type CANSPAMEmailService struct {
-	db *gorm.DB
+	db          *gorm.DB
 	companyInfo CompanyInfo
 }
 
 // CompanyInfo holds company information for CAN-SPAM compliance
 type CompanyInfo struct {
-	CompanyName    string `json:"company_name"`
+	CompanyName     string `json:"company_name"`
 	PhysicalAddress string `json:"physical_address"`
-	Phone          string `json:"phone"`
-	Email          string `json:"email"`
-	Website        string `json:"website"`
+	Phone           string `json:"phone"`
+	Email           string `json:"email"`
+	Website         string `json:"website"`
 }
 
 // CANSPAMTemplate represents a CAN-SPAM compliant email template
 type CANSPAMTemplate struct {
-	ID               uint      `json:"id" gorm:"primaryKey"`
-	Name             string    `json:"name" gorm:"uniqueIndex"`
-	DisplayName      string    `json:"display_name"`
-	Subject          string    `json:"subject"`
-	HTMLContent      string    `json:"html_content" gorm:"type:text"`
-	TextContent      string    `json:"text_content" gorm:"type:text"`
-	TemplateType     string    `json:"template_type"` // marketing, transactional
-	IsActive         bool      `json:"is_active" gorm:"default:true"`
-	HasUnsubscribe   bool      `json:"has_unsubscribe" gorm:"default:true"`
-	HasPhysicalAddr  bool      `json:"has_physical_addr" gorm:"default:true"`
-	HasClearSender   bool      `json:"has_clear_sender" gorm:"default:true"`
-	ComplianceScore  int       `json:"compliance_score" gorm:"default:0"` // 0-100
-	CreatedAt        time.Time `json:"created_at"`
-	UpdatedAt        time.Time `json:"updated_at"`
+	ID              uint      `json:"id" gorm:"primaryKey"`
+	Name            string    `json:"name" gorm:"uniqueIndex"`
+	DisplayName     string    `json:"display_name"`
+	Subject         string    `json:"subject"`
+	HTMLContent     string    `json:"html_content" gorm:"type:text"`
+	TextContent     string    `json:"text_content" gorm:"type:text"`
+	TemplateType    string    `json:"template_type"` // marketing, transactional
+	IsActive        bool      `json:"is_active" gorm:"default:true"`
+	HasUnsubscribe  bool      `json:"has_unsubscribe" gorm:"default:true"`
+	HasPhysicalAddr bool      `json:"has_physical_addr" gorm:"default:true"`
+	HasClearSender  bool      `json:"has_clear_sender" gorm:"default:true"`
+	ComplianceScore int       `json:"compliance_score" gorm:"default:0"` // 0-100
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 }
 
 // EmailData represents data for email template rendering
 type EmailData struct {
-	RecipientName    string                 `json:"recipient_name"`
-	RecipientEmail   string                 `json:"recipient_email"`
-	PropertyAddress  string                 `json:"property_address,omitempty"`
+	RecipientName   string                 `json:"recipient_name"`
+	RecipientEmail  string                 `json:"recipient_email"`
+	PropertyAddress string                 `json:"property_address,omitempty"`
 	ShowingTime     string                 `json:"showing_time,omitempty"`
 	UnsubscribeURL  string                 `json:"unsubscribe_url"`
 	CustomData      map[string]interface{} `json:"custom_data"`
-	CompanyInfo     CompanyInfo           `json:"company_info"`
-	SentDate        string                `json:"sent_date"`
-	UnsubscribeID   string                `json:"unsubscribe_id"`
+	CompanyInfo     CompanyInfo            `json:"company_info"`
+	SentDate        string                 `json:"sent_date"`
+	UnsubscribeID   string                 `json:"unsubscribe_id"`
 }
 
 // NewCANSPAMEmailService creates a new CAN-SPAM compliant email service
 func NewCANSPAMEmailService(db *gorm.DB) *CANSPAMEmailService {
 	// Auto-migrate the templates table
 	db.AutoMigrate(&CANSPAMTemplate{})
-	
+
 	service := &CANSPAMEmailService{
 		db: db,
 		companyInfo: CompanyInfo{
-			CompanyName:    "Landlords of Texas, LLC",
+			CompanyName:     "Landlords of Texas, LLC",
 			PhysicalAddress: "Houston, TX 77002", // Update with actual address
-			Phone:          "(713) 555-PROP",
-			Email:          "info@landlordsoftexas.com", // Update with actual email
-			Website:        "https://propertyhubtx.com",
+			Phone:           "(713) 555-PROP",
+			Email:           "info@landlordsoftexas.com", // Update with actual email
+			Website:         "https://propertyhubtx.com",
 		},
 	}
-	
+
 	// Initialize default templates
 	service.initializeDefaultTemplates()
 	return service
@@ -82,58 +82,58 @@ func (c *CANSPAMEmailService) RenderTemplate(templateName string, data EmailData
 	if err := c.db.Where("name = ? AND is_active = ?", templateName, true).First(&tpl).Error; err != nil {
 		return nil, fmt.Errorf("template not found: %s", templateName)
 	}
-	
+
 	// Ensure compliance data is set
 	data.CompanyInfo = c.companyInfo
 	data.SentDate = time.Now().Format("January 2, 2006")
-	
+
 	// Generate unsubscribe URL and ID if not provided
 	if data.UnsubscribeURL == "" || data.UnsubscribeID == "" {
 		unsubID := c.generateUnsubscribeID(data.RecipientEmail)
 		data.UnsubscribeID = unsubID
-		data.UnsubscribeURL = fmt.Sprintf("https://propertyhubtx.com/unsubscribe?id=%s&email=%s", 
+		data.UnsubscribeURL = fmt.Sprintf("https://propertyhubtx.com/unsubscribe?id=%s&email=%s",
 			unsubID, data.RecipientEmail)
 	}
-	
+
 	// Render HTML content
 	htmlTemplate, err := template.New("html").Parse(tpl.HTMLContent)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse HTML template: %v", err)
 	}
-	
+
 	var htmlBuffer strings.Builder
 	if err := htmlTemplate.Execute(&htmlBuffer, data); err != nil {
 		return nil, fmt.Errorf("failed to render HTML template: %v", err)
 	}
-	
+
 	// Render text content
 	textTemplate, err := template.New("text").Parse(tpl.TextContent)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse text template: %v", err)
 	}
-	
+
 	var textBuffer strings.Builder
 	if err := textTemplate.Execute(&textBuffer, data); err != nil {
 		return nil, fmt.Errorf("failed to render text template: %v", err)
 	}
-	
+
 	// Render subject
 	subjectTemplate, err := template.New("subject").Parse(tpl.Subject)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse subject template: %v", err)
 	}
-	
+
 	var subjectBuffer strings.Builder
 	if err := subjectTemplate.Execute(&subjectBuffer, data); err != nil {
 		return nil, fmt.Errorf("failed to render subject template: %v", err)
 	}
-	
+
 	return &RenderedEmail{
 		Subject:     subjectBuffer.String(),
 		HTMLContent: htmlBuffer.String(),
 		TextContent: textBuffer.String(),
 		Headers: map[string]string{
-			"List-Unsubscribe": fmt.Sprintf("<%s>", data.UnsubscribeURL),
+			"List-Unsubscribe":      fmt.Sprintf("<%s>", data.UnsubscribeURL),
 			"List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
 		},
 		ComplianceScore: tpl.ComplianceScore,
@@ -159,43 +159,43 @@ func (c *CANSPAMEmailService) generateUnsubscribeID(email string) string {
 func (c *CANSPAMEmailService) initializeDefaultTemplates() {
 	templates := []CANSPAMTemplate{
 		{
-			Name:         "property_inquiry_response",
-			DisplayName:  "Property Inquiry Response",
-			Subject:      "Thank you for your interest in {{.PropertyAddress}}",
-			TemplateType: "transactional",
-			HTMLContent:  c.getPropertyInquiryHTMLTemplate(),
-			TextContent:  c.getPropertyInquiryTextTemplate(),
+			Name:            "property_inquiry_response",
+			DisplayName:     "Property Inquiry Response",
+			Subject:         "Thank you for your interest in {{.PropertyAddress}}",
+			TemplateType:    "transactional",
+			HTMLContent:     c.getPropertyInquiryHTMLTemplate(),
+			TextContent:     c.getPropertyInquiryTextTemplate(),
 			ComplianceScore: 100,
 		},
 		{
-			Name:         "showing_confirmation",
-			DisplayName:  "Showing Confirmation",
-			Subject:      "Your showing is confirmed for {{.PropertyAddress}} on {{.ShowingTime}}",
-			TemplateType: "transactional",
-			HTMLContent:  c.getShowingConfirmationHTMLTemplate(),
-			TextContent:  c.getShowingConfirmationTextTemplate(),
+			Name:            "showing_confirmation",
+			DisplayName:     "Showing Confirmation",
+			Subject:         "Your showing is confirmed for {{.PropertyAddress}} on {{.ShowingTime}}",
+			TemplateType:    "transactional",
+			HTMLContent:     c.getShowingConfirmationHTMLTemplate(),
+			TextContent:     c.getShowingConfirmationTextTemplate(),
 			ComplianceScore: 100,
 		},
 		{
-			Name:         "property_availability_alert",
-			DisplayName:  "Property Availability Alert",
-			Subject:      "New property available that matches your criteria",
-			TemplateType: "marketing",
-			HTMLContent:  c.getPropertyAvailabilityHTMLTemplate(),
-			TextContent:  c.getPropertyAvailabilityTextTemplate(),
+			Name:            "property_availability_alert",
+			DisplayName:     "Property Availability Alert",
+			Subject:         "New property available that matches your criteria",
+			TemplateType:    "marketing",
+			HTMLContent:     c.getPropertyAvailabilityHTMLTemplate(),
+			TextContent:     c.getPropertyAvailabilityTextTemplate(),
 			ComplianceScore: 100,
 		},
 		{
-			Name:         "application_status_update",
-			DisplayName:  "Application Status Update",
-			Subject:      "Application Update for {{.PropertyAddress}}",
-			TemplateType: "transactional",
-			HTMLContent:  c.getApplicationStatusHTMLTemplate(),
-			TextContent:  c.getApplicationStatusTextTemplate(),
+			Name:            "application_status_update",
+			DisplayName:     "Application Status Update",
+			Subject:         "Application Update for {{.PropertyAddress}}",
+			TemplateType:    "transactional",
+			HTMLContent:     c.getApplicationStatusHTMLTemplate(),
+			TextContent:     c.getApplicationStatusTextTemplate(),
 			ComplianceScore: 100,
 		},
 	}
-	
+
 	for _, tpl := range templates {
 		var existing CANSPAMTemplate
 		result := c.db.Where("name = ?", tpl.Name).First(&existing)
@@ -432,7 +432,7 @@ Email sent on {{.SentDate}} | Unsubscribe ID: {{.UnsubscribeID}}
 Licensed Real Estate Broker | TREC License #9008008 | Christopher Gross #625244`
 }
 
-// Property Availability Alert Templates  
+// Property Availability Alert Templates
 func (c *CANSPAMEmailService) getPropertyAvailabilityHTMLTemplate() string {
 	return `<!DOCTYPE html>
 <html>
@@ -660,31 +660,31 @@ Licensed Real Estate Broker | TREC License #9008008 | Christopher Gross #625244`
 func (c *CANSPAMEmailService) ValidateTemplate(tpl *CANSPAMTemplate) (bool, []string) {
 	var issues []string
 	score := 100
-	
+
 	// Check for unsubscribe link
 	if !strings.Contains(strings.ToLower(tpl.HTMLContent), "unsubscribe") {
 		issues = append(issues, "Missing unsubscribe link")
 		score -= 30
 	}
-	
+
 	// Check for physical address
 	if !strings.Contains(strings.ToLower(tpl.HTMLContent), "physicaladdress") {
 		issues = append(issues, "Missing physical address")
 		score -= 25
 	}
-	
+
 	// Check for clear sender identification
 	if !strings.Contains(strings.ToLower(tpl.HTMLContent), "companyinfo") {
 		issues = append(issues, "Missing clear sender identification")
 		score -= 20
 	}
-	
+
 	// Check for truthful subject line (basic check)
 	if strings.Contains(strings.ToLower(tpl.Subject), "free") && tpl.TemplateType == "marketing" {
 		issues = append(issues, "Potentially misleading subject line")
 		score -= 15
 	}
-	
+
 	tpl.ComplianceScore = score
 	return len(issues) == 0, issues
 }

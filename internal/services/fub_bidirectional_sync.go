@@ -8,17 +8,17 @@ import (
 	"net/http"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // FUBBidirectionalSync handles two-way sync between PropertyHub and Follow Up Boss
 type FUBBidirectionalSync struct {
-	db                 *gorm.DB
-	fubAPIKey          string
-	fubBaseURL         string
-	behavioralService  *BehavioralEventService
-	scoringEngine      *BehavioralScoringEngine
+	db                *gorm.DB
+	fubAPIKey         string
+	fubBaseURL        string
+	behavioralService *BehavioralEventService
+	scoringEngine     *BehavioralScoringEngine
 }
 
 // NewFUBBidirectionalSync creates a new bi-directional sync service

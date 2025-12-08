@@ -17,12 +17,12 @@ func GetDashboardStats(w http.ResponseWriter, r *http.Request, db *gorm.DB, auth
 	w.Header().Set("Content-Type", "application/json")
 
 	stats := map[string]interface{}{
-		"total_properties":    0,
-		"active_bookings":     0,
-		"total_contacts":      0,
-		"recent_activity":     0,
-		"system_health":       "operational",
-		"last_updated":        "just now",
+		"total_properties": 0,
+		"active_bookings":  0,
+		"total_contacts":   0,
+		"recent_activity":  0,
+		"system_health":    "operational",
+		"last_updated":     "just now",
 	}
 
 	if db != nil {
@@ -53,11 +53,11 @@ func GetPropertyInsights(w http.ResponseWriter, r *http.Request, db *gorm.DB) {
 	w.Header().Set("Content-Type", "application/json")
 
 	insights := map[string]interface{}{
-		"total_views":        0,
-		"average_price":      0,
-		"most_popular_type":  "Unknown",
-		"top_cities":         []string{},
-		"last_updated":       "just now",
+		"total_views":       0,
+		"average_price":     0,
+		"most_popular_type": "Unknown",
+		"top_cities":        []string{},
+		"last_updated":      "just now",
 	}
 
 	json.NewEncoder(w).Encode(map[string]interface{}{

@@ -15,16 +15,16 @@ import (
 
 // CalendarHandlers provides HTTP handlers for calendar operations
 type CalendarHandlers struct {
-	db               *gorm.DB
-	calendarService  *services.CalendarIntegrationService
+	db                *gorm.DB
+	calendarService   *services.CalendarIntegrationService
 	automationService *services.SMSEmailAutomationService
 }
 
 // NewCalendarHandlers creates new calendar handlers
 func NewCalendarHandlers(db *gorm.DB) *CalendarHandlers {
 	return &CalendarHandlers{
-		db:               db,
-		calendarService:  services.NewCalendarIntegrationService(db),
+		db:                db,
+		calendarService:   services.NewCalendarIntegrationService(db),
 		automationService: services.NewSMSEmailAutomationService(db),
 	}
 }
@@ -51,7 +51,7 @@ func (h *CalendarHandlers) CreateShowingEvent(c *gin.Context) {
 		"showing_time":     bookingData.ShowingTime.Format("Jan 2 at 3:04 PM"),
 		"event_type":       "booking_created",
 	}
-	
+
 	go func() {
 		if err := h.automationService.TriggerAutomation("booking_created", automationData); err != nil {
 			// Log error but don't fail the request
@@ -81,9 +81,9 @@ func (h *CalendarHandlers) CreateFollowUpEvent(c *gin.Context) {
 	}
 
 	event, err := h.calendarService.CreateFollowUpEvent(
-		request.ContactID, 
-		request.Title, 
-		request.Time, 
+		request.ContactID,
+		request.Title,
+		request.Time,
 		request.Description,
 	)
 	if err != nil {
@@ -163,7 +163,7 @@ func (h *CalendarHandlers) UpdateEventStatus(c *gin.Context) {
 			break
 		}
 	}
-	
+
 	if !isValid {
 		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid status", nil)
 		return
@@ -181,11 +181,11 @@ func (h *CalendarHandlers) UpdateEventStatus(c *gin.Context) {
 		if err := h.db.First(&event, uint(id)).Error; err == nil {
 			if event.EventType == "showing" {
 				automationData := map[string]interface{}{
-					"contact_id": event.ContactID,
+					"contact_id":       event.ContactID,
 					"property_address": event.Location,
-					"event_type": "showing_completed",
+					"event_type":       "showing_completed",
 				}
-				
+
 				go func() {
 					h.automationService.TriggerAutomation("showing_completed", automationData)
 				}()
@@ -224,7 +224,7 @@ func (h *CalendarHandlers) GetCalendarStats(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, gin.H{
-		"stats": stats,
+		"stats":        stats,
 		"generated_at": time.Now().UTC(),
 	})
 }
@@ -258,7 +258,7 @@ func (h *CalendarHandlers) ScheduleFollowUp(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, gin.H{
-		"message": "Follow-up scheduled successfully",
+		"message":     "Follow-up scheduled successfully",
 		"hours_after": request.HoursAfter,
 	})
 }
@@ -273,7 +273,7 @@ func (h *CalendarHandlers) GetAutomationStats(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, gin.H{
-		"stats": stats,
+		"stats":        stats,
 		"generated_at": time.Now().UTC(),
 	})
 }
@@ -297,7 +297,7 @@ func (h *CalendarHandlers) TriggerAutomation(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, gin.H{
-		"message": "Automation triggered successfully",
+		"message":      "Automation triggered successfully",
 		"trigger_type": request.TriggerType,
 	})
 }
@@ -350,10 +350,10 @@ func (h *CalendarHandlers) CalendarManagementDashboard(c *gin.Context) {
 // RegisterCalendarRoutes registers all calendar-related routes
 func RegisterCalendarRoutes(r *gin.Engine, db *gorm.DB) {
 	handlers := NewCalendarHandlers(db)
-	
+
 	// Template dashboard route (NEW)
 	r.GET("/admin/calendar", handlers.CalendarManagementDashboard)
-	
+
 	api := r.Group("/api/v1")
 	{
 		calendar := api.Group("/calendar")
@@ -361,17 +361,17 @@ func RegisterCalendarRoutes(r *gin.Engine, db *gorm.DB) {
 			// Event creation (existing JSON APIs)
 			calendar.POST("/showing", handlers.CreateShowingEvent)
 			calendar.POST("/followup", handlers.CreateFollowUpEvent)
-			
+
 			// Event management (existing JSON APIs)
 			calendar.GET("/upcoming", handlers.GetUpcomingEvents)
 			calendar.GET("/today", handlers.GetTodayEvents)
 			calendar.PATCH("/events/:id/status", handlers.UpdateEventStatus)
 			calendar.POST("/events/:id/schedule-followup", handlers.ScheduleFollowUp)
-			
+
 			// Sync and stats (existing JSON APIs)
 			calendar.POST("/sync", handlers.SyncCalendar)
 			calendar.GET("/stats", handlers.GetCalendarStats)
-			
+
 			// Automation (existing JSON APIs)
 			calendar.GET("/automation-stats", handlers.GetAutomationStats)
 			calendar.POST("/trigger-automation", handlers.TriggerAutomation)

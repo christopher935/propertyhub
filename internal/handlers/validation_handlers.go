@@ -240,7 +240,7 @@ func (h *ValidationHandler) ValidateContactForm(w http.ResponseWriter, r *http.R
 
 func (h *ValidationHandler) validateEmailAddress(email string) ValidationResponse {
 	email = strings.TrimSpace(email)
-	
+
 	if email == "" {
 		return ValidationResponse{
 			Valid:  false,
@@ -273,7 +273,7 @@ func (h *ValidationHandler) validateEmailAddress(email string) ValidationRespons
 
 func (h *ValidationHandler) validatePhoneNumber(phone string) ValidationResponse {
 	phone = strings.TrimSpace(phone)
-	
+
 	if phone == "" {
 		return ValidationResponse{
 			Valid:  false,

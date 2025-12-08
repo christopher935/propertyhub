@@ -33,24 +33,24 @@ type WebSocketClient struct {
 }
 
 type WebSocketHub struct {
-	clients    map[*WebSocketClient]bool
-	broadcast  chan WebSocketMessage
-	register   chan *WebSocketClient
-	unregister chan *WebSocketClient
-	mu         sync.RWMutex
+	clients      map[*WebSocketClient]bool
+	broadcast    chan WebSocketMessage
+	register     chan *WebSocketClient
+	unregister   chan *WebSocketClient
+	mu           sync.RWMutex
 	statsService *services.DashboardStatsService
 }
 
 type ActivityEvent struct {
-	Type        string                 `json:"type"`
-	SessionID   string                 `json:"session_id"`
-	UserID      int64                  `json:"user_id,omitempty"`
-	UserEmail   string                 `json:"user_email,omitempty"`
-	PropertyID  *int64                 `json:"property_id,omitempty"`
-	Details     string                 `json:"details"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Score       int                    `json:"score,omitempty"`
-	EventData   map[string]interface{} `json:"event_data,omitempty"`
+	Type       string                 `json:"type"`
+	SessionID  string                 `json:"session_id"`
+	UserID     int64                  `json:"user_id,omitempty"`
+	UserEmail  string                 `json:"user_email,omitempty"`
+	PropertyID *int64                 `json:"property_id,omitempty"`
+	Details    string                 `json:"details"`
+	Timestamp  time.Time              `json:"timestamp"`
+	Score      int                    `json:"score,omitempty"`
+	EventData  map[string]interface{} `json:"event_data,omitempty"`
 }
 
 type ActivityHub struct {
@@ -83,7 +83,7 @@ func (h *WebSocketHub) run() {
 			h.clients[client] = true
 			h.mu.Unlock()
 			log.Printf("WebSocket client registered. Total clients: %d", len(h.clients))
-			
+
 			h.BroadcastVisitorCount()
 
 		case client := <-h.unregister:
@@ -113,7 +113,7 @@ func (h *WebSocketHub) run() {
 func (h *WebSocketHub) periodicUpdate() {
 	ticker := time.NewTicker(15 * time.Second)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		h.BroadcastVisitorCount()
 	}
@@ -125,22 +125,22 @@ func (h *WebSocketHub) BroadcastVisitorCount() {
 		log.Printf("Error getting live stats for WebSocket broadcast: %v", err)
 		return
 	}
-	
+
 	activeVisitors, _ := stats["active_visitors"].(int64)
 	visitorsTrend, _ := stats["visitors_trend"].(int64)
 	visitorsByPage, _ := stats["visitors_by_page"].(map[string]int)
 	hotVisitors, _ := stats["hot_visitors"].(int64)
 	returningVisitors, _ := stats["returning_visitors"].(int64)
-	
+
 	h.Broadcast(WebSocketMessage{
 		Type: "visitor_count",
 		Data: map[string]interface{}{
-			"count":              activeVisitors,
-			"trend":              visitorsTrend,
-			"by_page":            visitorsByPage,
-			"hot_count":          hotVisitors,
-			"returning_count":    returningVisitors,
-			"timestamp":          time.Now().Unix(),
+			"count":           activeVisitors,
+			"trend":           visitorsTrend,
+			"by_page":         visitorsByPage,
+			"hot_count":       hotVisitors,
+			"returning_count": returningVisitors,
+			"timestamp":       time.Now().Unix(),
 		},
 	})
 }
@@ -154,13 +154,13 @@ func (c *WebSocketClient) readPump() {
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
-	
+
 	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	c.conn.SetPongHandler(func(string) error {
 		c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 		return nil
 	})
-	
+
 	for {
 		_, _, err := c.conn.ReadMessage()
 		if err != nil {
@@ -178,7 +178,7 @@ func (c *WebSocketClient) writePump() {
 		ticker.Stop()
 		c.conn.Close()
 	}()
-	
+
 	for {
 		select {
 		case message, ok := <-c.send:
@@ -187,23 +187,23 @@ func (c *WebSocketClient) writePump() {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			
+
 			w, err := c.conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
 			}
-			
+
 			data, err := json.Marshal(message)
 			if err != nil {
 				log.Printf("Error marshaling WebSocket message: %v", err)
 				return
 			}
 			w.Write(data)
-			
+
 			if err := w.Close(); err != nil {
 				return
 			}
-			
+
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
@@ -233,15 +233,15 @@ func (h *WebSocketHandler) HandleWebSocket(c *gin.Context) {
 		log.Printf("WebSocket upgrade error: %v", err)
 		return
 	}
-	
+
 	client := &WebSocketClient{
 		conn: conn,
 		send: make(chan WebSocketMessage, 256),
 		hub:  h.hub,
 	}
-	
+
 	client.hub.register <- client
-	
+
 	go client.writePump()
 	go client.readPump()
 }
@@ -308,7 +308,7 @@ func (h *ActivityHub) BroadcastEvent(event ActivityEvent) {
 func (h *ActivityHub) BroadcastActiveCount(count int) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	
+
 	message := WebSocketMessage{
 		Type: "active_count",
 		Data: map[string]interface{}{
@@ -316,7 +316,7 @@ func (h *ActivityHub) BroadcastActiveCount(count int) {
 			"timestamp": time.Now().Unix(),
 		},
 	}
-	
+
 	for client := range h.clients {
 		select {
 		case client.send <- message:
@@ -333,15 +333,15 @@ func (h *WebSocketHandler) HandleAdminActivityFeed(c *gin.Context) {
 		log.Printf("WebSocket upgrade error: %v", err)
 		return
 	}
-	
+
 	client := &WebSocketClient{
 		conn: conn,
 		send: make(chan WebSocketMessage, 256),
 		hub:  h.hub,
 	}
-	
+
 	h.activityHub.register <- client
-	
+
 	go client.writePump()
 	go client.readPump()
 }

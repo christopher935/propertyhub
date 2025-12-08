@@ -1,12 +1,12 @@
 package services
 
 import (
+	"chrisgross-ctrl-project/internal/utils"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
-	"chrisgross-ctrl-project/internal/utils"
 )
 
 // FUBAPIError represents a structured error from FUB API operations
@@ -338,7 +338,7 @@ func isValidEmail(email string) bool {
 	// Simple email validation - in production you might want more sophisticated validation
 	return len(email) > 3 &&
 		len(email) <= 254 &&
-		fmt.Sprintf("%s", email) != ""  // Basic non-empty check
+		fmt.Sprintf("%s", email) != "" // Basic non-empty check
 }
 
 // LogFUBOperation logs FUB operations for monitoring and debugging

@@ -100,9 +100,9 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 		log.Printf("Warning: Availability check failed: %v", err)
 	} else if !availCheck.IsAvailable {
 		c.JSON(http.StatusConflict, gin.H{
-			"success":            false,
-			"message":            "Time slot not available",
-			"reasons":            availCheck.BlockingReasons,
+			"success":           false,
+			"message":           "Time slot not available",
+			"reasons":           availCheck.BlockingReasons,
 			"alternative_slots": availCheck.AlternativeSlots,
 		})
 		return
@@ -172,12 +172,12 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, gin.H{
-		"booking_id":        booking.ID,
-		"reference_number":  booking.ReferenceNumber,
-		"showing_date":      booking.ShowingDate,
-		"status":            booking.Status,
-		"fub_lead_id":       booking.FUBLeadID,
-		"message":           "Booking created successfully",
+		"booking_id":       booking.ID,
+		"reference_number": booking.ReferenceNumber,
+		"showing_date":     booking.ShowingDate,
+		"status":           booking.Status,
+		"fub_lead_id":      booking.FUBLeadID,
+		"message":          "Booking created successfully",
 	})
 }
 
@@ -216,20 +216,20 @@ func (h *BookingHandler) GetBooking(c *gin.Context) {
 
 	utils.SuccessResponse(c, gin.H{
 		"booking": gin.H{
-			"id":                booking.ID,
-			"reference_number":  booking.ReferenceNumber,
-			"property_id":       booking.PropertyID,
-			"fub_lead_id":       booking.FUBLeadID,
-			"email":             decryptedEmail,
-			"name":              decryptedName,
-			"phone":             decryptedPhone,
-			"showing_date":      booking.ShowingDate,
-			"duration_minutes":  booking.DurationMinutes,
-			"status":            booking.Status,
-			"showing_type":      booking.ShowingType,
-			"attendee_count":    booking.AttendeeCount,
-			"notes":             booking.Notes,
-			"created_at":        booking.CreatedAt,
+			"id":               booking.ID,
+			"reference_number": booking.ReferenceNumber,
+			"property_id":      booking.PropertyID,
+			"fub_lead_id":      booking.FUBLeadID,
+			"email":            decryptedEmail,
+			"name":             decryptedName,
+			"phone":            decryptedPhone,
+			"showing_date":     booking.ShowingDate,
+			"duration_minutes": booking.DurationMinutes,
+			"status":           booking.Status,
+			"showing_type":     booking.ShowingType,
+			"attendee_count":   booking.AttendeeCount,
+			"notes":            booking.Notes,
+			"created_at":       booking.CreatedAt,
 		},
 	})
 }
@@ -317,10 +317,10 @@ func (h *BookingHandler) ListBookings(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, gin.H{
-		"bookings":   bookings,
-		"total":      total,
-		"page":       criteria.PaginationOptions.Page,
-		"page_size":  criteria.PaginationOptions.PageSize,
+		"bookings":    bookings,
+		"total":       total,
+		"page":        criteria.PaginationOptions.Page,
+		"page_size":   criteria.PaginationOptions.PageSize,
 		"total_pages": (total + int64(criteria.PaginationOptions.PageSize) - 1) / int64(criteria.PaginationOptions.PageSize),
 	})
 }
@@ -351,7 +351,7 @@ func generateBookingReference() string {
 	randomBytes := make([]byte, 4)
 	rand.Read(randomBytes)
 	randomHex := hex.EncodeToString(randomBytes)
-	
+
 	return fmt.Sprintf("BK%d%s", timestamp, randomHex[:6])
 }
 

@@ -10,9 +10,9 @@ import (
 )
 
 type BehavioralEventHandler struct {
-	db                    *gorm.DB
-	eventService          *services.BehavioralEventService
-	activityBroadcaster   *services.ActivityBroadcastService
+	db                  *gorm.DB
+	eventService        *services.BehavioralEventService
+	activityBroadcaster *services.ActivityBroadcastService
 }
 
 func NewBehavioralEventHandler(db *gorm.DB, eventService *services.BehavioralEventService, activityBroadcaster *services.ActivityBroadcastService) *BehavioralEventHandler {
@@ -83,10 +83,10 @@ func (h *BehavioralEventHandler) TrackPropertySave(c *gin.Context) {
 
 func (h *BehavioralEventHandler) TrackInquiry(c *gin.Context) {
 	var req struct {
-		LeadID       int64   `json:"lead_id" binding:"required"`
-		PropertyID   *int64  `json:"property_id"`
-		InquiryType  string  `json:"inquiry_type" binding:"required"`
-		SessionID    string  `json:"session_id" binding:"required"`
+		LeadID      int64  `json:"lead_id" binding:"required"`
+		PropertyID  *int64 `json:"property_id"`
+		InquiryType string `json:"inquiry_type" binding:"required"`
+		SessionID   string `json:"session_id" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {

@@ -51,10 +51,10 @@ func (h *DashboardHandlers) GetPropertySummary(c *gin.Context) {
 		Find(&recentProperties)
 
 	c.JSON(http.StatusOK, gin.H{
-		"totalProperties": totalProperties,
-		"occupiedUnits":   occupiedUnits,
-		"vacantUnits":     vacantUnits,
-		"occupancyRate":   occupancyRate,
+		"totalProperties":  totalProperties,
+		"occupiedUnits":    occupiedUnits,
+		"vacantUnits":      vacantUnits,
+		"occupancyRate":    occupancyRate,
 		"recentProperties": recentProperties,
 	})
 }
@@ -94,11 +94,11 @@ func (h *DashboardHandlers) GetBookingSummary(c *gin.Context) {
 		Find(&recentBookings)
 
 	c.JSON(http.StatusOK, gin.H{
-		"activeBookings":   activeBookings,
-		"pendingBookings":  pendingBookings,
-		"todayCheckIns":    todayCheckIns,
-		"todayCheckOuts":   todayCheckOuts,
-		"recentBookings":   recentBookings,
+		"activeBookings":  activeBookings,
+		"pendingBookings": pendingBookings,
+		"todayCheckIns":   todayCheckIns,
+		"todayCheckOuts":  todayCheckOuts,
+		"recentBookings":  recentBookings,
 	})
 }
 
@@ -163,20 +163,20 @@ func (h *DashboardHandlers) GetRevenueSummary(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"monthlyRevenue":  currentMonthRevenue.Total,
-		"yearlyRevenue":   yearlyRevenue.Total,
-		"monthlyChange":   monthlyChange,
-		"yearlyChange":    0,
-		"avgDailyRate":    avgDailyRate,
-		"revPAR":          revPAR,
-		"trendData":       trendData,
+		"monthlyRevenue": currentMonthRevenue.Total,
+		"yearlyRevenue":  yearlyRevenue.Total,
+		"monthlyChange":  monthlyChange,
+		"yearlyChange":   0,
+		"avgDailyRate":   avgDailyRate,
+		"revPAR":         revPAR,
+		"trendData":      trendData,
 	})
 }
 
 func (h *DashboardHandlers) GetMarketData(c *gin.Context) {
 	type MarketStats struct {
-		AvgPrice       float64
-		TotalListings  int64
+		AvgPrice        float64
+		TotalListings   int64
 		AvgDaysOnMarket float64
 	}
 
@@ -197,7 +197,7 @@ func (h *DashboardHandlers) GetMarketData(c *gin.Context) {
 	}
 
 	insights := []map[string]interface{}{}
-	
+
 	if stats.AvgPrice > 0 {
 		insights = append(insights, map[string]interface{}{
 			"type":    "info",
@@ -218,11 +218,11 @@ func (h *DashboardHandlers) GetMarketData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"averageRent":      stats.AvgPrice,
-		"marketOccupancy":  marketOccupancy,
-		"daysOnMarket":     stats.AvgDaysOnMarket,
-		"insights":         insights,
-		"lastUpdated":      time.Now().Format(time.RFC3339),
+		"averageRent":     stats.AvgPrice,
+		"marketOccupancy": marketOccupancy,
+		"daysOnMarket":    stats.AvgDaysOnMarket,
+		"insights":        insights,
+		"lastUpdated":     time.Now().Format(time.RFC3339),
 	})
 }
 

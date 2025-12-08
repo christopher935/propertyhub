@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/security"
+	"gorm.io/gorm"
 )
 
 type SessionHandler struct {

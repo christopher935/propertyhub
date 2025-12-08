@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
+	"chrisgross-ctrl-project/internal/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/models"
 )
 
 // BehavioralEventService handles behavioral event tracking
@@ -14,7 +14,6 @@ type BehavioralEventService struct {
 	db            *gorm.DB
 	scoringEngine *BehavioralScoringEngine
 }
-
 
 // NewBehavioralEventService creates a new behavioral event service
 func NewBehavioralEventService(db *gorm.DB) *BehavioralEventService {
@@ -124,7 +123,7 @@ func (s *BehavioralEventService) TrackEmailEngagement(leadID int64, eventType st
 // StartSession creates a new behavioral session
 func (s *BehavioralEventService) StartSession(leadID int64, ipAddress string, userAgent string, referrer string) (string, error) {
 	sessionID := uuid.New().String()
-	
+
 	session := models.BehavioralSession{
 		ID:        sessionID,
 		LeadID:    leadID,
@@ -196,7 +195,7 @@ func (s *BehavioralEventService) TrackFunnelStage(leadID int64, stage string, pr
 // CompleteFunnelStage marks a funnel stage as complete
 func (s *BehavioralEventService) CompleteFunnelStage(leadID int64, stage string, converted bool) error {
 	exitTime := time.Now()
-	
+
 	var funnelEvent models.ConversionFunnelEvent
 	if err := s.db.Where("lead_id = ? AND stage = ? AND exited_at IS NULL", leadID, stage).
 		First(&funnelEvent).Error; err != nil {
@@ -206,8 +205,8 @@ func (s *BehavioralEventService) CompleteFunnelStage(leadID int64, stage string,
 	timeInStage := int(exitTime.Sub(funnelEvent.EnteredAt).Seconds())
 
 	updates := map[string]interface{}{
-		"exited_at":            exitTime,
-		"converted":            converted,
+		"exited_at":             exitTime,
+		"converted":             converted,
 		"time_in_stage_seconds": timeInStage,
 	}
 

@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"log"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/auth"
 	"chrisgross-ctrl-project/internal/security"
+	"gorm.io/gorm"
 )
 
 type MFAHandler struct {
@@ -138,7 +138,7 @@ func (h *MFAHandler) GetMFAStatus(w http.ResponseWriter, r *http.Request) {
 
 	// Get MFA status using actual TOTPManager methods
 	status := h.totpManager.GetMFAStatus(uint(userID))
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,

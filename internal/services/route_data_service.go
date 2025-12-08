@@ -67,7 +67,7 @@ func (s *RouteDataService) GetAllProperties() ([]models.Property, error) {
 // GetAvailableProperties returns only available properties for public listing
 func (s *RouteDataService) GetAvailableProperties() ([]models.Property, error) {
 	var properties []models.Property
-	err := s.DB.Where("status IN ? AND deleted_at IS NULL", 
+	err := s.DB.Where("status IN ? AND deleted_at IS NULL",
 		[]string{"https://schema.org/InStock", "active"}).
 		Order("created_at DESC").
 		Find(&properties).Error
@@ -167,44 +167,44 @@ func (s *RouteDataService) GetSimilarProperties(propertyID uint, city string, pr
 
 // RouteDashboardMetrics holds dashboard statistics
 type RouteDashboardMetrics struct {
-	TotalProperties      int64
-	AvailableProperties  int64
-	TotalBookings        int64
-	PendingBookings      int64
-	TotalApplications    int64
-	PendingApplications  int64
-	TotalLeads           int64
-	RecentProperties     []models.Property
-	RecentBookings       []models.Booking
-	TotalRevenue         float64
-	MonthlyRevenue       float64
+	TotalProperties     int64
+	AvailableProperties int64
+	TotalBookings       int64
+	PendingBookings     int64
+	TotalApplications   int64
+	PendingApplications int64
+	TotalLeads          int64
+	RecentProperties    []models.Property
+	RecentBookings      []models.Booking
+	TotalRevenue        float64
+	MonthlyRevenue      float64
 }
 
 // GetDashboardMetrics returns comprehensive dashboard statistics
 func (s *RouteDataService) GetDashboardMetrics() (*RouteDashboardMetrics, error) {
 	metrics := &RouteDashboardMetrics{}
-	
+
 	// Count properties
 	s.DB.Model(&models.Property{}).Where("deleted_at IS NULL").Count(&metrics.TotalProperties)
-	s.DB.Model(&models.Property{}).Where("status IN ? AND deleted_at IS NULL", 
+	s.DB.Model(&models.Property{}).Where("status IN ? AND deleted_at IS NULL",
 		[]string{"https://schema.org/InStock", "active"}).Count(&metrics.AvailableProperties)
-	
+
 	// Count bookings
 	s.DB.Model(&models.Booking{}).Count(&metrics.TotalBookings)
 	s.DB.Model(&models.Booking{}).Where("status = ?", "scheduled").Count(&metrics.PendingBookings)
-	
+
 	// Get recent properties
 	s.DB.Where("deleted_at IS NULL").
 		Order("created_at DESC").
 		Limit(5).
 		Find(&metrics.RecentProperties)
-	
+
 	// Get recent bookings
 	s.DB.Order("created_at DESC").
 		Limit(5).
 		Preload("Property").
 		Find(&metrics.RecentBookings)
-	
+
 	return metrics, nil
 }
 
@@ -255,21 +255,21 @@ type AgentStats struct {
 // GetAgentStats returns statistics for a specific agent
 func (s *RouteDataService) GetAgentStats(agentID uint) (*AgentStats, error) {
 	stats := &AgentStats{}
-	
+
 	// Count properties by agent
 	s.DB.Model(&models.Property{}).
 		Where("listing_agent_id = ? AND deleted_at IS NULL", agentID).
 		Count(&stats.TotalProperties)
-	
+
 	s.DB.Model(&models.Property{}).
-		Where("listing_agent_id = ? AND status IN ? AND deleted_at IS NULL", 
+		Where("listing_agent_id = ? AND status IN ? AND deleted_at IS NULL",
 			agentID, []string{"https://schema.org/InStock", "active"}).
 		Count(&stats.ActiveListings)
-	
+
 	// Count bookings (would need agent_id field in bookings table)
 	s.DB.Model(&models.Booking{}).Count(&stats.TotalBookings)
 	s.DB.Model(&models.Booking{}).Where("status = ?", "completed").Count(&stats.CompletedBookings)
-	
+
 	return stats, nil
 }
 
@@ -306,28 +306,28 @@ type AgentPerformance struct {
 // GetBIMetrics returns comprehensive business intelligence metrics
 func (s *RouteDataService) GetBIMetrics() (*BIMetrics, error) {
 	metrics := &BIMetrics{}
-	
+
 	// Property counts
 	s.DB.Model(&models.Property{}).Where("deleted_at IS NULL").Count(&metrics.TotalProperties)
-	s.DB.Model(&models.Property{}).Where("status IN ? AND deleted_at IS NULL", 
+	s.DB.Model(&models.Property{}).Where("status IN ? AND deleted_at IS NULL",
 		[]string{"https://schema.org/InStock", "active"}).Count(&metrics.AvailableProperties)
 	s.DB.Model(&models.Property{}).Where("status = ?", "https://schema.org/SoldOut").Count(&metrics.SoldProperties)
-	
+
 	// Booking counts
 	s.DB.Model(&models.Booking{}).Count(&metrics.TotalBookings)
 	s.DB.Model(&models.Booking{}).Where("status = ?", "completed").Count(&metrics.CompletedBookings)
-	
+
 	// Calculate conversion rate
 	if metrics.TotalBookings > 0 {
 		metrics.ConversionRate = (float64(metrics.CompletedBookings) / float64(metrics.TotalBookings)) * 100
 	}
-	
+
 	// Average property price
 	s.DB.Model(&models.Property{}).
 		Where("deleted_at IS NULL AND price > 0").
 		Select("AVG(price)").
 		Row().Scan(&metrics.AveragePropertyPrice)
-	
+
 	// Property type breakdown
 	metrics.PropertyTypeBreakdown = make(map[string]int64)
 	rows, _ := s.DB.Model(&models.Property{}).
@@ -336,7 +336,7 @@ func (s *RouteDataService) GetBIMetrics() (*BIMetrics, error) {
 		Group("property_type").
 		Rows()
 	defer rows.Close()
-	
+
 	for rows.Next() {
 		var propType string
 		var count int64
@@ -345,7 +345,7 @@ func (s *RouteDataService) GetBIMetrics() (*BIMetrics, error) {
 			metrics.PropertyTypeBreakdown[propType] = count
 		}
 	}
-	
+
 	// City breakdown
 	metrics.CityBreakdown = make(map[string]int64)
 	cityRows, _ := s.DB.Model(&models.Property{}).
@@ -354,7 +354,7 @@ func (s *RouteDataService) GetBIMetrics() (*BIMetrics, error) {
 		Group("city").
 		Rows()
 	defer cityRows.Close()
-	
+
 	for cityRows.Next() {
 		var city string
 		var count int64
@@ -363,7 +363,7 @@ func (s *RouteDataService) GetBIMetrics() (*BIMetrics, error) {
 			metrics.CityBreakdown[city] = count
 		}
 	}
-	
+
 	return metrics, nil
 }
 
@@ -419,14 +419,14 @@ func (s *RouteDataService) GetSitemap() []map[string]string {
 // GetRecentActivity returns recent system activity
 func (s *RouteDataService) GetRecentActivity() []map[string]interface{} {
 	activity := []map[string]interface{}{}
-	
+
 	// Get recent properties
 	var recentProps []models.Property
 	s.DB.Where("deleted_at IS NULL").
 		Order("created_at DESC").
 		Limit(5).
 		Find(&recentProps)
-	
+
 	for _, prop := range recentProps {
 		activity = append(activity, map[string]interface{}{
 			"type":      "property",
@@ -435,13 +435,13 @@ func (s *RouteDataService) GetRecentActivity() []map[string]interface{} {
 			"timestamp": prop.CreatedAt,
 		})
 	}
-	
+
 	// Get recent bookings
 	var recentBookings []models.Booking
 	s.DB.Order("created_at DESC").
 		Limit(5).
 		Find(&recentBookings)
-	
+
 	for _, booking := range recentBookings {
 		activity = append(activity, map[string]interface{}{
 			"type":      "booking",
@@ -450,6 +450,6 @@ func (s *RouteDataService) GetRecentActivity() []map[string]interface{} {
 			"timestamp": booking.ShowingDate,
 		})
 	}
-	
+
 	return activity
 }

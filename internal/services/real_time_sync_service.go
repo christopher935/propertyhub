@@ -1,8 +1,8 @@
 package services
 
 import (
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 	"time"
 )
 

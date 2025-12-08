@@ -1,9 +1,9 @@
 package middleware
 
 import (
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"github.com/gin-gonic/gin"
 )
 
 // ValidateIDParam validates that :id parameter exists and is a valid integer
@@ -17,7 +17,7 @@ func ValidateIDParam() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		
+
 		id, err := strconv.ParseUint(idStr, 10, 64)
 		if err != nil || id == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{
@@ -26,7 +26,7 @@ func ValidateIDParam() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		
+
 		// Store parsed ID in context
 		c.Set("id", id)
 		c.Next()

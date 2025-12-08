@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/security"
 	"chrisgross-ctrl-project/internal/services"
+	"gorm.io/gorm"
 )
 
 // SettingsHandler handles all settings-related API endpoints

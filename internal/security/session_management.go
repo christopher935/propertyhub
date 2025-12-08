@@ -633,4 +633,3 @@ func (sm *SessionManager) CleanupExpiredSessions() error {
 	return sm.db.Where("expires_at < ? OR (is_active = false AND updated_at < ?)",
 		time.Now(), time.Now().Add(-7*24*time.Hour)).Delete(&Session{}).Error
 }
-

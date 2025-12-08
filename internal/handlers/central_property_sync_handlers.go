@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/security"
 	"chrisgross-ctrl-project/internal/services"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // CentralPropertySyncHandlers handles API requests for Central Property State Manager with real-time sync
@@ -54,7 +54,7 @@ func RegisterCentralPropertySyncRoutes(router *gin.Engine, db *gorm.DB) {
 		// Central Property State Management
 		api.POST("/central-properties", handlers.CreateOrUpdateProperty)
 		api.GET("/central-properties/:id", handlers.GetProperty)
-// DISABLED: 		api.GET("/central-properties", handlers.GetAllProperties)
+		// DISABLED: 		api.GET("/central-properties", handlers.GetAllProperties)
 		api.PUT("/central-properties/:id/status", handlers.UpdatePropertyStatus)
 		api.GET("/central-properties/stats", handlers.GetSystemStats)
 		api.POST("/central-properties/:id/resolve-conflict", handlers.ResolveConflict)

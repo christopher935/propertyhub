@@ -38,7 +38,7 @@ type FUBLead struct {
 	ID uint `json:"id" gorm:"primaryKey"`
 
 	// Core FUB identifiers
-	FUBLeadID string `json:"fub_lead_id" gorm:"uniqueIndex;not null"`
+	FUBLeadID   string `json:"fub_lead_id" gorm:"uniqueIndex;not null"`
 	FUBPersonID string `json:"fub_person_id" gorm:"index"`
 
 	// Lead Information
@@ -48,12 +48,12 @@ type FUBLead struct {
 	Phone     string `json:"phone" gorm:"index"`
 
 	// FUB-specific data
-	Status       string    `json:"status"`
-	Stage        string    `json:"stage"`
-	Source       string    `json:"source"`
-	Tags         []string  `json:"tags" gorm:"type:text[]"`
-	CustomFields JSONMap   `json:"custom_fields" gorm:"type:jsonb"`
-	
+	Status       string   `json:"status"`
+	Stage        string   `json:"stage"`
+	Source       string   `json:"source"`
+	Tags         []string `json:"tags" gorm:"type:text[]"`
+	CustomFields JSONMap  `json:"custom_fields" gorm:"type:jsonb"`
+
 	// Agent assignment
 	AgentID    string `json:"agent_id"`
 	AgentEmail string `json:"agent_email"`
@@ -79,26 +79,26 @@ type FUBAutomationTrigger struct {
 	// Trigger identification
 	TriggerName string `json:"trigger_name" gorm:"not null"`
 	FUBRuleID   string `json:"fub_rule_id"`
-	
+
 	// Conditions
 	Conditions JSONMap `json:"conditions" gorm:"type:jsonb"`
-	
+
 	// Actions to execute
 	Actions []string `json:"actions" gorm:"type:text[]"`
-	
+
 	// Targeting
 	LeadFilters    JSONMap `json:"lead_filters" gorm:"type:jsonb"`
 	PropertyFilter JSONMap `json:"property_filter" gorm:"type:jsonb"`
-	
+
 	// Execution tracking
-	LastExecuted    *time.Time `json:"last_executed"`
-	ExecutionCount  int        `json:"execution_count" gorm:"default:0"`
-	SuccessCount    int        `json:"success_count" gorm:"default:0"`
-	ErrorCount      int        `json:"error_count" gorm:"default:0"`
-	
+	LastExecuted   *time.Time `json:"last_executed"`
+	ExecutionCount int        `json:"execution_count" gorm:"default:0"`
+	SuccessCount   int        `json:"success_count" gorm:"default:0"`
+	ErrorCount     int        `json:"error_count" gorm:"default:0"`
+
 	// Status
 	IsActive bool `json:"is_active" gorm:"default:true"`
-	
+
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
@@ -176,21 +176,21 @@ func (fat FUBAutomationTrigger) GetErrorRate() float64 {
 // ToDict converts FUBAutomationTrigger to a map for JSON responses
 func (fat FUBAutomationTrigger) ToDict() map[string]interface{} {
 	return map[string]interface{}{
-		"id":               fat.ID,
-		"trigger_name":     fat.TriggerName,
-		"fub_rule_id":      fat.FUBRuleID,
-		"conditions":       fat.Conditions,
-		"actions":          fat.Actions,
-		"lead_filters":     fat.LeadFilters,
-		"property_filter":  fat.PropertyFilter,
-		"last_executed":    fat.LastExecuted,
-		"execution_count":  fat.ExecutionCount,
-		"success_count":    fat.SuccessCount,
-		"error_count":      fat.ErrorCount,
-		"success_rate":     fat.GetSuccessRate(),
-		"error_rate":       fat.GetErrorRate(),
-		"is_active":        fat.IsActive,
-		"created_at":       fat.CreatedAt,
-		"updated_at":       fat.UpdatedAt,
+		"id":              fat.ID,
+		"trigger_name":    fat.TriggerName,
+		"fub_rule_id":     fat.FUBRuleID,
+		"conditions":      fat.Conditions,
+		"actions":         fat.Actions,
+		"lead_filters":    fat.LeadFilters,
+		"property_filter": fat.PropertyFilter,
+		"last_executed":   fat.LastExecuted,
+		"execution_count": fat.ExecutionCount,
+		"success_count":   fat.SuccessCount,
+		"error_count":     fat.ErrorCount,
+		"success_rate":    fat.GetSuccessRate(),
+		"error_rate":      fat.GetErrorRate(),
+		"is_active":       fat.IsActive,
+		"created_at":      fat.CreatedAt,
+		"updated_at":      fat.UpdatedAt,
 	}
 }

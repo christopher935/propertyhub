@@ -3,10 +3,10 @@ package services
 import (
 	"fmt"
 	"html/template"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
-	"net/url"
 
 	"chrisgross-ctrl-project/internal/security"
 	"github.com/gin-gonic/gin"
@@ -28,19 +28,19 @@ func NewTemplateFunctionService() *TemplateFunctionService {
 func (tfs *TemplateFunctionService) RegisterWithGin(r *gin.Engine) error {
 	// Start with existing secure functions from your security system
 	funcMap := tfs.templateSecurity.GetSecureFuncMap()
-	
+
 	// Add enterprise real estate specific functions
 	tfs.addEnterpriseRealEstateFunctions(funcMap)
-	
+
 	// Add missing functions that cause crashes
 	tfs.addMissingCriticalFunctions(funcMap)
-	
+
 	// Add utility functions for PropertyHub
 	tfs.addPropertyHubUtilities(funcMap)
-	
+
 	// Register with Gin
 	r.SetFuncMap(funcMap)
-	
+
 	return nil
 }
 
@@ -64,7 +64,7 @@ func (tfs *TemplateFunctionService) addEnterpriseRealEstateFunctions(funcMap tem
 			return "$0/mo"
 		}
 	}
-	
+
 	funcMap["formatSalePrice"] = func(price interface{}) string {
 		switch v := price.(type) {
 		case int:
@@ -82,7 +82,7 @@ func (tfs *TemplateFunctionService) addEnterpriseRealEstateFunctions(funcMap tem
 			return "$0"
 		}
 	}
-	
+
 	// Property metrics functions
 	funcMap["formatSquareFeet"] = func(sqft interface{}) string {
 		switch v := sqft.(type) {
@@ -96,7 +96,7 @@ func (tfs *TemplateFunctionService) addEnterpriseRealEstateFunctions(funcMap tem
 			return fmt.Sprintf("%v sq ft", v)
 		}
 	}
-	
+
 	funcMap["formatDaysOnMarket"] = func(days interface{}) string {
 		switch v := days.(type) {
 		case int:
@@ -139,7 +139,7 @@ func (tfs *TemplateFunctionService) addMissingCriticalFunctions(funcMap template
 			return time.Now().Format("2006-01-02 15:04:05")
 		}
 	}
-	
+
 	// formatDate - Standard date formatting
 	funcMap["formatDate"] = func(date interface{}) string {
 		switch v := date.(type) {
@@ -159,7 +159,7 @@ func (tfs *TemplateFunctionService) addMissingCriticalFunctions(funcMap template
 			return time.Now().Format("January 2, 2006")
 		}
 	}
-	
+
 	// formatPrice - Override/enhance existing FormatPrice from security
 	funcMap["formatPrice"] = func(price interface{}) string {
 		switch v := price.(type) {
@@ -189,41 +189,41 @@ func (tfs *TemplateFunctionService) addPropertyHubUtilities(funcMap template.Fun
 	funcMap["currentYear"] = func() int {
 		return time.Now().Year()
 	}
-	
+
 	// String utilities
 	funcMap["upper"] = func(s string) string {
 		return strings.ToUpper(s)
 	}
-	
+
 	funcMap["lower"] = func(s string) string {
 		return strings.ToLower(s)
 	}
-	
+
 	funcMap["title"] = func(s string) string {
 		return strings.Title(s)
 	}
-	
-	// URL utilities  
+
+	// URL utilities
 	funcMap["urlEncode"] = func(s string) string {
 		return url.QueryEscape(s)
 	}
-	
+
 	funcMap["safeURL"] = func(rawURL string) template.URL {
 		if u, err := url.Parse(rawURL); err == nil {
 			return template.URL(u.String())
 		}
 		return template.URL("")
 	}
-	
+
 	// HTML utilities
-	funcMap["safeHTML"] = func(html string) template.HTML { 
-		return template.HTML(html) 
+	funcMap["safeHTML"] = func(html string) template.HTML {
+		return template.HTML(html)
 	}
-	
-	funcMap["safeCSS"] = func(css string) template.CSS { 
-		return template.CSS(css) 
+
+	funcMap["safeCSS"] = func(css string) template.CSS {
+		return template.CSS(css)
 	}
-	
+
 	// Business calculations
 	funcMap["calculateROI"] = func(income, expenses interface{}) string {
 		inc, _ := strconv.ParseFloat(fmt.Sprintf("%v", income), 64)
@@ -234,7 +234,7 @@ func (tfs *TemplateFunctionService) addPropertyHubUtilities(funcMap template.Fun
 		}
 		return "N/A"
 	}
-	
+
 	funcMap["formatPercent"] = func(value interface{}) string {
 		switch v := value.(type) {
 		case float64:

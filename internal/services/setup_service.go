@@ -30,7 +30,7 @@ func (s *SetupService) IsSetupRequired() bool {
 	if os.Getenv("SETUP_COMPLETE") == "true" {
 		return false
 	}
-	
+
 	// Fallback: Check if setup is complete by looking for admin users in database
 	if databaseURL := os.Getenv("DATABASE_URL"); databaseURL != "" {
 		if db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{}); err == nil {
@@ -56,7 +56,7 @@ func (s *SetupService) GetSetupProgress() map[string]bool {
 	if databaseURL := os.Getenv("DATABASE_URL"); databaseURL != "" {
 		if db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{}); err == nil {
 			progress["database_configured"] = true
-			
+
 			// Check if admin user exists
 			var count int64
 			if err := db.Model(&models.AdminUser{}).Count(&count).Error; err == nil && count > 0 {
@@ -105,7 +105,7 @@ func (s *SetupService) CompleteSetup() error {
 
 	// Create a permanent marker that setup is complete
 	os.Setenv("SETUP_COMPLETE", "true")
-	
+
 	// Also save to .env file
 	envFile := ".env"
 	f, err := os.OpenFile(envFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)

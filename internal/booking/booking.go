@@ -52,15 +52,15 @@ func (e *ShowingValidationError) Error() string {
 
 // Common showing errors
 var (
-	ErrPropertyNotAvailable    = errors.New("property not available for selected time slot")
-	ErrInvalidDateTime         = errors.New("invalid date or time")
-	ErrPastDateBooking         = errors.New("cannot schedule showings in the past")
-	ErrAdvanceBookingLimit     = errors.New("booking too far in advance")
-	ErrAttendeeLimit           = errors.New("attendee limit exceeded")
-	ErrTRECComplianceRequired  = errors.New("TREC compliance acknowledgment required")
-	ErrCancellationNotAllowed  = errors.New("cancellation not allowed")
-	ErrInvalidDuration         = errors.New("invalid showing duration")
-	ErrConflictingAppointment  = errors.New("time slot conflicts with existing appointment")
+	ErrPropertyNotAvailable   = errors.New("property not available for selected time slot")
+	ErrInvalidDateTime        = errors.New("invalid date or time")
+	ErrPastDateBooking        = errors.New("cannot schedule showings in the past")
+	ErrAdvanceBookingLimit    = errors.New("booking too far in advance")
+	ErrAttendeeLimit          = errors.New("attendee limit exceeded")
+	ErrTRECComplianceRequired = errors.New("TREC compliance acknowledgment required")
+	ErrCancellationNotAllowed = errors.New("cancellation not allowed")
+	ErrInvalidDuration        = errors.New("invalid showing duration")
+	ErrConflictingAppointment = errors.New("time slot conflicts with existing appointment")
 )
 
 // NewShowingEngine creates a new showing engine
@@ -75,7 +75,7 @@ func NewShowingEngine(trecEnabled bool, maxAdvanceDays, cancellationGraceDays in
 // ValidateShowingRequest validates a showing request
 func (s *ShowingEngine) ValidateShowingRequest(request *ShowingRequest, property *models.Property) ([]ShowingValidationError, error) {
 	var errors []ShowingValidationError
-	
+
 	// Validate date/time
 	if err := s.validateDateTime(request.ShowingDate, request.ShowingTime); err != nil {
 		errors = append(errors, ShowingValidationError{
@@ -84,7 +84,7 @@ func (s *ShowingEngine) ValidateShowingRequest(request *ShowingRequest, property
 			Message: err.Error(),
 		})
 	}
-	
+
 	// Validate availability
 	showingDateTime := s.combineDateTime(request.ShowingDate, request.ShowingTime)
 	if !s.isPropertyAvailable(property, showingDateTime, request.DurationMinutes) {
@@ -94,7 +94,7 @@ func (s *ShowingEngine) ValidateShowingRequest(request *ShowingRequest, property
 			Message: "Property not available for selected time slot",
 		})
 	}
-	
+
 	// Validate duration
 	if err := s.validateDuration(request.DurationMinutes); err != nil {
 		errors = append(errors, ShowingValidationError{
@@ -103,7 +103,7 @@ func (s *ShowingEngine) ValidateShowingRequest(request *ShowingRequest, property
 			Message: err.Error(),
 		})
 	}
-	
+
 	// Validate attendee count (1-10 people for showings)
 	if request.AttendeeCount < 1 || request.AttendeeCount > 10 {
 		errors = append(errors, ShowingValidationError{
@@ -112,7 +112,7 @@ func (s *ShowingEngine) ValidateShowingRequest(request *ShowingRequest, property
 			Message: "Attendee count must be between 1 and 10",
 		})
 	}
-	
+
 	// TREC compliance validation
 	if s.trecComplianceEnabled && !request.TRECCompliant {
 		errors = append(errors, ShowingValidationError{
@@ -121,11 +121,11 @@ func (s *ShowingEngine) ValidateShowingRequest(request *ShowingRequest, property
 			Message: "TREC disclosure acknowledgment required",
 		})
 	}
-	
+
 	if len(errors) > 0 {
 		return errors, fmt.Errorf("showing validation failed")
 	}
-	
+
 	return nil, nil
 }
 
@@ -135,10 +135,10 @@ func (s *ShowingEngine) CreateShowing(request *ShowingRequest, property *models.
 	if validationErrors, err := s.ValidateShowingRequest(request, property); err != nil {
 		return nil, fmt.Errorf("validation failed: %v", validationErrors)
 	}
-	
+
 	// Combine date and time
 	showingDateTime := s.combineDateTime(request.ShowingDate, request.ShowingTime)
-	
+
 	// Create showing appointment
 	showing := &models.Booking{
 		PropertyID:      property.ID,
@@ -152,7 +152,7 @@ func (s *ShowingEngine) CreateShowing(request *ShowingRequest, property *models.
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
 	}
-	
+
 	return showing, nil
 }
 
@@ -161,9 +161,9 @@ func (s *ShowingEngine) CheckAvailability(property *models.Property, showingDate
 	if err := s.validateDateTime(showingDate, showingTime); err != nil {
 		return nil, err
 	}
-	
+
 	showingDateTime := s.combineDateTime(showingDate, showingTime)
-	
+
 	// Check blackout dates (agent unavailability)
 	blackoutDates := s.getBlackoutDates(property.ID, showingDateTime)
 	if len(blackoutDates) > 0 {
@@ -173,7 +173,7 @@ func (s *ShowingEngine) CheckAvailability(property *models.Property, showingDate
 			BlackoutDates: blackoutDates,
 		}, nil
 	}
-	
+
 	// Check existing appointments
 	conflictingShowings := s.getConflictingShowings(property.ID, showingDateTime, durationMinutes)
 	if len(conflictingShowings) > 0 {
@@ -183,7 +183,7 @@ func (s *ShowingEngine) CheckAvailability(property *models.Property, showingDate
 			ConflictingShowings: conflictingShowings,
 		}, nil
 	}
-	
+
 	return &AvailabilityResponse{
 		Available: true,
 	}, nil
@@ -194,7 +194,7 @@ func (s *ShowingEngine) ConfirmShowing(showingID, leadID string) error {
 	// This would typically fetch showing from repository
 	// Send confirmation emails
 	// Update showing status to confirmed
-	
+
 	return nil
 }
 
@@ -202,19 +202,19 @@ func (s *ShowingEngine) ConfirmShowing(showingID, leadID string) error {
 func (s *ShowingEngine) CancelShowing(showingID, leadID, reason string) (*CancellationResult, error) {
 	// This would fetch showing from repository
 	showing := &models.Booking{} // placeholder
-	
+
 	// Check if cancellation is allowed (e.g., must be more than 2 hours before showing)
 	hoursUntilShowing := showing.ShowingDate.Sub(time.Now()).Hours()
 	if hoursUntilShowing < 2 {
 		return nil, ErrCancellationNotAllowed
 	}
-	
+
 	result := &CancellationResult{
 		ShowingID:       showingID,
 		CancellationFee: 0, // No fees for showing cancellations
 		ProcessTime:     "immediate",
 	}
-	
+
 	return result, nil
 }
 
@@ -224,34 +224,34 @@ func (s *ShowingEngine) RescheduleShowing(showingID, leadID string, newDate time
 	if err := s.validateDateTime(newDate, newTime); err != nil {
 		return err
 	}
-	
+
 	// Check availability for new time slot
 	// Update showing record
 	// Send reschedule notifications
-	
+
 	return nil
 }
 
 // validateDateTime validates showing date and time
 func (s *ShowingEngine) validateDateTime(showingDate time.Time, showingTime string) error {
 	now := time.Now()
-	
+
 	// Check if date is in the past
 	if showingDate.Before(now.Truncate(24 * time.Hour)) {
 		return ErrPastDateBooking
 	}
-	
+
 	// Check advance booking limit (e.g., 180 days)
 	maxAdvanceDate := now.AddDate(0, 0, s.maxAdvanceBookingDays)
 	if showingDate.After(maxAdvanceDate) {
 		return ErrAdvanceBookingLimit
 	}
-	
+
 	// Validate time format
 	if showingTime == "" {
 		return ErrInvalidDateTime
 	}
-	
+
 	return nil
 }
 
@@ -260,7 +260,7 @@ func (s *ShowingEngine) validateDuration(durationMinutes int) error {
 	if durationMinutes < 15 || durationMinutes > 180 {
 		return ErrInvalidDuration
 	}
-	
+
 	return nil
 }
 
@@ -271,7 +271,7 @@ func (s *ShowingEngine) isPropertyAvailable(property *models.Property, showingDa
 	if len(blackoutDates) > 0 {
 		return false
 	}
-	
+
 	// Check existing showings
 	conflictingShowings := s.getConflictingShowings(property.ID, showingDateTime, durationMinutes)
 	return len(conflictingShowings) == 0
@@ -300,7 +300,7 @@ func (s *ShowingEngine) generateTRECDisclosures(request *ShowingRequest) string 
 			Required: true,
 		},
 	}
-	
+
 	// Convert to JSON string
 	return fmt.Sprintf("%v", disclosures)
 }
@@ -332,10 +332,10 @@ type ShowingRequest struct {
 }
 
 type AvailabilityResponse struct {
-	Available           bool              `json:"available"`
-	Reason              string            `json:"reason,omitempty"`
-	BlackoutDates       []time.Time       `json:"blackout_dates,omitempty"`
-	ConflictingShowings []string          `json:"conflicting_showings,omitempty"`
+	Available           bool        `json:"available"`
+	Reason              string      `json:"reason,omitempty"`
+	BlackoutDates       []time.Time `json:"blackout_dates,omitempty"`
+	ConflictingShowings []string    `json:"conflicting_showings,omitempty"`
 }
 
 type CancellationResult struct {

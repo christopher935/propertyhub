@@ -17,9 +17,9 @@ import (
 
 // PropertyValuationService provides AI-powered property valuation for pre-listings
 type PropertyValuationService struct {
-	config          *config.Config
-	db              *gorm.DB
-	scraperService  *scraper.ScraperService
+	config         *config.Config
+	db             *gorm.DB
+	scraperService *scraper.ScraperService
 	// harScraper removed - HAR blocked access
 	marketDataCache map[string]*MarketData
 	cacheTTL        time.Duration
@@ -685,8 +685,6 @@ func getConfidenceLevel(confidence float32) string {
 	}
 }
 
-
-
 func structToJSONB(v interface{}) models.JSONB {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -704,18 +702,18 @@ func (pvs *PropertyValuationService) SaveValuation(propertyID *uint, valuation *
 	pricePerSqft := float64(valuation.PricePerSqFt)
 
 	record := &models.PropertyValuationRecord{
-		PropertyID:       propertyID,
-		EstimatedValue:   float64(valuation.EstimatedValue),
-		ValueLow:         float64(valuation.ValueRange.Low),
-		ValueHigh:        float64(valuation.ValueRange.High),
-		PricePerSqft:     &pricePerSqft,
-		Confidence:       float64(valuation.ConfidenceScore),
-		Comparables:      structToJSONB(valuation.Comparables),
-		Adjustments:      structToJSONB(valuation.ValuationFactors),
-		MarketAnalysis:   structToJSONB(valuation.MarketConditions),
-		Recommendations:  structToJSONB(valuation.Recommendations),
-		RequestedBy:      requestedBy,
-		ModelVersion:     "v1.0",
+		PropertyID:      propertyID,
+		EstimatedValue:  float64(valuation.EstimatedValue),
+		ValueLow:        float64(valuation.ValueRange.Low),
+		ValueHigh:       float64(valuation.ValueRange.High),
+		PricePerSqft:    &pricePerSqft,
+		Confidence:      float64(valuation.ConfidenceScore),
+		Comparables:     structToJSONB(valuation.Comparables),
+		Adjustments:     structToJSONB(valuation.ValuationFactors),
+		MarketAnalysis:  structToJSONB(valuation.MarketConditions),
+		Recommendations: structToJSONB(valuation.Recommendations),
+		RequestedBy:     requestedBy,
+		ModelVersion:    "v1.0",
 	}
 
 	if err := pvs.db.Create(record).Error; err != nil {

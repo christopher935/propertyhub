@@ -1,15 +1,15 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
-	"fmt"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/utils"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // ApprovalsManagementHandlers handles approval-related operations
@@ -144,7 +144,7 @@ func (h *ApprovalsManagementHandlers) UpdateApprovalStatus(c *gin.Context) {
 	if request.Notes != "" {
 		statusNote += " - " + request.Notes
 	}
-	
+
 	if approval.Notes != "" {
 		approval.Notes += "\n" + statusNote
 	} else {
@@ -162,8 +162,8 @@ func (h *ApprovalsManagementHandlers) UpdateApprovalStatus(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": fmt.Sprintf("Application status updated to %s", request.NewStatus),
+		"success":  true,
+		"message":  fmt.Sprintf("Application status updated to %s", request.NewStatus),
 		"approval": approval,
 	})
 }

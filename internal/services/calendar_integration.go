@@ -10,8 +10,8 @@ import (
 
 // CalendarIntegrationService handles calendar operations with Follow Up Boss
 type CalendarIntegrationService struct {
-	db         *gorm.DB
-	fubAPIKey  string
+	db        *gorm.DB
+	fubAPIKey string
 }
 
 // CalendarEvent represents a calendar event
@@ -123,13 +123,13 @@ func (c *CalendarIntegrationService) UpdateEventStatus(eventID uint, status stri
 // GetUpcomingEvents retrieves upcoming events from the calendar
 func (c *CalendarIntegrationService) GetUpcomingEvents(days int) ([]CalendarEvent, error) {
 	endDate := time.Now().AddDate(0, 0, days)
-	
+
 	var events []CalendarEvent
-	err := c.db.Where("start_time >= ? AND start_time <= ? AND status != 'cancelled'", 
+	err := c.db.Where("start_time >= ? AND start_time <= ? AND status != 'cancelled'",
 		time.Now(), endDate).
 		Order("start_time ASC").
 		Find(&events).Error
-	
+
 	return events, err
 }
 
@@ -138,13 +138,13 @@ func (c *CalendarIntegrationService) GetTodayEvents() ([]CalendarEvent, error) {
 	now := time.Now()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	endOfDay := startOfDay.Add(24 * time.Hour)
-	
+
 	var events []CalendarEvent
-	err := c.db.Where("start_time >= ? AND start_time < ? AND status != 'cancelled'", 
+	err := c.db.Where("start_time >= ? AND start_time < ? AND status != 'cancelled'",
 		startOfDay, endOfDay).
 		Order("start_time ASC").
 		Find(&events).Error
-	
+
 	return events, err
 }
 
@@ -195,7 +195,7 @@ func (c *CalendarIntegrationService) ScheduleAutomaticFollowUp(showingEventID ui
 
 	// Convert int hours to time.Duration
 	followUpTime := showingEvent.EndTime.Add(time.Duration(hoursAfter) * time.Hour)
-	
+
 	title := fmt.Sprintf("Follow up: %s showing", showingEvent.Location)
 	description := fmt.Sprintf("Follow up about the showing at %s", showingEvent.Location)
 
@@ -214,10 +214,10 @@ func (c *CalendarIntegrationService) generateShowingDescription(data BookingCale
 	description += fmt.Sprintf("Contact: %s\n", data.ContactName)
 	description += fmt.Sprintf("Phone: %s\n", data.ContactPhone)
 	description += fmt.Sprintf("Email: %s\n", data.ContactEmail)
-	
+
 	if data.SpecialRequests != "" {
 		description += fmt.Sprintf("\nSpecial Requests: %s\n", data.SpecialRequests)
 	}
-	
+
 	return description
 }

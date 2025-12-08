@@ -412,15 +412,15 @@ func GetFuncMap() template.FuncMap {
 		// Badge/Status color functions
 		"statusColor": func(status string) string {
 			colorMap := map[string]string{
-				"active":     "green",
-				"pending":    "yellow",
-				"sold":       "blue",
-				"rented":     "blue",
-				"inactive":   "gray",
-				"cancelled":  "red",
-				"completed":  "green",
-				"scheduled":  "blue",
-				"confirmed":  "green",
+				"active":      "green",
+				"pending":     "yellow",
+				"sold":        "blue",
+				"rented":      "blue",
+				"inactive":    "gray",
+				"cancelled":   "red",
+				"completed":   "green",
+				"scheduled":   "blue",
+				"confirmed":   "green",
 				"unconfirmed": "yellow",
 			}
 			if c, ok := colorMap[strings.ToLower(status)]; ok {
@@ -430,4 +430,3 @@ func GetFuncMap() template.FuncMap {
 		},
 	}
 }
-

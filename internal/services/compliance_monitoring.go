@@ -216,7 +216,7 @@ func (cms *ComplianceMonitoringService) checkLegalCompliance() (LegalComplianceS
 // checkCANSPAMCompliance checks CAN-SPAM compliance for recent emails
 func (cms *ComplianceMonitoringService) checkCANSPAMCompliance() (bool, error) {
 	var recentEmails []models.IncomingEmail
-	
+
 	oneDayAgo := time.Now().AddDate(0, 0, -1)
 	err := cms.db.Where("created_at > ?", oneDayAgo).Limit(100).Find(&recentEmails).Error
 	if err != nil {
@@ -241,19 +241,19 @@ func (cms *ComplianceMonitoringService) checkCANSPAMCompliance() (bool, error) {
 // isEmailCANSPAMCompliant checks if a single email is CAN-SPAM compliant
 func (cms *ComplianceMonitoringService) isEmailCANSPAMCompliant(email *models.IncomingEmail) bool {
 	content := strings.ToLower(email.Content)
-	
-	hasUnsubscribe := strings.Contains(content, "unsubscribe") || 
-					  strings.Contains(content, "opt-out") || 
-					  strings.Contains(content, "opt out")
-	
-	hasPhysicalAddress := strings.Contains(content, "houston") || 
-						  strings.Contains(content, "tx") || 
-						  strings.Contains(content, "texas") ||
-						  (strings.Contains(content, "street") || strings.Contains(content, "avenue") || strings.Contains(content, "road"))
-	
+
+	hasUnsubscribe := strings.Contains(content, "unsubscribe") ||
+		strings.Contains(content, "opt-out") ||
+		strings.Contains(content, "opt out")
+
+	hasPhysicalAddress := strings.Contains(content, "houston") ||
+		strings.Contains(content, "tx") ||
+		strings.Contains(content, "texas") ||
+		(strings.Contains(content, "street") || strings.Contains(content, "avenue") || strings.Contains(content, "road"))
+
 	hasFromAddress := email.FromEmail != ""
 	hasValidSubject := email.Subject != "" && !strings.Contains(strings.ToLower(email.Subject), "re:") && !strings.Contains(strings.ToLower(email.Subject), "fwd:")
-	
+
 	return hasUnsubscribe && hasPhysicalAddress && hasFromAddress && hasValidSubject
 }
 
@@ -736,7 +736,7 @@ func (am *AlertManager) TriggerAlert(alert ComplianceAlert) {
 	am.activeAlerts = append(am.activeAlerts, alert)
 
 	log.Printf("COMPLIANCE ALERT [%s]: %s - %s", alert.Severity, alert.Title, alert.Message)
-	
+
 	go am.sendNotification(alert)
 }
 
@@ -790,7 +790,7 @@ func (am *AlertManager) ResolveAlert(alertID string) error {
 }
 
 // ComplianceReporter generates compliance reports
-type ComplianceReporter struct{
+type ComplianceReporter struct {
 	db *gorm.DB
 }
 
@@ -1047,12 +1047,12 @@ func (ec *EmergencyControls) GetStatus() EmergencyStatus {
 		status.ActivatedAt = ec.activatedAt
 		status.ActivatedBy = ec.activatedBy
 		status.EstimatedResolution = "Manual intervention required"
-		
+
 		if ec.db != nil {
 			var stoppedCount, blockedCount int64
 			ec.db.Model(&models.CampaignExecution{}).Where("status = ? AND updated_at > ?", "skipped", ec.activatedAt).Count(&stoppedCount)
 			status.CampaignsStopped = int(stoppedCount)
-			
+
 			ec.db.Model(&models.CampaignExecution{}).Where("status = ? AND created_at > ?", "scheduled", ec.activatedAt).Count(&blockedCount)
 			status.EmailsBlocked = int(blockedCount)
 		} else {

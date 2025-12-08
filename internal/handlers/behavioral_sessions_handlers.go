@@ -30,25 +30,25 @@ type ActiveSessionResponse struct {
 
 // ActiveSession represents a single active session with enriched data
 type ActiveSession struct {
-	SessionID         string              `json:"session_id"`
-	LeadID            int64               `json:"lead_id"`
-	LeadEmail         string              `json:"lead_email,omitempty"`
-	LeadName          string              `json:"lead_name,omitempty"`
-	IsAnonymous       bool                `json:"is_anonymous"`
-	Location          SessionLocation     `json:"location"`
-	BehavioralScore   int                 `json:"behavioral_score"`
-	ScoreCategory     string              `json:"score_category"`
-	CurrentPage       string              `json:"current_page"`
-	CurrentProperty   *PropertySummary    `json:"current_property,omitempty"`
-	PageViews         int                 `json:"page_views"`
-	PropertyViews     int                 `json:"property_views"`
-	PropertySaves     int                 `json:"property_saves"`
-	SessionDuration   int                 `json:"session_duration_seconds"`
-	LastActivity      time.Time           `json:"last_activity"`
-	StartTime         time.Time           `json:"start_time"`
-	DeviceType        string              `json:"device_type"`
-	Browser           string              `json:"browser"`
-	ReferrerSource    string              `json:"referrer_source"`
+	SessionID       string           `json:"session_id"`
+	LeadID          int64            `json:"lead_id"`
+	LeadEmail       string           `json:"lead_email,omitempty"`
+	LeadName        string           `json:"lead_name,omitempty"`
+	IsAnonymous     bool             `json:"is_anonymous"`
+	Location        SessionLocation  `json:"location"`
+	BehavioralScore int              `json:"behavioral_score"`
+	ScoreCategory   string           `json:"score_category"`
+	CurrentPage     string           `json:"current_page"`
+	CurrentProperty *PropertySummary `json:"current_property,omitempty"`
+	PageViews       int              `json:"page_views"`
+	PropertyViews   int              `json:"property_views"`
+	PropertySaves   int              `json:"property_saves"`
+	SessionDuration int              `json:"session_duration_seconds"`
+	LastActivity    time.Time        `json:"last_activity"`
+	StartTime       time.Time        `json:"start_time"`
+	DeviceType      string           `json:"device_type"`
+	Browser         string           `json:"browser"`
+	ReferrerSource  string           `json:"referrer_source"`
 }
 
 // SessionLocation represents location information
@@ -71,12 +71,12 @@ type PropertySummary struct {
 func (h *BehavioralSessionsHandler) GetActiveSessions(c *gin.Context) {
 	// Active sessions are those without end_time and recent activity (within 15 minutes)
 	cutoffTime := time.Now().Add(-15 * time.Minute)
-	
+
 	var sessions []models.BehavioralSession
 	err := h.db.Where("end_time IS NULL AND start_time >= ?", cutoffTime).
 		Order("start_time DESC").
 		Find(&sessions).Error
-	
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to fetch active sessions",
@@ -93,7 +93,7 @@ func (h *BehavioralSessionsHandler) GetActiveSessions(c *gin.Context) {
 	for _, session := range sessions {
 		activeSession := h.buildActiveSession(session)
 		activeSessions = append(activeSessions, activeSession)
-		
+
 		// Count by temperature
 		switch activeSession.ScoreCategory {
 		case "hot":
@@ -138,7 +138,7 @@ func (h *BehavioralSessionsHandler) buildActiveSession(session models.Behavioral
 		activeSession.LeadEmail = lead.Email
 		activeSession.LeadName = fmt.Sprintf("%s %s", lead.FirstName, lead.LastName)
 		activeSession.IsAnonymous = lead.Email == ""
-		
+
 		// Get location from lead
 		if lead.City != "" || lead.State != "" {
 			activeSession.Location = SessionLocation{
@@ -184,10 +184,10 @@ func (h *BehavioralSessionsHandler) buildActiveSession(session models.Behavioral
 		Order("created_at DESC").
 		First(&lastEvent).Error; err == nil {
 		activeSession.LastActivity = lastEvent.CreatedAt
-		
+
 		// Set current page based on event type
 		activeSession.CurrentPage = h.getPageFromEvent(lastEvent.EventType)
-		
+
 		// Get current property if viewing a property
 		if lastEvent.PropertyID != nil {
 			var property models.Property
@@ -277,7 +277,7 @@ func (h *BehavioralSessionsHandler) parseBrowser(userAgent string) string {
 // GetSessionJourney retrieves the full journey/timeline for a specific session
 func (h *BehavioralSessionsHandler) GetSessionJourney(c *gin.Context) {
 	sessionID := c.Param("id")
-	
+
 	// Get session details
 	var session models.BehavioralSession
 	if err := h.db.Where("id = ?", sessionID).First(&session).Error; err != nil {
@@ -301,7 +301,7 @@ func (h *BehavioralSessionsHandler) GetSessionJourney(c *gin.Context) {
 			"timestamp":  event.CreatedAt,
 			"event_data": event.EventData,
 		}
-		
+
 		// Add property details if available
 		if event.PropertyID != nil {
 			var property models.Property
@@ -315,31 +315,31 @@ func (h *BehavioralSessionsHandler) GetSessionJourney(c *gin.Context) {
 				}
 			}
 		}
-		
+
 		timeline = append(timeline, timelineItem)
 	}
 
 	// Get behavioral score changes during session
 	var scoreHistory []models.BehavioralScoreHistory
-	h.db.Where("lead_id = ? AND calculated_at BETWEEN ? AND ?", 
-		session.LeadID, 
-		session.StartTime, 
+	h.db.Where("lead_id = ? AND calculated_at BETWEEN ? AND ?",
+		session.LeadID,
+		session.StartTime,
 		time.Now()).
 		Order("calculated_at ASC").
 		Find(&scoreHistory)
 
 	// Build response
 	response := gin.H{
-		"session_id":     session.ID,
-		"lead_id":        session.LeadID,
-		"start_time":     session.StartTime,
-		"end_time":       session.EndTime,
-		"duration":       int(time.Since(session.StartTime).Seconds()),
-		"page_views":     session.PageViews,
-		"interactions":   session.Interactions,
-		"timeline":       timeline,
-		"score_changes":  scoreHistory,
-		"total_events":   len(events),
+		"session_id":    session.ID,
+		"lead_id":       session.LeadID,
+		"start_time":    session.StartTime,
+		"end_time":      session.EndTime,
+		"duration":      int(time.Since(session.StartTime).Seconds()),
+		"page_views":    session.PageViews,
+		"interactions":  session.Interactions,
+		"timeline":      timeline,
+		"score_changes": scoreHistory,
+		"total_events":  len(events),
 	}
 
 	c.JSON(http.StatusOK, response)

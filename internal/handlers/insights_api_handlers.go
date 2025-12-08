@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	
+
 	"chrisgross-ctrl-project/internal/services"
 	"chrisgross-ctrl-project/internal/utils"
 )
@@ -23,7 +23,7 @@ func (h *InsightsAPIHandlers) GetPredictiveInsights(c *gin.Context) {
 		utils.ErrorResponse(c, 500, "Failed to generate insights", err)
 		return
 	}
-	
+
 	utils.SuccessResponse(c, gin.H{
 		"insights": dashboardInsights.Insights,
 		"metrics":  dashboardInsights.Metrics,

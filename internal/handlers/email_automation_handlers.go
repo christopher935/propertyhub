@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/services"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // EmailAutomationHandlers handles email automation API requests
@@ -35,26 +35,26 @@ func RegisterEmailAutomationRoutes(router *gin.Engine, db *gorm.DB, emailProcess
 		// Email processing
 		email.POST("/process", handlers.ProcessEmail)
 		email.GET("/processing-history", handlers.GetProcessingHistory)
-		
-		// Email campaigns  
+
+		// Email campaigns
 		email.GET("/campaigns", handlers.GetCampaigns)
 		email.POST("/campaigns", handlers.CreateCampaign)
 		email.GET("/campaigns/:id", handlers.GetCampaign)
 		email.PUT("/campaigns/:id", handlers.UpdateCampaign)
 		email.DELETE("/campaigns/:id", handlers.DeleteCampaign)
-		
+
 		// Batch operations
 		email.POST("/batch/send", handlers.SendBatch)
 		email.GET("/batch/status/:batch_id", handlers.GetBatchStatus)
 		email.GET("/batch/history", handlers.GetBatchHistory)
-		
+
 		// Templates
 		email.GET("/templates", handlers.GetTemplates)
 		email.POST("/templates", handlers.CreateTemplate)
 		email.GET("/templates/:id", handlers.GetTemplate)
 		email.PUT("/templates/:id", handlers.UpdateTemplate)
 		email.DELETE("/templates/:id", handlers.DeleteTemplate)
-		
+
 		// Analytics
 		email.GET("/analytics/delivery", handlers.GetDeliveryAnalytics)
 		email.GET("/analytics/engagement", handlers.GetEngagementAnalytics)
@@ -79,7 +79,7 @@ func (h *EmailAutomationHandlers) ProcessEmail(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": result.Success,
 		"data":    result,
@@ -181,7 +181,7 @@ func (h *EmailAutomationHandlers) CreateCampaign(c *gin.Context) {
 // GetCampaign returns a specific campaign
 func (h *EmailAutomationHandlers) GetCampaign(c *gin.Context) {
 	campaignID := c.Param("id")
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Campaign retrieved",
@@ -217,7 +217,7 @@ func (h *EmailAutomationHandlers) UpdateCampaign(c *gin.Context) {
 // DeleteCampaign deletes a campaign
 func (h *EmailAutomationHandlers) DeleteCampaign(c *gin.Context) {
 	campaignID := c.Param("id")
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Campaign deleted successfully",
@@ -251,7 +251,7 @@ func (h *EmailAutomationHandlers) SendBatch(c *gin.Context) {
 // GetBatchStatus returns batch processing status
 func (h *EmailAutomationHandlers) GetBatchStatus(c *gin.Context) {
 	batchID := c.Param("batch_id")
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Batch status retrieved",
@@ -259,10 +259,10 @@ func (h *EmailAutomationHandlers) GetBatchStatus(c *gin.Context) {
 			"batch_id": batchID,
 			"status":   "processing",
 			"progress": gin.H{
-				"sent":       0,
-				"total":      0,
-				"failed":     0,
-				"pending":    0,
+				"sent":    0,
+				"total":   0,
+				"failed":  0,
+				"pending": 0,
 			},
 		},
 	})
@@ -418,12 +418,12 @@ func (h *EmailAutomationHandlers) GetEngagementAnalytics(c *gin.Context) {
 		"message": "Engagement analytics retrieved",
 		"data": gin.H{
 			"engagement": gin.H{
-				"opens":       650,
-				"clicks":      120,
-				"replies":     15,
-				"open_rate":   66.3,
-				"click_rate":  12.2,
-				"reply_rate":  1.5,
+				"opens":      650,
+				"clicks":     120,
+				"replies":    15,
+				"open_rate":  66.3,
+				"click_rate": 12.2,
+				"reply_rate": 1.5,
 			},
 		},
 	})

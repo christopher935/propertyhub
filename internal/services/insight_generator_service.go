@@ -388,7 +388,7 @@ func (s *InsightGeneratorService) getDashboardMetrics() (map[string]interface{},
 	s.db.Table("bookings").
 		Where("created_at >= ?", time.Now().AddDate(0, 0, -30)).
 		Count(&totalBookingsLast30Days)
-	
+
 	conversionRate := 0.0
 	if totalLeadsLast30Days > 0 {
 		conversionRate = (float64(totalBookingsLast30Days) / float64(totalLeadsLast30Days)) * 100

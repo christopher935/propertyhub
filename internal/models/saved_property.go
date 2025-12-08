@@ -13,8 +13,8 @@ type SavedProperty struct {
 	Notes      string    `json:"notes" gorm:"type:text"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
-	
-	Property   Property  `json:"property,omitempty" gorm:"foreignKey:PropertyID"`
+
+	Property Property `json:"property,omitempty" gorm:"foreignKey:PropertyID"`
 }
 
 func (SavedProperty) TableName() string {

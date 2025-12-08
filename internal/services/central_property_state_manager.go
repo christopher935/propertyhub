@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/security"
+	"gorm.io/gorm"
 )
 
 // CentralPropertyStateManager manages the single source of truth for all property data
@@ -31,15 +31,15 @@ func (cpsm *CentralPropertyStateManager) CreateOrUpdateProperty(request models.P
 
 	// Convert PropertyUpdateRequest to PropertyState
 	propertyState := &models.PropertyState{
-		MLSId:        request.MLSId,
-		Address:      request.Address,
-		Price:        request.Price,
-		Bedrooms:     request.Bedrooms,
-		Bathrooms:    request.Bathrooms,
-		SquareFeet:   request.SquareFeet,
-		PropertyType: request.PropertyType,
-		Status:       request.Status,
-		StatusSource: request.Source,
+		MLSId:           request.MLSId,
+		Address:         request.Address,
+		Price:           request.Price,
+		Bedrooms:        request.Bedrooms,
+		Bathrooms:       request.Bathrooms,
+		SquareFeet:      request.SquareFeet,
+		PropertyType:    request.PropertyType,
+		Status:          request.Status,
+		StatusSource:    request.Source,
 		StatusUpdatedAt: time.Now(),
 	}
 
@@ -79,7 +79,7 @@ func (cpsm *CentralPropertyStateManager) GetSystemStats() (map[string]interface{
 	stats := make(map[string]interface{})
 
 	var totalProperties, activeProperties, pendingProperties int64
-	
+
 	cpsm.db.Model(&models.PropertyState{}).Count(&totalProperties)
 	cpsm.db.Model(&models.PropertyState{}).Where("status = ?", "active").Count(&activeProperties)
 	cpsm.db.Model(&models.PropertyState{}).Where("status = ?", "pending").Count(&pendingProperties)
@@ -149,21 +149,20 @@ func (cpsm *CentralPropertyStateManager) GetAllProperties() ([]models.PropertySt
 	return properties, nil
 }
 
-
 // GetPublicProperties retrieves only properties available for public showing (with photos)
 func (cpsm *CentralPropertyStateManager) GetPublicProperties() ([]models.PropertyState, error) {
 	var propertyStates []models.PropertyState
-	
+
 	// Use Raw SQL to ensure the WHERE clause is applied
 	err := cpsm.db.Raw(`
 		SELECT * FROM property_states 
 		WHERE is_available_for_showing = true
 	`).Scan(&propertyStates).Error
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve public properties: %v", err)
 	}
-	
+
 	log.Printf("🔍 GetPublicProperties returned %d properties", len(propertyStates))
 	return propertyStates, nil
 }

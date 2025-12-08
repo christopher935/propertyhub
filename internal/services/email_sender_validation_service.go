@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // EmailSenderValidationService validates and manages trusted email senders
@@ -25,32 +25,32 @@ func NewEmailSenderValidationService(db *gorm.DB) *EmailSenderValidationService 
 func (s *EmailSenderValidationService) ValidateSender(fromEmail string) (*models.TrustedEmailSender, error) {
 	// Normalize email for comparison
 	fromEmail = strings.ToLower(strings.TrimSpace(fromEmail))
-	
+
 	var sender models.TrustedEmailSender
-	err := s.db.Where("LOWER(sender_email) = ? AND is_active = ? AND is_verified = ?", 
+	err := s.db.Where("LOWER(sender_email) = ? AND is_active = ? AND is_verified = ?",
 		fromEmail, true, true).First(&sender).Error
-	
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("sender not found or not active: %s", fromEmail)
 		}
 		return nil, fmt.Errorf("database error validating sender: %v", err)
 	}
-	
+
 	return &sender, nil
 }
 
 // GetTrustedSenderByEmail retrieves a trusted sender by email address
 func (s *EmailSenderValidationService) GetTrustedSenderByEmail(email string) (*models.TrustedEmailSender, error) {
 	email = strings.ToLower(strings.TrimSpace(email))
-	
+
 	var sender models.TrustedEmailSender
 	err := s.db.Where("LOWER(sender_email) = ?", email).First(&sender).Error
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &sender, nil
 }
 
@@ -84,13 +84,13 @@ func (s *EmailSenderValidationService) ValidateEmailForProcessing(fromEmail, sub
 	sender, err := s.ValidateSender(fromEmail)
 	if err != nil {
 		return &EmailValidationResult{
-			IsValid:     false,
-			Reason:      "Sender not trusted",
-			Confidence:  0.0,
-			Error:       err,
+			IsValid:    false,
+			Reason:     "Sender not trusted",
+			Confidence: 0.0,
+			Error:      err,
 		}, err
 	}
-	
+
 	// Validate processing mode
 	if sender.ProcessingMode == "disabled" {
 		return &EmailValidationResult{
@@ -100,10 +100,10 @@ func (s *EmailSenderValidationService) ValidateEmailForProcessing(fromEmail, sub
 			Sender:     sender,
 		}, fmt.Errorf("processing disabled for sender: %s", fromEmail)
 	}
-	
+
 	// Calculate confidence based on sender history and email content
 	confidence := s.calculateProcessingConfidence(sender, subject, content)
-	
+
 	return &EmailValidationResult{
 		IsValid:    true,
 		Reason:     "Sender validated and active",
@@ -124,25 +124,25 @@ type EmailValidationResult struct {
 // calculateProcessingConfidence calculates confidence score for email processing
 func (s *EmailSenderValidationService) calculateProcessingConfidence(sender *models.TrustedEmailSender, subject, content string) float64 {
 	baseConfidence := 0.8
-	
+
 	// Boost confidence for high-priority senders
 	if sender.Priority == "high" {
 		baseConfidence += 0.1
 	}
-	
+
 	// Boost confidence for senders with good history
 	if sender.EmailCount > 10 {
 		baseConfidence += 0.05
 	}
-	
+
 	// Reduce confidence for manual review mode
 	if sender.ProcessingMode == "manual_review" {
 		baseConfidence -= 0.2
 	}
-	
+
 	// Analyze content patterns based on email type
 	confidence := s.analyzeContentPatterns(sender.EmailType, subject, content, baseConfidence)
-	
+
 	// Ensure confidence stays within bounds
 	if confidence > 1.0 {
 		confidence = 1.0
@@ -150,7 +150,7 @@ func (s *EmailSenderValidationService) calculateProcessingConfidence(sender *mod
 	if confidence < 0.0 {
 		confidence = 0.0
 	}
-	
+
 	return confidence
 }
 
@@ -158,7 +158,7 @@ func (s *EmailSenderValidationService) calculateProcessingConfidence(sender *mod
 func (s *EmailSenderValidationService) analyzeContentPatterns(emailType, subject, content string, baseConfidence float64) float64 {
 	subjectLower := strings.ToLower(subject)
 	contentLower := strings.ToLower(content)
-	
+
 	switch emailType {
 	case "application_notification":
 		// Look for application-related keywords
@@ -169,7 +169,7 @@ func (s *EmailSenderValidationService) analyzeContentPatterns(emailType, subject
 				break
 			}
 		}
-		
+
 	case "pre_listing_alert", "broker_alert":
 		// Look for pre-listing keywords
 		preListingKeywords := []string{"pre-listing", "new listing", "property ready", "coming available"}
@@ -179,7 +179,7 @@ func (s *EmailSenderValidationService) analyzeContentPatterns(emailType, subject
 				break
 			}
 		}
-		
+
 	case "vendor_completion":
 		// Look for completion keywords
 		completionKeywords := []string{"completed", "finished", "done", "installed", "lockbox", "photos"}
@@ -189,7 +189,7 @@ func (s *EmailSenderValidationService) analyzeContentPatterns(emailType, subject
 				break
 			}
 		}
-		
+
 	case "lease_update":
 		// Look for lease-related keywords
 		leaseKeywords := []string{"lease", "signed", "approved", "tenant", "move-in"}
@@ -200,7 +200,7 @@ func (s *EmailSenderValidationService) analyzeContentPatterns(emailType, subject
 			}
 		}
 	}
-	
+
 	return baseConfidence
 }
 
@@ -210,61 +210,61 @@ func (s *EmailSenderValidationService) GetSenderStatistics(senderID uint) (*Send
 	if err := s.db.First(&sender, senderID).Error; err != nil {
 		return nil, err
 	}
-	
+
 	var stats SenderStatistics
 	stats.SenderID = senderID
 	stats.SenderName = sender.SenderName
 	stats.EmailType = sender.EmailType
 	stats.TotalEmails = sender.EmailCount
-	
+
 	// Get processing statistics from incoming emails
 	var processedCount, failedCount int64
 	s.db.Model(&models.IncomingEmail{}).
 		Where("from_email = ? AND processing_status = ?", sender.SenderEmail, "processed").
 		Count(&processedCount)
-	
+
 	s.db.Model(&models.IncomingEmail{}).
 		Where("from_email = ? AND processing_status = ?", sender.SenderEmail, "failed").
 		Count(&failedCount)
-	
+
 	stats.ProcessedEmails = int(processedCount)
 	stats.FailedEmails = int(failedCount)
-	
+
 	if stats.TotalEmails > 0 {
 		stats.SuccessRate = float64(stats.ProcessedEmails) / float64(stats.TotalEmails) * 100
 	}
-	
+
 	if sender.LastEmailAt != nil {
 		stats.LastEmailAt = *sender.LastEmailAt
 	}
-	
+
 	return &stats, nil
 }
 
 // SenderStatistics represents processing statistics for a sender
 type SenderStatistics struct {
-	SenderID       uint      `json:"sender_id"`
-	SenderName     string    `json:"sender_name"`
-	EmailType      string    `json:"email_type"`
-	TotalEmails    int       `json:"total_emails"`
-	ProcessedEmails int      `json:"processed_emails"`
-	FailedEmails   int       `json:"failed_emails"`
-	SuccessRate    float64   `json:"success_rate"`
-	LastEmailAt    time.Time `json:"last_email_at"`
+	SenderID        uint      `json:"sender_id"`
+	SenderName      string    `json:"sender_name"`
+	EmailType       string    `json:"email_type"`
+	TotalEmails     int       `json:"total_emails"`
+	ProcessedEmails int       `json:"processed_emails"`
+	FailedEmails    int       `json:"failed_emails"`
+	SuccessRate     float64   `json:"success_rate"`
+	LastEmailAt     time.Time `json:"last_email_at"`
 }
 
 // ValidateAndRouteDomainEmail validates an email from a domain-based sender
 func (s *EmailSenderValidationService) ValidateAndRouteDomainEmail(fromEmail, toDomain string) (*models.TrustedEmailSender, error) {
 	// For PropertyHub domain emails, check if we have sender configured for the domain
 	domain := extractDomainFromEmail(fromEmail)
-	
+
 	var sender models.TrustedEmailSender
 	err := s.db.Where("sender_email LIKE ? AND is_active = ?", "%@"+domain, true).First(&sender).Error
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("no active sender configuration for domain: %s", domain)
 	}
-	
+
 	return &sender, nil
 }
 

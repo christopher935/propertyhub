@@ -1,10 +1,10 @@
 package repositories
 
 import (
+	"chrisgross-ctrl-project/internal/models"
 	"context"
 	"fmt"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/models"
 	"strings"
 )
 
@@ -144,13 +144,13 @@ func (r *PropertyRepositoryImpl) Search(ctx context.Context, criteria PropertySe
 			"address":       true,
 			"year_built":    true,
 		}
-		
+
 		if allowedColumns[criteria.OrderBy] {
 			orderBy = criteria.OrderBy
 		}
 		// If not in whitelist, keep default "updated_at"
 	}
-	
+
 	if criteria.OrderDir != "" && (criteria.OrderDir == "ASC" || criteria.OrderDir == "DESC") {
 		orderDir = criteria.OrderDir
 	}

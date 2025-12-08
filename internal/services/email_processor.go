@@ -3,8 +3,8 @@ package services
 import (
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // EmailProcessor handles email processing for pre-listings

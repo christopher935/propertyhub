@@ -4,14 +4,14 @@ import (
 	"log"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // BehavioralScoringEngine calculates and manages behavioral scores for leads
 type BehavioralScoringEngine struct {
-	db           *gorm.DB
-	scoringRules *ScoringRules
+	db              *gorm.DB
+	scoringRules    *ScoringRules
 	notificationHub *AdminNotificationHub
 }
 
@@ -37,12 +37,12 @@ func (e *BehavioralScoringEngine) CalculateScore(leadID int64) (*models.Behavior
 	urgencyScore := e.calculateUrgencyScore(events)
 	engagementScore := e.calculateEngagementScore(events)
 	financialScore := e.calculateFinancialScore(events)
-	
+
 	// Calculate composite score (weighted average, 0-100)
 	compositeScore := int(
 		(float64(urgencyScore) * 0.40) +
-		(float64(engagementScore) * 0.40) +
-		(float64(financialScore) * 0.20),
+			(float64(engagementScore) * 0.40) +
+			(float64(financialScore) * 0.20),
 	)
 
 	// Build score factors JSON
@@ -180,10 +180,10 @@ func (e *BehavioralScoringEngine) SaveScore(score *models.BehavioralScore) error
 	// Check if score exists for this lead
 	var existing models.BehavioralScore
 	err := e.db.Where("lead_id = ?", score.LeadID).First(&existing).Error
-	
+
 	newSegment := e.determineSegment(score.CompositeScore)
 	var previousSegment string
-	
+
 	if err == gorm.ErrRecordNotFound {
 		// Create new score
 		score.CreatedAt = time.Now()
@@ -202,7 +202,7 @@ func (e *BehavioralScoringEngine) SaveScore(score *models.BehavioralScore) error
 			return err
 		}
 	}
-	
+
 	// Check if lead just became hot
 	if e.notificationHub != nil && newSegment == "hot" && previousSegment != "hot" {
 		var lead models.Lead
@@ -211,7 +211,7 @@ func (e *BehavioralScoringEngine) SaveScore(score *models.BehavioralScore) error
 			e.notificationHub.SendHotLeadAlert(leadName, score.CompositeScore, int64(*score.LeadID))
 		}
 	}
-	
+
 	return nil
 }
 
@@ -231,7 +231,7 @@ func (e *BehavioralScoringEngine) RecalculateAllScores() error {
 	}
 
 	log.Printf("🔄 Recalculating scores for %d leads...", len(leads))
-	
+
 	for _, lead := range leads {
 		if _, err := e.CalculateScore(int64(lead.ID)); err != nil {
 			log.Printf("⚠️ Failed to recalculate score for lead %d: %v", lead.ID, err)

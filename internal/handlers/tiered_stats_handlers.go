@@ -71,20 +71,20 @@ func (h *TieredStatsHandlers) GetDailyStats(c *gin.Context) {
 func (h *TieredStatsHandlers) getTopOpportunities() []map[string]interface{} {
 	// This should call the AI orchestrator service
 	// For now, return sample data structure
-	
+
 	opportunities := []map[string]interface{}{}
-	
+
 	// Query recent high-scoring leads
 	type OpportunityLead struct {
-		ID                   uint
-		Name                 string
-		Email                string
-		BehavioralScore      float64
+		ID                    uint
+		Name                  string
+		Email                 string
+		BehavioralScore       float64
 		ConversionProbability float64
-		LastContactAt        *time.Time
-		ViewCount            int
+		LastContactAt         *time.Time
+		ViewCount             int
 	}
-	
+
 	var leads []OpportunityLead
 	h.DB.Table("leads").
 		Select("id, name, email, behavioral_score, conversion_probability, last_contact_at").
@@ -92,17 +92,17 @@ func (h *TieredStatsHandlers) getTopOpportunities() []map[string]interface{} {
 		Order("behavioral_score DESC").
 		Limit(10).
 		Find(&leads)
-	
+
 	for _, lead := range leads {
 		oppType := "hot_lead"
 		priority := int(lead.BehavioralScore)
-		
+
 		// Determine opportunity type
 		if lead.LastContactAt != nil && time.Since(*lead.LastContactAt) > 7*24*time.Hour {
 			oppType = "re_engagement"
 			priority = 80
 		}
-		
+
 		opportunities = append(opportunities, map[string]interface{}{
 			"id":                     lead.ID,
 			"type":                   oppType,
@@ -123,7 +123,7 @@ func (h *TieredStatsHandlers) getTopOpportunities() []map[string]interface{} {
 			},
 		})
 	}
-	
+
 	return opportunities
 }
 
@@ -131,18 +131,18 @@ func (h *TieredStatsHandlers) getTopOpportunities() []map[string]interface{} {
 func (h *TieredStatsHandlers) getRecentBehavioralScores() map[string]interface{} {
 	var avgScore float64
 	var highScoreCount int64
-	
+
 	h.DB.Table("leads").
 		Select("COALESCE(AVG(behavioral_score), 0)").
 		Scan(&avgScore)
-	
+
 	h.DB.Table("leads").
 		Where("behavioral_score > ?", 70).
 		Count(&highScoreCount)
-	
+
 	return map[string]interface{}{
-		"average_score":     avgScore,
-		"high_score_count":  highScoreCount,
+		"average_score":    avgScore,
+		"high_score_count": highScoreCount,
 	}
 }
 
@@ -152,7 +152,7 @@ func (h *TieredStatsHandlers) getLeadSourceBreakdown() []map[string]interface{} 
 		Source string
 		Count  int64
 	}
-	
+
 	var sources []SourceCount
 	h.DB.Table("leads").
 		Select("source, COUNT(*) as count").
@@ -160,7 +160,7 @@ func (h *TieredStatsHandlers) getLeadSourceBreakdown() []map[string]interface{} 
 		Order("count DESC").
 		Limit(5).
 		Find(&sources)
-	
+
 	result := []map[string]interface{}{}
 	for _, s := range sources {
 		result = append(result, map[string]interface{}{
@@ -168,36 +168,36 @@ func (h *TieredStatsHandlers) getLeadSourceBreakdown() []map[string]interface{} 
 			"count":  s.Count,
 		})
 	}
-	
+
 	return result
 }
 
 // Helper: Get funnel metrics
 func (h *TieredStatsHandlers) getFunnelMetrics() map[string]interface{} {
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-	
+
 	var totalVisitors int64
 	var totalLeads int64
 	var totalApplications int64
 	var totalConversions int64
-	
+
 	h.DB.Table("behavioral_events").
 		Where("created_at > ?", thirtyDaysAgo).
 		Distinct("session_id").
 		Count(&totalVisitors)
-	
+
 	h.DB.Table("leads").
 		Where("created_at > ?", thirtyDaysAgo).
 		Count(&totalLeads)
-	
+
 	h.DB.Table("applications").
 		Where("created_at > ?", thirtyDaysAgo).
 		Count(&totalApplications)
-	
+
 	h.DB.Table("applications").
 		Where("created_at > ? AND status = ?", thirtyDaysAgo, "approved").
 		Count(&totalConversions)
-	
+
 	return map[string]interface{}{
 		"visitors":     totalVisitors,
 		"leads":        totalLeads,

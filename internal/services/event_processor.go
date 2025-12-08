@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // EventProcessor monitors event tables and triggers orchestration
@@ -177,9 +177,9 @@ func (ep *EventProcessor) detectHotLeadBehavior() {
 		// Only trigger if score is high enough (70+)
 		if score.CompositeScore >= 70 {
 			eventData := map[string]interface{}{
-				"lead_id":         float64(leadID),
-				"overall_score":   float64(score.CompositeScore),
-				"urgency_score":   score.UrgencyScore,
+				"lead_id":          float64(leadID),
+				"overall_score":    float64(score.CompositeScore),
+				"urgency_score":    score.UrgencyScore,
 				"engagement_score": score.EngagementScore,
 			}
 

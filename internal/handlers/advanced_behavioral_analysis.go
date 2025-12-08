@@ -7,12 +7,12 @@ import (
 // getCommunityGrowthInsights analyzes community growth patterns for enhanced behavioral triggers
 func (h *ContextFUBIntegrationHandlers) getCommunityGrowthInsights(location string) map[string]interface{} {
 	marketIntel := h.getHoustonMarketIntelligence(location, "", "")
-	
+
 	insights := map[string]interface{}{
-		"growth_rate":        0.082,
-		"development_index":  7.8,
-		"investment_appeal":  "high",
-		"market_stability":   "strong",
+		"growth_rate":       0.082,
+		"development_index": 7.8,
+		"investment_appeal": "high",
+		"market_stability":  "strong",
 	}
 
 	if rentalMarket, exists := marketIntel["rental_market"]; exists {
@@ -39,16 +39,16 @@ func (h *ContextFUBIntegrationHandlers) getCommunityGrowthInsights(location stri
 // getCompetitiveFactors analyzes competitive market factors for property category decisions
 func (h *ContextFUBIntegrationHandlers) getCompetitiveFactors(propertyCategory interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		"market_competition":     "moderate-to-high",
-		"buyer_advantage":        false,
-		"seller_market":          true,
-		"negotiation_leverage":   "seller-favored",
-		"inventory_tightness":    0.73,
-		"demand_pressure":        "high",
-		"pricing_power":          "strong",
-		"time_on_market_trend":   "decreasing",
-		"offer_competition":      "multiple offers common",
-		"cash_buyer_percentage":  0.28,
+		"market_competition":    "moderate-to-high",
+		"buyer_advantage":       false,
+		"seller_market":         true,
+		"negotiation_leverage":  "seller-favored",
+		"inventory_tightness":   0.73,
+		"demand_pressure":       "high",
+		"pricing_power":         "strong",
+		"time_on_market_trend":  "decreasing",
+		"offer_competition":     "multiple offers common",
+		"cash_buyer_percentage": 0.28,
 	}
 }
 
@@ -62,7 +62,7 @@ func (h *ContextFUBIntegrationHandlers) analyzeUrgencyFactors(engagement, financ
 	}
 
 	marketIntel := h.getHoustonMarketIntelligence(location, "", "")
-	
+
 	inventoryLevel := "balanced"
 	monthsOfInventory := 2.8
 
@@ -82,7 +82,7 @@ func (h *ContextFUBIntegrationHandlers) analyzeUrgencyFactors(engagement, financ
 	}
 
 	urgencyScore := (engagement + financial + timeline) / 3.0
-	
+
 	if inventoryLevel == "tight" {
 		urgencyScore *= 1.25
 	}
@@ -118,13 +118,13 @@ func (h *ContextFUBIntegrationHandlers) analyzeUrgencyFactors(engagement, financ
 // analyzeEngagementDepth provides detailed engagement pattern analysis
 func (h *ContextFUBIntegrationHandlers) analyzeEngagementDepth(behaviorData map[string]interface{}, sessionHistory []map[string]interface{}) map[string]interface{} {
 	baseEngagement := 0.3
-	
+
 	if viewTime, exists := behaviorData["total_view_time"]; exists {
 		if timeFloat, ok := viewTime.(float64); ok {
 			baseEngagement += (timeFloat / 300.0) * 0.4
 		}
 	}
-	
+
 	if interactions, exists := behaviorData["interaction_count"]; exists {
 		if countFloat, ok := interactions.(float64); ok {
 			baseEngagement += (countFloat / 10.0) * 0.3
@@ -133,36 +133,36 @@ func (h *ContextFUBIntegrationHandlers) analyzeEngagementDepth(behaviorData map[
 
 	sessionCount := float64(len(sessionHistory))
 	sessionScore := sessionCount / 5.0 * 0.2
-	
+
 	if sessionScore > 0.2 {
 		sessionScore = 0.2
 	}
-	
+
 	finalScore := baseEngagement + sessionScore
 	if finalScore > 1.0 {
 		finalScore = 1.0
 	}
 
 	return map[string]interface{}{
-		"engagement_score":     finalScore,
-		"session_count":        sessionCount,
-		"interaction_quality":  h.assessInteractionQuality(behaviorData),
-		"attention_span":       h.calculateSessionDepth(behaviorData),
-		"information_seeking":  h.calculateInformationDepth(behaviorData),
-		"behavioral_signals":   h.checkBehavioralSignal(behaviorData),
+		"engagement_score":    finalScore,
+		"session_count":       sessionCount,
+		"interaction_quality": h.assessInteractionQuality(behaviorData),
+		"attention_span":      h.calculateSessionDepth(behaviorData),
+		"information_seeking": h.calculateInformationDepth(behaviorData),
+		"behavioral_signals":  h.checkBehavioralSignal(behaviorData),
 	}
 }
 
 // assessFinancialReadiness evaluates financial qualification and readiness signals
 func (h *ContextFUBIntegrationHandlers) assessFinancialReadiness(financialContext map[string]interface{}, behaviorIndicators map[string]interface{}) map[string]interface{} {
 	baseScore := 0.2
-	
+
 	if preApproved, exists := financialContext["pre_approved"]; exists {
 		if approved, ok := preApproved.(bool); ok && approved {
 			baseScore += 0.4
 		}
 	}
-	
+
 	if creditScore, exists := financialContext["credit_score"]; exists {
 		if score, ok := creditScore.(float64); ok {
 			if score >= 750 {
@@ -174,7 +174,7 @@ func (h *ContextFUBIntegrationHandlers) assessFinancialReadiness(financialContex
 			}
 		}
 	}
-	
+
 	if incomeVerified, exists := financialContext["income_verified"]; exists {
 		if verified, ok := incomeVerified.(bool); ok && verified {
 			baseScore += 0.2
@@ -251,7 +251,7 @@ func (h *ContextFUBIntegrationHandlers) analyzeConversionFactors(engagementData,
 // getPropertySpecificActions generates property-type specific action recommendations
 func (h *ContextFUBIntegrationHandlers) getPropertySpecificActions(propertyCategory interface{}, behavioralScore float64, urgencyLevel string) []string {
 	actions := []string{}
-	
+
 	categoryStr := ""
 	if category, ok := propertyCategory.(string); ok {
 		categoryStr = strings.ToLower(category)
@@ -339,12 +339,12 @@ func (h *ContextFUBIntegrationHandlers) getMarketIntelligentActions(propertyCate
 // prioritizeAndDeduplicateActions optimizes action recommendations
 func (h *ContextFUBIntegrationHandlers) prioritizeAndDeduplicateActions(propertyActions, marketActions []string, urgencyScore, engagementScore float64) []string {
 	actionMap := make(map[string]int)
-	
+
 	for i, action := range propertyActions {
 		priority := len(propertyActions) - i
 		actionMap[action] = priority
 	}
-	
+
 	for i, action := range marketActions {
 		priority := len(marketActions) - i
 		if existing, exists := actionMap[action]; exists {
@@ -372,7 +372,7 @@ func (h *ContextFUBIntegrationHandlers) prioritizeAndDeduplicateActions(property
 		action   string
 		priority float64
 	}
-	
+
 	var sortedActions []actionPriority
 	for action, priority := range actionMap {
 		adjustedPriority := float64(priority) * urgencyMultiplier * engagementMultiplier
@@ -392,7 +392,7 @@ func (h *ContextFUBIntegrationHandlers) prioritizeAndDeduplicateActions(property
 	if len(sortedActions) < maxActions {
 		maxActions = len(sortedActions)
 	}
-	
+
 	for i := 0; i < maxActions; i++ {
 		result = append(result, sortedActions[i].action)
 	}
@@ -405,7 +405,7 @@ func (h *ContextFUBIntegrationHandlers) calculateRecommendedTimeline(urgencyScor
 	if urgencyScore >= 0.8 {
 		return "within_4_hours"
 	} else if urgencyScore >= 0.6 {
-		return "within_24_hours"  
+		return "within_24_hours"
 	} else if urgencyScore >= 0.4 {
 		return "within_48_hours"
 	}
@@ -571,7 +571,7 @@ func (h *ContextFUBIntegrationHandlers) categorizeFinancialReadiness(score float
 
 func (h *ContextFUBIntegrationHandlers) calculateRecommendedResponseTime(urgency, engagement float64) string {
 	combinedScore := (urgency + engagement) / 2.0
-	
+
 	if combinedScore >= 0.8 {
 		return "immediate_response"
 	} else if combinedScore >= 0.6 {
@@ -631,7 +631,7 @@ func (h *ContextFUBIntegrationHandlers) categorizeConversionProbability(score fl
 func (h *ContextFUBIntegrationHandlers) estimateConversionTimelineAdvanced(score float64, factors []string) string {
 	hasHighUrgency := h.containsString(factors, "high_urgency")
 	hasFinancialQual := h.containsString(factors, "financially_qualified")
-	
+
 	if score >= 0.8 && hasHighUrgency && hasFinancialQual {
 		return "1-2_weeks"
 	} else if score >= 0.6 && (hasHighUrgency || hasFinancialQual) {

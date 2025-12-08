@@ -8,25 +8,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/services"
 	"chrisgross-ctrl-project/internal/utils"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // EmailSenderHandlers manages trusted email sender configuration and processing
 type EmailSenderHandlers struct {
-	db                    *gorm.DB
-	emailProcessor        *services.EmailProcessor
+	db                      *gorm.DB
+	emailProcessor          *services.EmailProcessor
 	senderValidationService *services.EmailSenderValidationService
 }
 
 // NewEmailSenderHandlers creates new email sender handlers
 func NewEmailSenderHandlers(db *gorm.DB) *EmailSenderHandlers {
 	return &EmailSenderHandlers{
-		db:                    db,
-		emailProcessor:        services.NewEmailProcessor(db),
+		db:                      db,
+		emailProcessor:          services.NewEmailProcessor(db),
 		senderValidationService: services.NewEmailSenderValidationService(db),
 	}
 }
@@ -74,7 +74,7 @@ func (h *EmailSenderHandlers) CreateTrustedSender(c *gin.Context) {
 		Notes:           request.Notes,
 		ParsingTemplate: request.ParsingTemplate,
 		AddedBy:         c.GetString("admin_username"), // From auth middleware
-		IsVerified:      true, // Auto-verify for now, could require manual verification
+		IsVerified:      true,                          // Auto-verify for now, could require manual verification
 	}
 
 	// Validate sender data
@@ -396,7 +396,7 @@ func (h *EmailSenderHandlers) TestEmailParsing(c *gin.Context) {
 	})
 }
 
-// GetEmailProcessingStats returns email processing statistics  
+// GetEmailProcessingStats returns email processing statistics
 // GET /api/v1/email/processing-stats
 func (h *EmailSenderHandlers) GetEmailProcessingStats(c *gin.Context) {
 	days := c.DefaultQuery("days", "30")
@@ -586,7 +586,7 @@ func (h *EmailSenderHandlers) processApplicationNotification(extractedData map[s
 
 	// Try to match to existing FUB lead
 	var fubLead models.Lead
-	err := h.db.Where("LOWER(first_name || ' ' || last_name) LIKE LOWER(?) OR email = ?", 
+	err := h.db.Where("LOWER(first_name || ' ' || last_name) LIKE LOWER(?) OR email = ?",
 		"%"+applicantName+"%", applicantEmail).First(&fubLead).Error
 
 	if err == nil {
@@ -612,7 +612,7 @@ func (h *EmailSenderHandlers) processApplicationNotification(extractedData map[s
 
 func (h *EmailSenderHandlers) processPreListingAlert(extractedData map[string]interface{}, email *models.IncomingEmail) (string, string) {
 	propertyAddress, _ := extractedData["property_address"].(string)
-	
+
 	if propertyAddress == "" {
 		return "insufficient_data", "Could not extract property address from pre-listing alert"
 	}
@@ -620,11 +620,11 @@ func (h *EmailSenderHandlers) processPreListingAlert(extractedData map[string]in
 	// Create or update pre-listing item
 	preListingItem := models.PreListingItem{
 		Address:           propertyAddress,
-		Status:              models.StatusEmailReceived,
-		TerryEmailSubject:  email.Subject,
-		TerryEmailContent:  email.Content,
+		Status:            models.StatusEmailReceived,
+		TerryEmailSubject: email.Subject,
+		TerryEmailContent: email.Content,
 	}
-	
+
 	if targetDate, ok := extractedData["target_list_date"].(time.Time); ok {
 		preListingItem.TargetListingDate = &targetDate
 	}
@@ -695,7 +695,7 @@ func (h *EmailSenderHandlers) processLeaseUpdate(extractedData map[string]interf
 
 	// Try to find related application and update status
 	var application models.Approval
-	err := h.db.Where("applicant_name LIKE ? AND property_address LIKE ?", 
+	err := h.db.Where("applicant_name LIKE ? AND property_address LIKE ?",
 		"%"+tenantName+"%", "%"+propertyAddress+"%").First(&application).Error
 
 	if err == nil {
@@ -757,15 +757,15 @@ func (h *EmailSenderHandlers) logEmailProcessing(emailRequest struct {
 	Headers    map[string]string
 	ReceivedAt time.Time
 }, sender *models.TrustedEmailSender, result map[string]interface{}) {
-	
+
 	// Create processing log entry
 	processingLog := models.EmailProcessingLog{
-		TrustedSenderID:  &sender.ID,
-		ProcessingStatus: "success",
-		ProcessingResult: fmt.Sprintf("%v", result),
-		ActionTaken:      fmt.Sprintf("%v", result["action_taken"]),
+		TrustedSenderID:   &sender.ID,
+		ProcessingStatus:  "success",
+		ProcessingResult:  fmt.Sprintf("%v", result),
+		ActionTaken:       fmt.Sprintf("%v", result["action_taken"]),
 		ImpactDescription: fmt.Sprintf("%v", result["impact"]),
-		ConfidenceScore:  result["confidence"].(float64),
+		ConfidenceScore:   result["confidence"].(float64),
 	}
 
 	if resultJSON, err := json.Marshal(result); err == nil {
@@ -804,7 +804,7 @@ func (h *EmailSenderHandlers) extractPropertyAddress(subject, content string) st
 
 func (h *EmailSenderHandlers) extractTargetDate(content string) *time.Time {
 	// Extract target listing date from content
-	// Simplified implementation  
+	// Simplified implementation
 	return nil
 }
 
@@ -814,8 +814,8 @@ func (h *EmailSenderHandlers) extractOwnerContact(content string) string {
 }
 
 func (h *EmailSenderHandlers) extractPriority(subject, content string) string {
-	if strings.Contains(strings.ToLower(subject+content), "urgent") || 
-	   strings.Contains(strings.ToLower(subject+content), "asap") {
+	if strings.Contains(strings.ToLower(subject+content), "urgent") ||
+		strings.Contains(strings.ToLower(subject+content), "asap") {
 		return "high"
 	}
 	return "medium"
@@ -865,12 +865,12 @@ func (h *EmailSenderHandlers) runParsingTest(emailContent, emailType string, tem
 	return map[string]interface{}{
 		"extracted_fields": map[string]string{
 			"applicant_name":   "Sarah Martinez",
-			"applicant_email":  "sarah.martinez@email.com", 
+			"applicant_email":  "sarah.martinez@email.com",
 			"property_address": "123 Heights Boulevard",
 		},
-		"confidence":       0.92,
-		"warnings":        []string{},
-		"suggestions":     []string{"Parsing successful with high confidence"},
+		"confidence":  0.92,
+		"warnings":    []string{},
+		"suggestions": []string{"Parsing successful with high confidence"},
 	}
 }
 
@@ -924,19 +924,19 @@ func (h *EmailSenderHandlers) getTopSenders(since time.Time, limit int) []map[st
 func (h *EmailSenderHandlers) getRecentActivity(limit int) []map[string]interface{} {
 	// Get recent email processing activity
 	return []map[string]interface{}{
-		{"timestamp": time.Now().Add(-15*time.Minute), "sender": "Terry Johnson", "action": "Pre-listing alert processed", "status": "success"},
-		{"timestamp": time.Now().Add(-45*time.Minute), "sender": "Buildium System", "action": "Application notification matched to FUB lead", "status": "success"},
-		{"timestamp": time.Now().Add(-2*time.Hour), "sender": "PRS Lockbox", "action": "Lockbox completion updated", "status": "success"},
+		{"timestamp": time.Now().Add(-15 * time.Minute), "sender": "Terry Johnson", "action": "Pre-listing alert processed", "status": "success"},
+		{"timestamp": time.Now().Add(-45 * time.Minute), "sender": "Buildium System", "action": "Application notification matched to FUB lead", "status": "success"},
+		{"timestamp": time.Now().Add(-2 * time.Hour), "sender": "PRS Lockbox", "action": "Lockbox completion updated", "status": "success"},
 	}
 }
 
 // RegisterEmailSenderRoutes registers all email sender management routes
 func RegisterEmailSenderRoutes(r *gin.Engine, db *gorm.DB) {
 	handlers := NewEmailSenderHandlers(db)
-	
+
 	// Admin page route
 	r.GET("/admin/email-senders", handlers.AdminEmailSendersPage)
-	
+
 	api := r.Group("/api/v1/email")
 	{
 		// Sender management
@@ -945,7 +945,7 @@ func RegisterEmailSenderRoutes(r *gin.Engine, db *gorm.DB) {
 		api.GET("/senders/:id", handlers.GetTrustedSender)
 		api.PUT("/senders/:id", handlers.UpdateTrustedSender)
 		api.DELETE("/senders/:id", handlers.DeleteTrustedSender)
-		
+
 		// Email processing
 		api.POST("/process-incoming", handlers.ProcessIncomingEmail)
 		api.POST("/test-parsing", handlers.TestEmailParsing)

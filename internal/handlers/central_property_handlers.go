@@ -1,16 +1,16 @@
 package handlers
 
 import (
-	"os"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/security"
 	"chrisgross-ctrl-project/internal/services"
+	"gorm.io/gorm"
 )
 
 // CentralPropertyHandler handles API requests for the Central Property State Manager
@@ -28,7 +28,11 @@ func NewCentralPropertyHandler(db *gorm.DB, encryptionManager *security.Encrypti
 // CreateOrUpdateProperty handles POST/PUT /api/v1/central-properties
 func (cph *CentralPropertyHandler) CreateOrUpdateProperty(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "POST, PUT, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.Header().Set("Content-Type", "application/json")
@@ -86,7 +90,11 @@ func (cph *CentralPropertyHandler) CreateOrUpdateProperty(w http.ResponseWriter,
 // GetProperty handles GET /api/v1/central-properties/{id}
 func (cph *CentralPropertyHandler) GetProperty(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.Header().Set("Content-Type", "application/json")
@@ -129,7 +137,11 @@ func (cph *CentralPropertyHandler) GetProperty(w http.ResponseWriter, r *http.Re
 // GetPropertiesByStatus handles GET /api/v1/central-properties?status={status}
 func (cph *CentralPropertyHandler) GetPropertiesByStatus(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.Header().Set("Content-Type", "application/json")
@@ -182,7 +194,11 @@ func (cph *CentralPropertyHandler) GetPropertiesByStatus(w http.ResponseWriter, 
 // UpdatePropertyStatus handles PATCH /api/v1/central-properties/{mlsId}/status
 func (cph *CentralPropertyHandler) UpdatePropertyStatus(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "PATCH, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.Header().Set("Content-Type", "application/json")
@@ -253,7 +269,11 @@ func (cph *CentralPropertyHandler) UpdatePropertyStatus(w http.ResponseWriter, r
 // GetSystemStats handles GET /api/v1/central-properties/stats
 func (cph *CentralPropertyHandler) GetSystemStats(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.Header().Set("Content-Type", "application/json")
@@ -289,7 +309,11 @@ func (cph *CentralPropertyHandler) GetSystemStats(w http.ResponseWriter, r *http
 // TestCentralState handles GET /api/v1/central-properties/test
 func (cph *CentralPropertyHandler) TestCentralState(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.Header().Set("Content-Type", "application/json")
@@ -345,26 +369,26 @@ func (cph *CentralPropertyHandler) TestCentralState(w http.ResponseWriter, r *ht
 // sendErrorResponse sends a standardized error response
 
 // GetAllPublicProperties handles GET /api/v1/central-properties (returns only public properties)
-func (cph *CentralPropertyHandler) GetAllPublicProperties(w http.ResponseWriter, r *http.Request ) {
+func (cph *CentralPropertyHandler) GetAllPublicProperties(w http.ResponseWriter, r *http.Request) {
 	// Set CORS headers
 	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
 	if origin == "" {
 		origin = "http://localhost:8080"
 	}
-	w.Header( ).Set("Access-Control-Allow-Origin", origin)
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.Header().Set("Content-Type", "application/json")
 
 	// Handle preflight OPTIONS request
 	if r.Method == "OPTIONS" {
-		w.WriteHeader(http.StatusOK )
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 
 	// Only allow GET method
 	if r.Method != "GET" {
-		cph.sendErrorResponse(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "Only GET method is allowed" )
+		cph.sendErrorResponse(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "Only GET method is allowed")
 		return
 	}
 
@@ -372,14 +396,14 @@ func (cph *CentralPropertyHandler) GetAllPublicProperties(w http.ResponseWriter,
 	properties, err := cph.stateManager.GetPublicProperties()
 	if err != nil {
 		log.Printf("Error retrieving public properties: %v", err)
-		cph.sendErrorResponse(w, http.StatusInternalServerError, "RETRIEVAL_ERROR", fmt.Sprintf("Failed to retrieve properties: %v", err ))
+		cph.sendErrorResponse(w, http.StatusInternalServerError, "RETRIEVAL_ERROR", fmt.Sprintf("Failed to retrieve properties: %v", err))
 		return
 	}
 
 	log.Printf("✅ Returning %d public properties", len(properties))
 
 	// Send success response
-	w.WriteHeader(http.StatusOK )
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success":    true,
 		"count":      len(properties),
@@ -398,9 +422,9 @@ func (cph *CentralPropertyHandler) sendErrorResponse(w http.ResponseWriter, stat
 // RegisterCentralPropertyRoutes registers all central property routes
 func RegisterCentralPropertyRoutes(mux *http.ServeMux, db *gorm.DB, encryptionManager *security.EncryptionManager) {
 	handler := NewCentralPropertyHandler(db, encryptionManager)
-	
+
 	// Central property management endpoints
-	mux.HandleFunc("/api/v1/central-properties", func(w http.ResponseWriter, r *http.Request ) {
+	mux.HandleFunc("/api/v1/central-properties", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			handler.GetAllPublicProperties(w, r)
 		} else {
@@ -418,9 +442,9 @@ func RegisterCentralPropertyRoutes(mux *http.ServeMux, db *gorm.DB, encryptionMa
 	})
 	mux.HandleFunc("/api/v1/central-properties/stats", handler.GetSystemStats)
 	mux.HandleFunc("/api/v1/central-properties/test", handler.TestCentralState)
-	
+
 	// Property status update endpoint (PATCH method)
 	mux.HandleFunc("/api/v1/central-properties/status/", handler.UpdatePropertyStatus)
-	
+
 	log.Println("✅ Central Property routes registered successfully")
 }

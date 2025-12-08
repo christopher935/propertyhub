@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/services"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // PropertyValuationHandlers handles property valuation API requests
@@ -36,24 +36,24 @@ func RegisterPropertyValuationRoutes(router *gin.Engine, db *gorm.DB, valuationS
 		valuation.POST("/estimate", handlers.GetPropertyValuation)
 		valuation.POST("/bulk-estimate", handlers.GetBulkValuations)
 		valuation.GET("/property/:id", handlers.GetPropertyValuationByID)
-		
+
 		// Market analysis
 		valuation.GET("/market/area/:zip_code", handlers.GetAreaMarketAnalysis)
 		valuation.GET("/market/city/:city", handlers.GetCityMarketAnalysis)
 		valuation.GET("/market/trends", handlers.GetMarketTrends)
 		valuation.GET("/market/comparables", handlers.GetComparableProperties)
-		
+
 		// Valuation history and tracking
 		valuation.GET("/history/:property_id", handlers.GetValuationHistory)
 		valuation.GET("/requests", handlers.GetValuationRequests)
 		valuation.GET("/requests/:id", handlers.GetValuationRequest)
-		
+
 		// Analytics and reporting
 		valuation.GET("/analytics/accuracy", handlers.GetValuationAccuracy)
 		valuation.GET("/analytics/trends", handlers.GetValuationTrends)
 		valuation.GET("/reports/market", handlers.GetMarketReport)
 		valuation.GET("/reports/performance", handlers.GetPerformanceReport)
-		
+
 		// Configuration and calibration
 		valuation.GET("/config", handlers.GetValuationConfig)
 		valuation.POST("/config", handlers.UpdateValuationConfig)
@@ -228,7 +228,7 @@ func (h *PropertyValuationHandlers) GetPropertyValuationByID(c *gin.Context) {
 func (h *PropertyValuationHandlers) GetAreaMarketAnalysis(c *gin.Context) {
 	zipCode := c.Param("zip_code")
 	propertyType := c.DefaultQuery("property_type", "")
-	
+
 	marketConditions, err := h.valuationService.GetMarketTrendsForArea("", zipCode, propertyType)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -238,16 +238,16 @@ func (h *PropertyValuationHandlers) GetAreaMarketAnalysis(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Area market analysis retrieved",
 		"data": gin.H{
-			"zip_code":           zipCode,
-			"market_trend":       marketConditions.MarketTrend,
-			"price_change":       marketConditions.PriceChangePercent,
-			"days_on_market":     marketConditions.DaysOnMarket,
-			"inventory_level":    marketConditions.InventoryLevel,
+			"zip_code":            zipCode,
+			"market_trend":        marketConditions.MarketTrend,
+			"price_change":        marketConditions.PriceChangePercent,
+			"days_on_market":      marketConditions.DaysOnMarket,
+			"inventory_level":     marketConditions.InventoryLevel,
 			"seasonal_adjustment": marketConditions.SeasonalAdjustment,
 		},
 	})
@@ -257,7 +257,7 @@ func (h *PropertyValuationHandlers) GetAreaMarketAnalysis(c *gin.Context) {
 func (h *PropertyValuationHandlers) GetCityMarketAnalysis(c *gin.Context) {
 	city := c.Param("city")
 	propertyType := c.DefaultQuery("property_type", "")
-	
+
 	marketConditions, err := h.valuationService.GetMarketTrendsForArea(city, "", propertyType)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -267,7 +267,7 @@ func (h *PropertyValuationHandlers) GetCityMarketAnalysis(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "City market analysis retrieved",
@@ -287,7 +287,7 @@ func (h *PropertyValuationHandlers) GetMarketTrends(c *gin.Context) {
 	city := c.DefaultQuery("city", "Houston")
 	zipCode := c.DefaultQuery("zip_code", "")
 	propertyType := c.DefaultQuery("property_type", "")
-	
+
 	marketConditions, err := h.valuationService.GetMarketTrendsForArea(city, zipCode, propertyType)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -297,7 +297,7 @@ func (h *PropertyValuationHandlers) GetMarketTrends(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Market trends retrieved",
@@ -320,7 +320,7 @@ func (h *PropertyValuationHandlers) GetComparableProperties(c *gin.Context) {
 	sqft, _ := strconv.Atoi(c.DefaultQuery("sqft", "2000"))
 	propertyType := c.DefaultQuery("property_type", "single_family")
 	yearBuilt, _ := strconv.Atoi(c.DefaultQuery("year_built", "2010"))
-	
+
 	// Build valuation request
 	request := services.PropertyValuationRequest{
 		City:         city,
@@ -331,7 +331,7 @@ func (h *PropertyValuationHandlers) GetComparableProperties(c *gin.Context) {
 		PropertyType: propertyType,
 		YearBuilt:    yearBuilt,
 	}
-	
+
 	// Get comparable properties (use internal service method)
 	valuation, err := h.valuationService.ValuateProperty(request)
 	if err != nil {
@@ -342,7 +342,7 @@ func (h *PropertyValuationHandlers) GetComparableProperties(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Comparable properties retrieved",
@@ -373,7 +373,7 @@ func (h *PropertyValuationHandlers) GetValuationHistory(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	history, err := h.valuationService.GetValuationHistory(uint(propertyID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -383,7 +383,7 @@ func (h *PropertyValuationHandlers) GetValuationHistory(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Valuation history retrieved",
@@ -400,7 +400,7 @@ func (h *PropertyValuationHandlers) GetValuationRequests(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 	status := c.DefaultQuery("status", "all")
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Valuation requests retrieved",
@@ -417,7 +417,7 @@ func (h *PropertyValuationHandlers) GetValuationRequests(c *gin.Context) {
 // GetValuationRequest returns a specific valuation request
 func (h *PropertyValuationHandlers) GetValuationRequest(c *gin.Context) {
 	requestID := c.Param("id")
-	
+
 	valuation, err := h.valuationService.GetValuationByID(requestID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -427,7 +427,7 @@ func (h *PropertyValuationHandlers) GetValuationRequest(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Valuation request retrieved",
@@ -468,7 +468,7 @@ func (h *PropertyValuationHandlers) GetValuationTrends(c *gin.Context) {
 
 func (h *PropertyValuationHandlers) GetMarketReport(c *gin.Context) {
 	reportType := c.DefaultQuery("type", "monthly")
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Market report generated",
@@ -496,7 +496,7 @@ func (h *PropertyValuationHandlers) GetPerformanceReport(c *gin.Context) {
 			},
 			"throughput": gin.H{
 				"requests_per_minute": 45,
-				"peak_rpm":           87,
+				"peak_rpm":            87,
 			},
 			"accuracy": gin.H{
 				"current": "87.5%",
@@ -553,7 +553,7 @@ func (h *PropertyValuationHandlers) CalibrateValuationModel(c *gin.Context) {
 		"success": true,
 		"message": "Model calibration started",
 		"data": gin.H{
-			"job_id":     "calibration_" + strconv.FormatInt(c.Request.Context().Value("timestamp").(int64), 10),
+			"job_id":               "calibration_" + strconv.FormatInt(c.Request.Context().Value("timestamp").(int64), 10),
 			"estimated_completion": "15 minutes",
 		},
 	})
@@ -574,9 +574,9 @@ func (h *PropertyValuationHandlers) TestValuationAccuracy(c *gin.Context) {
 		"success": true,
 		"message": "Accuracy test completed",
 		"data": gin.H{
-			"test_accuracy":  "89.2%",
-			"sample_size":    50,
-			"avg_error":      "3.8%",
+			"test_accuracy": "89.2%",
+			"sample_size":   50,
+			"avg_error":     "3.8%",
 			"recommendations": []string{
 				"Increase comparable property search radius",
 				"Update market trend weights",

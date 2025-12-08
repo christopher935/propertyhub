@@ -170,23 +170,23 @@ func (bis *BusinessIntelligenceService) GenerateFridayReport() (*FridayReportDat
 		aiInsights := bis.generateInsights(cdom, int(leadsTotal), int(showingsTotal), int(applications), leadsWeekChange, showingsChange)
 
 		activeListing := ActiveListing{
-			MLSID:                  mlsID,
-			Address:                address,
-			PropertyAddress:        address,
-			Price:                  int(prop.Price),
-			DaysOnMarket:           cdom,
-			CDOM:                   cdom,
-			Showings:               int(showingsTotal),
-			LeadsTotal:             int(leadsTotal),
-			LeadsWeekChange:        leadsWeekChange,
-			BookingShowings:        int(showingsTotal),
-			BookingShowingsWeek:    int(showingsThisWeek),
-			BookingShowingsChange:  showingsChange,
-			TotalShowings:          int(showingsTotal),
-			TotalShowingsChange:    showingsChange,
-			Applications:           int(applications),
-			ShowingSmartFeedback:   []ShowingFeedback{},
-			AIInsights:             aiInsights,
+			MLSID:                 mlsID,
+			Address:               address,
+			PropertyAddress:       address,
+			Price:                 int(prop.Price),
+			DaysOnMarket:          cdom,
+			CDOM:                  cdom,
+			Showings:              int(showingsTotal),
+			LeadsTotal:            int(leadsTotal),
+			LeadsWeekChange:       leadsWeekChange,
+			BookingShowings:       int(showingsTotal),
+			BookingShowingsWeek:   int(showingsThisWeek),
+			BookingShowingsChange: showingsChange,
+			TotalShowings:         int(showingsTotal),
+			TotalShowingsChange:   showingsChange,
+			Applications:          int(applications),
+			ShowingSmartFeedback:  []ShowingFeedback{},
+			AIInsights:            aiInsights,
 		}
 
 		activeListings = append(activeListings, activeListing)
@@ -247,21 +247,21 @@ func (bis *BusinessIntelligenceService) GenerateFridayReport() (*FridayReportDat
 func (bis *BusinessIntelligenceService) GetDashboardData() (map[string]interface{}, error) {
 	// Get real property metrics
 	propertyMetrics := bis.GetPropertyMetrics()
-	
+
 	// Get active leads count
 	var activeLeads int64
 	bis.db.Table("contacts").Where("status = ?", "active").Count(&activeLeads)
-	
+
 	// Calculate monthly revenue from closed deals
 	var monthlyRevenue float64
 	now := time.Now()
 	monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
-	
+
 	bis.db.Model(&models.ClosingPipeline{}).
 		Select("COALESCE(SUM(commission_earned), 0)").
 		Where("status = ? AND lease_signed_date >= ?", "completed", monthStart).
 		Scan(&monthlyRevenue)
-	
+
 	// If no commission data, calculate from monthly rent
 	if monthlyRevenue == 0 {
 		bis.db.Model(&models.ClosingPipeline{}).
@@ -269,7 +269,7 @@ func (bis *BusinessIntelligenceService) GetDashboardData() (map[string]interface
 			Where("status = ? AND lease_signed_date >= ?", "completed", monthStart).
 			Scan(&monthlyRevenue)
 	}
-	
+
 	data := map[string]interface{}{
 		"total_properties": propertyMetrics["total_properties"],
 		"active_leads":     activeLeads,
@@ -352,37 +352,37 @@ type DashboardMetrics struct {
 func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics, error) {
 	// Query real lead counts by segment
 	var hotLeads, warmLeads, coldLeads, dormantLeads int64
-	
+
 	// Count hot leads (score >= 70)
 	bis.db.Model(&models.BehavioralScore{}).Where("composite_score >= ?", 70).Count(&hotLeads)
-	
+
 	// Count warm leads (score 40-69)
 	bis.db.Model(&models.BehavioralScore{}).Where("composite_score >= ? AND composite_score < ?", 40, 70).Count(&warmLeads)
-	
+
 	// Count cold leads (score 10-39)
 	bis.db.Model(&models.BehavioralScore{}).Where("composite_score >= ? AND composite_score < ?", 10, 40).Count(&coldLeads)
-	
+
 	// Count dormant leads (score < 10)
 	bis.db.Model(&models.BehavioralScore{}).Where("composite_score < ?", 10).Count(&dormantLeads)
-	
+
 	// Total leads
 	var totalLeads int64
 	bis.db.Table("contacts").Count(&totalLeads)
-	
+
 	// Qualified leads (those with behavioral scores)
 	var qualifiedLeads int64
 	bis.db.Model(&models.BehavioralScore{}).Count(&qualifiedLeads)
-	
+
 	// Converted leads (status = 'converted')
 	var convertedLeads int64
 	bis.db.Table("contacts").Where("status = ?", "converted").Count(&convertedLeads)
-	
+
 	// Calculate conversion rate
 	conversionRate := 0.0
 	if qualifiedLeads > 0 {
 		conversionRate = (float64(convertedLeads) / float64(qualifiedLeads)) * 100
 	}
-	
+
 	// Average response time - calculate from booking creation to first status change
 	var avgResponseTime float64
 	bis.db.Raw(`
@@ -391,40 +391,40 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 		WHERE updated_at > created_at
 		AND created_at > NOW() - INTERVAL '30 days'
 	`).Scan(&avgResponseTime)
-	
+
 	// Lead quality score (average composite score)
 	var avgQualityScore float64
 	bis.db.Model(&models.BehavioralScore{}).Select("AVG(composite_score)").Scan(&avgQualityScore)
 	if avgQualityScore > 0 {
 		avgQualityScore = avgQualityScore / 10.0 // Scale to 0-10
 	}
-	
+
 	// Total bookings
 	var totalBookings, confirmedBookings, pendingBookings int64
 	bis.db.Table("booking_requests").Count(&totalBookings)
 	bis.db.Table("booking_requests").Where("status = ?", "confirmed").Count(&confirmedBookings)
 	bis.db.Table("booking_requests").Where("status = ?", "pending").Count(&pendingBookings)
-	
+
 	// Completion rate
 	completionRate := 0.0
 	if totalBookings > 0 {
 		completionRate = (float64(confirmedBookings) / float64(totalBookings)) * 100
 	}
-	
+
 	// Average rating - removed (no ratings table exists)
 	// Calculate from booking completion rate instead
 	averageRating := 0.0
 	if completionRate > 0 {
 		averageRating = (completionRate / 100) * 5.0 // Scale 0-5 based on completion rate
 	}
-	
+
 	// Total revenue from closing pipeline (commission earned)
 	var totalRevenue float64
 	bis.db.Table("closing_pipeline").
 		Select("COALESCE(SUM(commission_earned), 0)").
 		Where("created_at >= ?", time.Now().AddDate(0, -1, 0)). // Last month
 		Scan(&totalRevenue)
-	
+
 	// If no commission data, calculate from monthly rent
 	if totalRevenue == 0 {
 		bis.db.Table("closing_pipeline").
@@ -432,7 +432,7 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 			Where("created_at >= ?", time.Now().AddDate(0, -1, 0)).
 			Scan(&totalRevenue)
 	}
-	
+
 	// Booking trends (last 7 days)
 	bookingTrends := []map[string]interface{}{}
 	for i := 6; i >= 0; i-- {
@@ -446,7 +446,7 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 			"bookings": count,
 		})
 	}
-	
+
 	// Lead sources
 	type SourceCount struct {
 		Source string
@@ -457,7 +457,7 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 		Select("source, COUNT(*) as count").
 		Group("source").
 		Scan(&leadSources)
-	
+
 	leadSourcesMap := []map[string]interface{}{}
 	for _, sc := range leadSources {
 		leadSourcesMap = append(leadSourcesMap, map[string]interface{}{
@@ -465,19 +465,19 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 			"count":  sc.Count,
 		})
 	}
-	
+
 	// Get property metrics with real queries
 	propertyMetrics := bis.GetPropertyMetrics()
-	
+
 	// Calculate monthly growth for bookings
 	monthlyGrowth := bis.calculateMonthlyBookingGrowth()
-	
+
 	// Calculate booking conversion rate (bookings to confirmed)
 	bookingConversionRate := 0.0
 	if totalBookings > 0 {
 		bookingConversionRate = (float64(confirmedBookings) / float64(totalBookings)) * 100
 	}
-	
+
 	// Calculate average booking time (from creation to confirmation)
 	var avgBookingTime float64
 	bis.db.Raw(`
@@ -487,7 +487,7 @@ func (bis *BusinessIntelligenceService) GetDashboardMetrics() (*DashboardMetrics
 		AND updated_at > created_at
 		AND created_at > NOW() - INTERVAL '30 days'
 	`).Scan(&avgBookingTime)
-	
+
 	// Get popular time slots from real data
 	popularTimeSlots := bis.GetPopularTimeSlots()
 

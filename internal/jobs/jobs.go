@@ -39,16 +39,16 @@ type Job struct {
 
 // ScheduledJob represents a scheduled job
 type ScheduledJob struct {
-	ID          string         `json:"id"`
-	JobID       string         `json:"job_id"`
-	Name        string         `json:"name"`
-	Schedule    string         `json:"schedule"` // Cron expression
-	NextRun     time.Time      `json:"next_run"`
-	LastRun     *time.Time     `json:"last_run,omitempty"`
-	Enabled     bool           `json:"enabled"`
-	Parameters  map[string]interface{} `json:"parameters"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	ID         string                 `json:"id"`
+	JobID      string                 `json:"job_id"`
+	Name       string                 `json:"name"`
+	Schedule   string                 `json:"schedule"` // Cron expression
+	NextRun    time.Time              `json:"next_run"`
+	LastRun    *time.Time             `json:"last_run,omitempty"`
+	Enabled    bool                   `json:"enabled"`
+	Parameters map[string]interface{} `json:"parameters"`
+	CreatedAt  time.Time              `json:"created_at"`
+	UpdatedAt  time.Time              `json:"updated_at"`
 }
 
 // JobExecution represents a job execution instance
@@ -104,21 +104,21 @@ const (
 
 // Job types
 const (
-	JobTypeFridayReport      = "friday_report"
-	JobTypeFUBSync           = "fub_sync"
+	JobTypeFridayReport         = "friday_report"
+	JobTypeFUBSync              = "fub_sync"
 	JobTypeAnalyticsAggregation = "analytics_aggregation"
-	JobTypeEmailNotification = "email_notification"
-	JobTypeDataCleanup       = "data_cleanup"
-	JobTypeBackup           = "backup"
-	JobTypeHealthCheck      = "health_check"
-	JobTypeReportGeneration = "report_generation"
-	JobTypeScheduledActions = "scheduled_actions"
+	JobTypeEmailNotification    = "email_notification"
+	JobTypeDataCleanup          = "data_cleanup"
+	JobTypeBackup               = "backup"
+	JobTypeHealthCheck          = "health_check"
+	JobTypeReportGeneration     = "report_generation"
+	JobTypeScheduledActions     = "scheduled_actions"
 )
 
 // NewJobManager creates a new job manager
 func NewJobManager(db *gorm.DB, harService interface{}, fubService interface{}, biService interface{}, notificationService interface{}) *JobManager {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	jm := &JobManager{
 		db:            db,
 		jobs:          make(map[string]*Job),
@@ -127,13 +127,13 @@ func NewJobManager(db *gorm.DB, harService interface{}, fubService interface{}, 
 		ctx:           ctx,
 		cancel:        cancel,
 	}
-	
+
 	// Register default jobs
 	jm.registerDefaultJobs(harService, fubService, biService, notificationService)
-	
+
 	// Create workers
 	jm.createWorkers(5) // 5 concurrent workers
-	
+
 	return jm
 }
 
@@ -150,9 +150,9 @@ func (jm *JobManager) registerDefaultJobs(harService, fubService, biService, not
 		MaxRetries:  3,
 		RetryDelay:  5 * time.Minute,
 	})
-	
+
 	// HAR Sync Job removed - HAR blocked access
-	
+
 	// FUB Sync Job
 	jm.RegisterJob(&Job{
 		ID:          "fub_sync",
@@ -164,7 +164,7 @@ func (jm *JobManager) registerDefaultJobs(harService, fubService, biService, not
 		MaxRetries:  3,
 		RetryDelay:  15 * time.Minute,
 	})
-	
+
 	// Analytics Aggregation Job
 	jm.RegisterJob(&Job{
 		ID:          "analytics_aggregation",
@@ -176,7 +176,7 @@ func (jm *JobManager) registerDefaultJobs(harService, fubService, biService, not
 		MaxRetries:  3,
 		RetryDelay:  5 * time.Minute,
 	})
-	
+
 	// Data Cleanup Job
 	jm.RegisterJob(&Job{
 		ID:          "data_cleanup",
@@ -188,7 +188,7 @@ func (jm *JobManager) registerDefaultJobs(harService, fubService, biService, not
 		MaxRetries:  2,
 		RetryDelay:  10 * time.Minute,
 	})
-	
+
 	// Health Check Job
 	jm.RegisterJob(&Job{
 		ID:          "health_check",
@@ -200,17 +200,17 @@ func (jm *JobManager) registerDefaultJobs(harService, fubService, biService, not
 		MaxRetries:  1,
 		RetryDelay:  2 * time.Minute,
 	})
-	
+
 	// Scheduled Actions Processor Job
 	jm.RegisterJob(&Job{
 		ID:          "scheduled_actions",
 		Name:        "Scheduled Actions Processor",
 		Type:        JobTypeScheduledActions,
 		Description: "Process pending scheduled actions (emails, SMS, notifications)",
-// 		Handler:     NewScheduledActionsHandler(jm.db),
-		Timeout:     5 * time.Minute,
-		MaxRetries:  2,
-		RetryDelay:  1 * time.Minute,
+		// 		Handler:     NewScheduledActionsHandler(jm.db),
+		Timeout:    5 * time.Minute,
+		MaxRetries: 2,
+		RetryDelay: 1 * time.Minute,
 	})
 }
 
@@ -218,10 +218,10 @@ func (jm *JobManager) registerDefaultJobs(harService, fubService, biService, not
 func (jm *JobManager) RegisterJob(job *Job) {
 	jm.mutex.Lock()
 	defer jm.mutex.Unlock()
-	
+
 	job.CreatedAt = time.Now()
 	job.UpdatedAt = time.Now()
-	
+
 	jm.jobs[job.ID] = job
 	log.Printf("Registered job: %s (%s)", job.Name, job.ID)
 }
@@ -230,31 +230,31 @@ func (jm *JobManager) RegisterJob(job *Job) {
 func (jm *JobManager) ScheduleJob(jobID, name, cronExpr string, params map[string]interface{}) error {
 	jm.mutex.Lock()
 	defer jm.mutex.Unlock()
-	
+
 	if _, exists := jm.jobs[jobID]; !exists {
 		return fmt.Errorf("job %s not found", jobID)
 	}
-	
+
 	nextRun, err := jm.parseNextCronTime(cronExpr)
 	if err != nil {
 		return fmt.Errorf("invalid cron expression: %v", err)
 	}
-	
+
 	scheduledJob := &ScheduledJob{
-		ID:          fmt.Sprintf("sched_%d", time.Now().UnixNano()),
-		JobID:       jobID,
-		Name:        name,
-		Schedule:    cronExpr,
-		NextRun:     nextRun,
-		Enabled:     true,
-		Parameters:  params,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		ID:         fmt.Sprintf("sched_%d", time.Now().UnixNano()),
+		JobID:      jobID,
+		Name:       name,
+		Schedule:   cronExpr,
+		NextRun:    nextRun,
+		Enabled:    true,
+		Parameters: params,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
-	
+
 	jm.scheduledJobs[scheduledJob.ID] = scheduledJob
 	log.Printf("Scheduled job: %s (next run: %v)", name, nextRun)
-	
+
 	return nil
 }
 
@@ -267,17 +267,17 @@ func (jm *JobManager) StartScheduledJobs() {
 	}
 	jm.running = true
 	jm.mutex.Unlock()
-	
+
 	log.Println("Starting scheduled jobs processor...")
-	
+
 	// Start workers
 	for _, worker := range jm.workers {
 		go worker.Start()
 	}
-	
+
 	// Start scheduler
 	go jm.runScheduler()
-	
+
 	log.Println("Job manager started successfully")
 }
 
@@ -289,7 +289,7 @@ func (jm *JobManager) ScheduleFridayReports() {
 		"send_email":     true,
 		"recipients":     []string{"admin@llotschedule.online"},
 	})
-	
+
 	if err != nil {
 		log.Printf("Failed to schedule Friday reports: %v", err)
 	}
@@ -304,7 +304,7 @@ func (jm *JobManager) StartFUBSync() {
 		"sync_notes": true,
 		"sync_tasks": true,
 	})
-	
+
 	if err != nil {
 		log.Printf("Failed to schedule FUB sync: %v", err)
 	}
@@ -317,7 +317,7 @@ func (jm *JobManager) StartAnalyticsAggregation() {
 		"aggregate_hourly":  true,
 		"update_dashboards": true,
 	})
-	
+
 	if err != nil {
 		log.Printf("Failed to schedule analytics aggregation: %v", err)
 	}
@@ -329,7 +329,7 @@ func (jm *JobManager) StartScheduledActionsProcessor() {
 	err := jm.ScheduleJob("scheduled_actions", "Scheduled Actions Processor", "* * * * *", map[string]interface{}{
 		"batch_size": 100,
 	})
-	
+
 	if err != nil {
 		log.Printf("Failed to schedule actions processor: %v", err)
 	}
@@ -340,11 +340,11 @@ func (jm *JobManager) QueueJob(jobID string, params map[string]interface{}) (*Jo
 	jm.mutex.RLock()
 	job, exists := jm.jobs[jobID]
 	jm.mutex.RUnlock()
-	
+
 	if !exists {
 		return nil, fmt.Errorf("job %s not found", jobID)
 	}
-	
+
 	execution := &JobExecution{
 		ID:         fmt.Sprintf("exec_%d", time.Now().UnixNano()),
 		JobID:      jobID,
@@ -353,7 +353,7 @@ func (jm *JobManager) QueueJob(jobID string, params map[string]interface{}) (*Jo
 		StartedAt:  time.Now(),
 		Attempts:   0,
 	}
-	
+
 	select {
 	case jm.jobQueue <- execution:
 		log.Printf("Queued job: %s (%s)", job.Name, execution.ID)
@@ -367,7 +367,7 @@ func (jm *JobManager) QueueJob(jobID string, params map[string]interface{}) (*Jo
 func (jm *JobManager) runScheduler() {
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ticker.C:
@@ -381,7 +381,7 @@ func (jm *JobManager) runScheduler() {
 // checkScheduledJobs checks and executes scheduled jobs
 func (jm *JobManager) checkScheduledJobs() {
 	now := time.Now()
-	
+
 	jm.mutex.RLock()
 	for _, scheduledJob := range jm.scheduledJobs {
 		if scheduledJob.Enabled && now.After(scheduledJob.NextRun) {
@@ -394,21 +394,21 @@ func (jm *JobManager) checkScheduledJobs() {
 // executeScheduledJob executes a scheduled job
 func (jm *JobManager) executeScheduledJob(scheduledJob *ScheduledJob) {
 	log.Printf("Executing scheduled job: %s", scheduledJob.Name)
-	
+
 	// Queue the job for execution
 	_, err := jm.QueueJob(scheduledJob.JobID, scheduledJob.Parameters)
 	if err != nil {
 		log.Printf("Failed to queue scheduled job %s: %v", scheduledJob.Name, err)
 		return
 	}
-	
+
 	// Update next run time
 	nextRun, err := jm.parseNextCronTime(scheduledJob.Schedule)
 	if err != nil {
 		log.Printf("Failed to calculate next run for %s: %v", scheduledJob.Name, err)
 		return
 	}
-	
+
 	jm.mutex.Lock()
 	scheduledJob.LastRun = &scheduledJob.NextRun
 	scheduledJob.NextRun = nextRun
@@ -419,7 +419,7 @@ func (jm *JobManager) executeScheduledJob(scheduledJob *ScheduledJob) {
 // createWorkers creates background workers
 func (jm *JobManager) createWorkers(count int) {
 	jm.workers = make([]*Worker, count)
-	
+
 	for i := 0; i < count; i++ {
 		ctx, cancel := context.WithCancel(jm.ctx)
 		worker := &Worker{
@@ -430,7 +430,7 @@ func (jm *JobManager) createWorkers(count int) {
 		}
 		jm.workers[i] = worker
 	}
-	
+
 	log.Printf("Created %d workers", count)
 }
 
@@ -438,7 +438,7 @@ func (jm *JobManager) createWorkers(count int) {
 func (w *Worker) Start() {
 	w.running = true
 	log.Printf("Worker %s started", w.ID)
-	
+
 	for {
 		select {
 		case execution := <-w.manager.jobQueue:
@@ -456,41 +456,41 @@ func (w *Worker) executeJob(execution *JobExecution) {
 	w.manager.mutex.RLock()
 	job, exists := w.manager.jobs[execution.JobID]
 	w.manager.mutex.RUnlock()
-	
+
 	if !exists {
 		log.Printf("Job %s not found", execution.JobID)
 		return
 	}
-	
+
 	execution.Status = JobStatusRunning
 	execution.Worker = w.ID
 	execution.Attempts++
-	
+
 	log.Printf("Worker %s executing job: %s", w.ID, job.Name)
-	
+
 	// Create timeout context
 	ctx, cancel := context.WithTimeout(w.ctx, job.Timeout)
 	defer cancel()
-	
+
 	// Execute the job
 	startTime := time.Now()
 	result, err := job.Handler.Execute(ctx, execution.Parameters)
 	duration := time.Since(startTime)
-	
+
 	finishedTime := startTime.Add(duration)
 	execution.FinishedAt = &finishedTime
-	
+
 	if err != nil {
 		w.errors++
 		execution.Status = JobStatusFailed
 		execution.LastError = err.Error()
-		
+
 		// Retry logic
 		if execution.Attempts < job.MaxRetries {
 			execution.Status = JobStatusRetrying
-			log.Printf("Job %s failed (attempt %d/%d), retrying in %v: %v", 
+			log.Printf("Job %s failed (attempt %d/%d), retrying in %v: %v",
 				job.Name, execution.Attempts, job.MaxRetries, job.RetryDelay, err)
-			
+
 			// Schedule retry
 			go func() {
 				time.Sleep(job.RetryDelay)
@@ -515,9 +515,9 @@ func (w *Worker) executeJob(execution *JobExecution) {
 func (jm *JobManager) parseNextCronTime(cronExpr string) (time.Time, error) {
 	// This is a simplified cron parser
 	// In production, use a proper cron parsing library
-	
+
 	now := time.Now()
-	
+
 	// Basic patterns
 	switch cronExpr {
 	case "0 9 * * 5": // Friday at 9 AM
@@ -551,15 +551,15 @@ func (jm *JobManager) GetJobStatus(executionID string) (*JobExecution, error) {
 // GetJobStats gets job execution statistics
 func (jm *JobManager) GetJobStats() map[string]interface{} {
 	stats := make(map[string]interface{})
-	
+
 	totalProcessed := 0
 	totalErrors := 0
-	
+
 	for _, worker := range jm.workers {
 		totalProcessed += worker.processed
 		totalErrors += worker.errors
 	}
-	
+
 	stats["workers"] = len(jm.workers)
 	stats["jobs_registered"] = len(jm.jobs)
 	stats["scheduled_jobs"] = len(jm.scheduledJobs)
@@ -567,26 +567,26 @@ func (jm *JobManager) GetJobStats() map[string]interface{} {
 	stats["total_errors"] = totalErrors
 	stats["queue_length"] = len(jm.jobQueue)
 	stats["running"] = jm.running
-	
+
 	return stats
 }
 
 // Stop stops the job manager
 func (jm *JobManager) Stop() {
 	log.Println("Stopping job manager...")
-	
+
 	jm.mutex.Lock()
 	jm.running = false
 	jm.mutex.Unlock()
-	
+
 	// Stop workers
 	for _, worker := range jm.workers {
 		worker.cancel()
 	}
-	
+
 	// Cancel context
 	jm.cancel()
-	
+
 	log.Println("Job manager stopped")
 }
 
@@ -600,11 +600,11 @@ type FridayReportHandler struct {
 
 func (h *FridayReportHandler) Execute(ctx context.Context, params map[string]interface{}) (*JobResult, error) {
 	log.Println("Generating Friday business report...")
-	
+
 	// Generate report data
 	// Send email notification
 	// This would use the actual business intelligence service
-	
+
 	return &JobResult{
 		Success: true,
 		Data: map[string]interface{}{
@@ -624,15 +624,15 @@ type FUBSyncHandler struct {
 
 func (h *FUBSyncHandler) Execute(ctx context.Context, params map[string]interface{}) (*JobResult, error) {
 	log.Println("Starting Follow Up Boss sync...")
-	
+
 	// This would use the actual FUB service
 	// Sync contacts, leads, notes, tasks
-	
+
 	return &JobResult{
 		Success: true,
 		Data: map[string]interface{}{
-			"contacts_synced": 234,
-			"new_contacts":    12,
+			"contacts_synced":  234,
+			"new_contacts":     12,
 			"updated_contacts": 45,
 		},
 		Duration: time.Minute * 8,
@@ -646,10 +646,10 @@ type AnalyticsAggregationHandler struct {
 
 func (h *AnalyticsAggregationHandler) Execute(ctx context.Context, params map[string]interface{}) (*JobResult, error) {
 	log.Println("Starting analytics aggregation...")
-	
+
 	// Aggregate analytics data
 	// Update dashboard metrics
-	
+
 	return &JobResult{
 		Success: true,
 		Data: map[string]interface{}{
@@ -667,15 +667,15 @@ type DataCleanupHandler struct {
 
 func (h *DataCleanupHandler) Execute(ctx context.Context, params map[string]interface{}) (*JobResult, error) {
 	log.Println("Starting data cleanup...")
-	
+
 	// Clean old logs, temporary files, expired sessions
 	// This would use actual database cleanup operations
-	
+
 	return &JobResult{
 		Success: true,
 		Data: map[string]interface{}{
-			"logs_cleaned":     1000,
-			"sessions_expired": 50,
+			"logs_cleaned":       1000,
+			"sessions_expired":   50,
 			"temp_files_deleted": 25,
 		},
 		Duration: time.Minute * 3,
@@ -690,18 +690,18 @@ type HealthCheckHandler struct {
 
 func (h *HealthCheckHandler) Execute(ctx context.Context, params map[string]interface{}) (*JobResult, error) {
 	log.Println("Performing system health check...")
-	
+
 	// Check database connectivity
 	// Check external services
 	// Check disk space, memory usage
 	// Send alerts if issues found
-	
+
 	return &JobResult{
 		Success: true,
 		Data: map[string]interface{}{
-			"database_status":     "healthy",
-			"external_services":   "healthy",
-			"disk_usage_percent":  45,
+			"database_status":      "healthy",
+			"external_services":    "healthy",
+			"disk_usage_percent":   45,
 			"memory_usage_percent": 65,
 		},
 		Duration: time.Minute * 2,

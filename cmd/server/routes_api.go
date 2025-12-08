@@ -83,7 +83,7 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.GET("/behavioral/metrics", h.Behavioral.GetBehavioralMetrics)
 	api.GET("/behavioral/insights", h.InsightsAPI.GetPredictiveInsights)
 	api.GET("/behavioral/houston-market", h.Behavioral.GetHoustonMarketIntelligence)
-	
+
 	// Behavioral Analytics API
 	handlers.RegisterBehavioralAnalyticsRoutes(api, h.DB)
 
@@ -180,7 +180,7 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.POST("/leads/emergency-stop", h.LeadReengagement.EmergencyStopAll)
 
 	api.GET("/leads", h.LeadsList.GetAllLeads)
-	
+
 	// Bulk Lead Operations
 	api.POST("/leads/bulk/email", h.BulkOperations.BulkEmailLeads)
 	api.POST("/leads/bulk/assign", h.BulkOperations.BulkAssignLeads)
@@ -193,28 +193,28 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.POST("/properties/bulk/assign", h.BulkOperations.BulkAssignProperties)
 	api.POST("/properties/bulk/featured", h.BulkOperations.BulkUpdateFeatured)
 	api.POST("/properties/bulk/export", h.BulkOperations.BulkExportProperties)
-	
+
 	// Properties API
 	api.GET("/properties", h.Properties.GetPropertiesGin)
 	api.GET("/properties/:id", h.Properties.GetPropertyByIDGin)
 	api.POST("/properties/search", h.Properties.SearchPropertiesPost)
-	
+
 	// Saved Properties API (Consumer Feature)
 	api.POST("/properties/save", h.SavedProperties.SaveProperty)
 	api.DELETE("/properties/save/:id", h.SavedProperties.UnsaveProperty)
 	api.GET("/properties/saved", h.SavedProperties.GetSavedProperties)
 	api.GET("/properties/:id/is-saved", h.SavedProperties.CheckIfSaved)
-	
+
 	// AI Recommendations API (Consumer Feature)
 	api.GET("/recommendations", h.Recommendations.GetPersonalizedRecommendations)
 	api.GET("/properties/:id/similar", h.Recommendations.GetSimilarProperties)
-	
+
 	// Property Alerts API (Consumer Feature)
 	api.POST("/alerts/subscribe", h.PropertyAlerts.SubscribeToAlerts)
 	api.GET("/alerts/preferences", h.PropertyAlerts.GetAlertPreferences)
 	api.PUT("/alerts/preferences", h.PropertyAlerts.UpdateAlertPreferences)
 	api.POST("/alerts/unsubscribe", h.PropertyAlerts.UnsubscribeFromAlerts)
-	
+
 	// Live Activity API (Admin Real-Time)
 	api.GET("/admin/live-activity", h.LiveActivity.GetLiveActivity)
 	api.GET("/admin/active-sessions", h.BehavioralSessions.GetActiveSessions)

@@ -14,9 +14,9 @@ type BookingDataResponse struct {
 	PropertyID         uint       `json:"property_id"`
 	PropertyAddress    string     `json:"property_address"`
 	FUBLeadID          string     `json:"fub_lead_id"`
-	Email              string     `json:"email"`               // Decrypted
-	Name               string     `json:"name"`                // Decrypted
-	Phone              string     `json:"phone"`               // Decrypted
+	Email              string     `json:"email"` // Decrypted
+	Name               string     `json:"name"`  // Decrypted
+	Phone              string     `json:"phone"` // Decrypted
 	FUBSynced          bool       `json:"fub_synced"`
 	InterestLevel      string     `json:"interest_level"`
 	ShowingDate        time.Time  `json:"showing_date"`

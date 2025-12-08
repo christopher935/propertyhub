@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/utils"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // BehavioralIntelligenceHandlers manages behavioral intelligence dashboard
@@ -62,30 +62,30 @@ func (h *BehavioralIntelligenceHandlers) GetBehavioralIntelligenceDashboard(c *g
 // GET /api/v1/behavioral/metrics
 func (h *BehavioralIntelligenceHandlers) GetBehavioralMetrics(c *gin.Context) {
 	var metrics struct {
-		TotalLeads          int64   `json:"total_leads"`
-		HighScoreLeads      int64   `json:"high_score_leads"`
-		MediumScoreLeads    int64   `json:"medium_score_leads"`
-		LowScoreLeads       int64   `json:"low_score_leads"`
-		AvgBehavioralScore  float64 `json:"avg_behavioral_score"`
-		ConversionsThisMonth int64  `json:"conversions_this_month"`
-		PredictionAccuracy  float64 `json:"prediction_accuracy"`
+		TotalLeads           int64   `json:"total_leads"`
+		HighScoreLeads       int64   `json:"high_score_leads"`
+		MediumScoreLeads     int64   `json:"medium_score_leads"`
+		LowScoreLeads        int64   `json:"low_score_leads"`
+		AvgBehavioralScore   float64 `json:"avg_behavioral_score"`
+		ConversionsThisMonth int64   `json:"conversions_this_month"`
+		PredictionAccuracy   float64 `json:"prediction_accuracy"`
 	}
 
 	// Get lead counts by behavioral score ranges
 	h.db.Model(&models.Lead{}).Where("status IN (?)", []string{"new", "active", "warm"}).Count(&metrics.TotalLeads)
-	
+
 	// This would integrate with actual behavioral scoring system
 	// For now, simulate based on PropertyHub's sophisticated behavioral intelligence
-	metrics.HighScoreLeads = metrics.TotalLeads * 35 / 100    // ~35% high score
-	metrics.MediumScoreLeads = metrics.TotalLeads * 50 / 100  // ~50% medium score
-	metrics.LowScoreLeads = metrics.TotalLeads * 15 / 100     // ~15% low score
-	
+	metrics.HighScoreLeads = metrics.TotalLeads * 35 / 100   // ~35% high score
+	metrics.MediumScoreLeads = metrics.TotalLeads * 50 / 100 // ~50% medium score
+	metrics.LowScoreLeads = metrics.TotalLeads * 15 / 100    // ~15% low score
+
 	metrics.AvgBehavioralScore = 74.5 // Would be calculated from actual scores
 	metrics.ConversionsThisMonth = 18 // From conversions this month
 	metrics.PredictionAccuracy = 92.3 // From historical prediction accuracy
 
 	utils.SuccessResponse(c, gin.H{
-		"metrics": metrics,
+		"metrics":      metrics,
 		"generated_at": time.Now(),
 	})
 }
@@ -94,10 +94,10 @@ func (h *BehavioralIntelligenceHandlers) GetBehavioralMetrics(c *gin.Context) {
 // GET /api/v1/behavioral/houston-market
 func (h *BehavioralIntelligenceHandlers) GetHoustonMarketIntelligence(c *gin.Context) {
 	neighborhoods := h.getHoustonNeighborhoodIntelligence()
-	
+
 	utils.SuccessResponse(c, gin.H{
 		"houston_market_intelligence": neighborhoods,
-		"generated_at": time.Now(),
+		"generated_at":                time.Now(),
 	})
 }
 
@@ -113,36 +113,36 @@ func (h *BehavioralIntelligenceHandlers) BehavioralIntelligencePage(c *gin.Conte
 
 func (h *BehavioralIntelligenceHandlers) generateBehavioralAnalysis(leads []models.Lead) []gin.H {
 	analysis := make([]gin.H, 0)
-	
+
 	for _, lead := range leads {
 		// Generate behavioral scores based on PropertyHub's 3-dimensional system
 		urgencyScore := h.calculateUrgencyScore(lead)
 		financialScore := h.calculateFinancialScore(lead)
 		engagementScore := h.calculateEngagementScore(lead)
-		
+
 		overallScore := int((urgencyScore + financialScore + engagementScore) / 3 * 100)
-		
+
 		analysis = append(analysis, gin.H{
-			"id":               lead.ID,
-			"name":            lead.FirstName + " " + lead.LastName,
+			"id":                lead.ID,
+			"name":              lead.FirstName + " " + lead.LastName,
 			"property_interest": h.getPropertyInterest(lead),
-			"urgency_score":    urgencyScore,
-			"financial_score":  financialScore,
-			"engagement_score": engagementScore,
-			"overall_score":    overallScore,
-			"fub_status":       lead.Status,
-			"neighborhood":     h.inferNeighborhood(lead),
-			"lead_source":      lead.Source,
+			"urgency_score":     urgencyScore,
+			"financial_score":   financialScore,
+			"engagement_score":  engagementScore,
+			"overall_score":     overallScore,
+			"fub_status":        lead.Status,
+			"neighborhood":      h.inferNeighborhood(lead),
+			"lead_source":       lead.Source,
 		})
 	}
-	
+
 	return analysis
 }
 
 func (h *BehavioralIntelligenceHandlers) calculateUrgencyScore(lead models.Lead) float64 {
 	// PropertyHub's urgency calculation based on timeline pressure
 	baseUrgency := 0.5
-	
+
 	// Increase urgency based on lead age
 	leadAge := time.Since(lead.CreatedAt).Hours() / 24
 	if leadAge < 1 {
@@ -152,19 +152,19 @@ func (h *BehavioralIntelligenceHandlers) calculateUrgencyScore(lead models.Lead)
 	} else if leadAge > 30 {
 		baseUrgency -= 0.2 // Older leads show decreased urgency
 	}
-	
+
 	// Analyze custom fields for urgency indicators
 	if customFields := lead.CustomFields; len(customFields) > 0 {
 		if timeline, exists := customFields["rental_timeline"]; exists {
 			if timelineStr, ok := timeline.(string); ok {
-				if strings.Contains(strings.ToLower(timelineStr), "asap") || 
-				   strings.Contains(strings.ToLower(timelineStr), "immediate") {
+				if strings.Contains(strings.ToLower(timelineStr), "asap") ||
+					strings.Contains(strings.ToLower(timelineStr), "immediate") {
 					baseUrgency += 0.4
 				}
 			}
 		}
 	}
-	
+
 	// Ensure score stays within bounds
 	if baseUrgency > 1.0 {
 		baseUrgency = 1.0
@@ -172,14 +172,14 @@ func (h *BehavioralIntelligenceHandlers) calculateUrgencyScore(lead models.Lead)
 	if baseUrgency < 0.0 {
 		baseUrgency = 0.0
 	}
-	
+
 	return baseUrgency
 }
 
 func (h *BehavioralIntelligenceHandlers) calculateFinancialScore(lead models.Lead) float64 {
 	// PropertyHub's financial readiness calculation
 	baseFinancial := 0.6
-	
+
 	// Analyze custom fields for financial indicators
 	if customFields := lead.CustomFields; len(customFields) > 0 {
 		if budget, exists := customFields["max_budget"]; exists {
@@ -193,7 +193,7 @@ func (h *BehavioralIntelligenceHandlers) calculateFinancialScore(lead models.Lea
 				}
 			}
 		}
-		
+
 		if employment, exists := customFields["employment_status"]; exists {
 			if empStr, ok := employment.(string); ok {
 				if strings.Contains(strings.ToLower(empStr), "employed") {
@@ -202,7 +202,7 @@ func (h *BehavioralIntelligenceHandlers) calculateFinancialScore(lead models.Lea
 			}
 		}
 	}
-	
+
 	// Ensure score stays within bounds
 	if baseFinancial > 1.0 {
 		baseFinancial = 1.0
@@ -210,21 +210,21 @@ func (h *BehavioralIntelligenceHandlers) calculateFinancialScore(lead models.Lea
 	if baseFinancial < 0.0 {
 		baseFinancial = 0.0
 	}
-	
+
 	return baseFinancial
 }
 
 func (h *BehavioralIntelligenceHandlers) calculateEngagementScore(lead models.Lead) float64 {
 	// PropertyHub's engagement depth calculation
 	baseEngagement := 0.5
-	
+
 	// Increase engagement based on lead source
 	if lead.Source == "website" {
 		baseEngagement += 0.2 // Direct website leads show higher engagement
 	} else if lead.Source == "referral" {
 		baseEngagement += 0.3 // Referrals show highest engagement
 	}
-	
+
 	// Analyze tags for engagement indicators
 	if len(lead.Tags) > 0 {
 		for _, tag := range lead.Tags {
@@ -238,7 +238,7 @@ func (h *BehavioralIntelligenceHandlers) calculateEngagementScore(lead models.Le
 			}
 		}
 	}
-	
+
 	// Ensure score stays within bounds
 	if baseEngagement > 1.0 {
 		baseEngagement = 1.0
@@ -246,7 +246,7 @@ func (h *BehavioralIntelligenceHandlers) calculateEngagementScore(lead models.Le
 	if baseEngagement < 0.0 {
 		baseEngagement = 0.0
 	}
-	
+
 	return baseEngagement
 }
 
@@ -259,16 +259,16 @@ func (h *BehavioralIntelligenceHandlers) getPropertyInterest(lead models.Lead) s
 			}
 		}
 	}
-	
+
 	// Default based on Houston neighborhoods
 	neighborhoods := []string{"Heights", "Memorial", "River Oaks", "Midtown", "Montrose"}
-	return neighborhoods[lead.ID % uint(len(neighborhoods))] + " Area Properties"
+	return neighborhoods[lead.ID%uint(len(neighborhoods))] + " Area Properties"
 }
 
 func (h *BehavioralIntelligenceHandlers) inferNeighborhood(lead models.Lead) string {
 	// Infer neighborhood from custom fields or default rotation
 	houstonNeighborhoods := []string{"Heights", "Memorial", "River Oaks", "Midtown", "Montrose", "Katy", "Sugar Land"}
-	return houstonNeighborhoods[lead.ID % uint(len(houstonNeighborhoods))]
+	return houstonNeighborhoods[lead.ID%uint(len(houstonNeighborhoods))]
 }
 
 func (h *BehavioralIntelligenceHandlers) getActiveBehavioralTriggers() []gin.H {
@@ -309,32 +309,32 @@ func (h *BehavioralIntelligenceHandlers) getIdentifiedPatterns() []gin.H {
 	// Return identified behavioral patterns
 	return []gin.H{
 		{
-			"pattern_name":  "Weekend Viewing Preference",
-			"description":   "Leads with urgency > 0.7 prefer weekend showings",
-			"confidence":    0.87,
-			"lead_count":    34,
-			"impact":        "high",
+			"pattern_name": "Weekend Viewing Preference",
+			"description":  "Leads with urgency > 0.7 prefer weekend showings",
+			"confidence":   0.87,
+			"lead_count":   34,
+			"impact":       "high",
 		},
 		{
-			"pattern_name":  "Financial Pre-Qualification",
-			"description":   "High financial scores correlate with faster decision making",
-			"confidence":    0.92,
-			"lead_count":    28,
-			"impact":        "high",
+			"pattern_name": "Financial Pre-Qualification",
+			"description":  "High financial scores correlate with faster decision making",
+			"confidence":   0.92,
+			"lead_count":   28,
+			"impact":       "high",
 		},
 		{
-			"pattern_name":  "Engagement Depth Indicator",
-			"description":   "Multiple property views predict higher conversion",
-			"confidence":    0.81,
-			"lead_count":    45,
-			"impact":        "medium",
+			"pattern_name": "Engagement Depth Indicator",
+			"description":  "Multiple property views predict higher conversion",
+			"confidence":   0.81,
+			"lead_count":   45,
+			"impact":       "medium",
 		},
 		{
-			"pattern_name":  "Neighborhood Preference Stability",
-			"description":   "Leads focused on single neighborhood convert 2x faster",
-			"confidence":    0.76,
-			"lead_count":    22,
-			"impact":        "medium",
+			"pattern_name": "Neighborhood Preference Stability",
+			"description":  "Leads focused on single neighborhood convert 2x faster",
+			"confidence":   0.76,
+			"lead_count":   22,
+			"impact":       "medium",
 		},
 	}
 }
@@ -346,15 +346,15 @@ func (h *BehavioralIntelligenceHandlers) generateChartData(leads []models.Lead) 
 		{45, 48, 52, 55}, // Medium score conversion trends
 		{12, 15, 18, 22}, // Low score conversion trends
 	}
-	
+
 	// Calculate actual score distribution
 	for _, lead := range leads {
 		urgency := h.calculateUrgencyScore(lead)
 		financial := h.calculateFinancialScore(lead)
 		engagement := h.calculateEngagementScore(lead)
-		
+
 		avgScore := (urgency + financial + engagement) / 3
-		
+
 		if avgScore >= 0.8 {
 			scoreDistribution[0]++ // High
 		} else if avgScore >= 0.6 {
@@ -374,31 +374,31 @@ func (h *BehavioralIntelligenceHandlers) generateSummaryMetrics(leads []models.L
 	totalLeads := len(leads)
 	highScoreCount := 0
 	totalScore := 0.0
-	
+
 	for _, lead := range leads {
 		urgency := h.calculateUrgencyScore(lead)
 		financial := h.calculateFinancialScore(lead)
 		engagement := h.calculateEngagementScore(lead)
-		
+
 		avgScore := (urgency + financial + engagement) / 3
 		totalScore += avgScore
-		
+
 		if avgScore >= 0.8 {
 			highScoreCount++
 		}
 	}
-	
+
 	avgBehavioralScore := 0
 	if totalLeads > 0 {
 		avgBehavioralScore = int(totalScore / float64(totalLeads) * 100)
 	}
 
 	return gin.H{
-		"total_leads":             totalLeads,
-		"avg_behavioral_score":    avgBehavioralScore,
-		"high_score_leads":        highScoreCount,
-		"conversions_this_month":  18, // Would be calculated from actual conversions
-		"prediction_accuracy":     92, // Would be calculated from prediction vs actual results
+		"total_leads":            totalLeads,
+		"avg_behavioral_score":   avgBehavioralScore,
+		"high_score_leads":       highScoreCount,
+		"conversions_this_month": 18, // Would be calculated from actual conversions
+		"prediction_accuracy":    92, // Would be calculated from prediction vs actual results
 	}
 }
 
@@ -406,40 +406,40 @@ func (h *BehavioralIntelligenceHandlers) getHoustonNeighborhoodIntelligence() []
 	// Houston market intelligence based on PropertyHub's neighborhood analysis
 	return []gin.H{
 		{
-			"neighborhood":       "River Oaks",
+			"neighborhood":         "River Oaks",
 			"avg_behavioral_score": 88,
-			"conversion_rate":     72,
-			"avg_price_range":     "$2500-4500",
-			"lead_count":          23,
-			"primary_demographic": "high_income_professionals",
-			"key_attributes":      []string{"luxury_preference", "high_financial_readiness", "quick_decisions"},
+			"conversion_rate":      72,
+			"avg_price_range":      "$2500-4500",
+			"lead_count":           23,
+			"primary_demographic":  "high_income_professionals",
+			"key_attributes":       []string{"luxury_preference", "high_financial_readiness", "quick_decisions"},
 		},
 		{
-			"neighborhood":       "Heights", 
+			"neighborhood":         "Heights",
 			"avg_behavioral_score": 79,
-			"conversion_rate":     68,
-			"avg_price_range":     "$1800-3200",
-			"lead_count":          34,
-			"primary_demographic": "young_professionals",
-			"key_attributes":      []string{"high_urgency", "walkability_preference", "nightlife_interest"},
+			"conversion_rate":      68,
+			"avg_price_range":      "$1800-3200",
+			"lead_count":           34,
+			"primary_demographic":  "young_professionals",
+			"key_attributes":       []string{"high_urgency", "walkability_preference", "nightlife_interest"},
 		},
 		{
-			"neighborhood":       "Memorial",
+			"neighborhood":         "Memorial",
 			"avg_behavioral_score": 82,
-			"conversion_rate":     65,
-			"avg_price_range":     "$2200-4000",
-			"lead_count":          19,
-			"primary_demographic": "families",
-			"key_attributes":      []string{"school_focused", "high_engagement", "stability_seeking"},
+			"conversion_rate":      65,
+			"avg_price_range":      "$2200-4000",
+			"lead_count":           19,
+			"primary_demographic":  "families",
+			"key_attributes":       []string{"school_focused", "high_engagement", "stability_seeking"},
 		},
 		{
-			"neighborhood":       "Midtown",
+			"neighborhood":         "Midtown",
 			"avg_behavioral_score": 71,
-			"conversion_rate":     58,
-			"avg_price_range":     "$1500-2800",
-			"lead_count":          28,
-			"primary_demographic": "mixed",
-			"key_attributes":      []string{"price_sensitive", "convenience_focused", "moderate_urgency"},
+			"conversion_rate":      58,
+			"avg_price_range":      "$1500-2800",
+			"lead_count":           28,
+			"primary_demographic":  "mixed",
+			"key_attributes":       []string{"price_sensitive", "convenience_focused", "moderate_urgency"},
 		},
 	}
 }
@@ -447,10 +447,10 @@ func (h *BehavioralIntelligenceHandlers) getHoustonNeighborhoodIntelligence() []
 // RegisterBehavioralIntelligenceRoutes registers all behavioral intelligence routes
 func RegisterBehavioralIntelligenceRoutes(r *gin.Engine, db *gorm.DB) {
 	handlers := NewBehavioralIntelligenceHandlers(db)
-	
+
 	// Admin page route
 	r.GET("/admin/behavioral-intelligence", handlers.BehavioralIntelligencePage)
-	
+
 	api := r.Group("/api/v1/behavioral")
 	{
 		// Behavioral intelligence dashboard

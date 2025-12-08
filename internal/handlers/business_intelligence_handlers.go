@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"chrisgross-ctrl-project/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"chrisgross-ctrl-project/internal/services"
 )
 
 // BusinessIntelligenceHandlers handles BI dashboard API requests
@@ -490,10 +490,10 @@ func (bih *BusinessIntelligenceHandlers) SendFridayReport(c *gin.Context) {
 	// TODO: Implement actual email sending using AWS SES or SMTP
 	// For now, just return success
 	// In a real implementation, you would use the aws_communication_service
-	
+
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": fmt.Sprintf("Report sent to %d recipient(s)", len(request.Recipients)),
+		"success":    true,
+		"message":    fmt.Sprintf("Report sent to %d recipient(s)", len(request.Recipients)),
 		"recipients": request.Recipients,
 	})
 }

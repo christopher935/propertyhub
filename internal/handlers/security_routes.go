@@ -47,13 +47,13 @@ func (h *SecurityRoutesHandlers) SecuritySettings(c *gin.Context) {
 // getSecuritySettings handles GET security settings
 func (h *SecurityRoutesHandlers) getSecuritySettings(c *gin.Context) {
 	settings := gin.H{
-		"rate_limiting_enabled":    true,
-		"max_requests_per_minute":  100,
-		"ip_blacklist_enabled":     true,
+		"rate_limiting_enabled":         true,
+		"max_requests_per_minute":       100,
+		"ip_blacklist_enabled":          true,
 		"suspicious_activity_detection": true,
-		"automatic_threat_blocking": false,
-		"security_logging_level":   "INFO",
-		"session_timeout_minutes":  30,
+		"automatic_threat_blocking":     false,
+		"security_logging_level":        "INFO",
+		"session_timeout_minutes":       30,
 	}
 
 	c.JSON(http.StatusOK, gin.H{"settings": settings})
@@ -62,17 +62,17 @@ func (h *SecurityRoutesHandlers) getSecuritySettings(c *gin.Context) {
 // updateSecuritySettings handles POST security settings
 func (h *SecurityRoutesHandlers) updateSecuritySettings(c *gin.Context) {
 	var request map[string]interface{}
-	
+
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
 		return
 	}
 
 	validatedSettings := h.validateSecuritySettings(request)
-	
+
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Security settings updated",
+		"success":  true,
+		"message":  "Security settings updated",
 		"settings": validatedSettings,
 	})
 }
@@ -80,26 +80,26 @@ func (h *SecurityRoutesHandlers) updateSecuritySettings(c *gin.Context) {
 // validateSecuritySettings validates security setting values
 func (h *SecurityRoutesHandlers) validateSecuritySettings(settings map[string]interface{}) map[string]interface{} {
 	validated := make(map[string]interface{})
-	
+
 	if val, exists := settings["max_requests_per_minute"]; exists {
 		if intVal, ok := val.(float64); ok && intVal > 0 && intVal <= 1000 {
 			validated["max_requests_per_minute"] = int(intVal)
 		}
 	}
-	
+
 	if val, exists := settings["session_timeout_minutes"]; exists {
 		if intVal, ok := val.(float64); ok && intVal >= 5 && intVal <= 1440 {
 			validated["session_timeout_minutes"] = int(intVal)
 		}
 	}
-	
+
 	boolSettings := []string{
 		"rate_limiting_enabled",
-		"ip_blacklist_enabled", 
+		"ip_blacklist_enabled",
 		"suspicious_activity_detection",
 		"automatic_threat_blocking",
 	}
-	
+
 	for _, setting := range boolSettings {
 		if val, exists := settings[setting]; exists {
 			if boolVal, ok := val.(bool); ok {
@@ -107,7 +107,7 @@ func (h *SecurityRoutesHandlers) validateSecuritySettings(settings map[string]in
 			}
 		}
 	}
-	
+
 	return validated
 }
 
@@ -116,12 +116,12 @@ func (h *SecurityRoutesHandlers) SecurityHealth(c *gin.Context) {
 	health := gin.H{
 		"status":             "healthy",
 		"database_connected": h.isDatabaseConnected(),
-		"security_services":  "operational", 
-		"last_check":        time.Now(),
-		"version":           "1.0.0",
+		"security_services":  "operational",
+		"last_check":         time.Now(),
+		"version":            "1.0.0",
 		"components": gin.H{
 			"rate_limiter":     "active",
-			"ip_blacklist":     "active", 
+			"ip_blacklist":     "active",
 			"threat_detection": "active",
 			"event_logging":    "active",
 		},
@@ -171,7 +171,7 @@ func (h *SecurityRoutesHandlers) isDatabaseConnected() bool {
 // RegisterSecurityRoutingHandlers registers basic security routing handlers
 func RegisterSecurityRoutingHandlers(r *gin.Engine, db *gorm.DB) {
 	handlers := NewSecurityRoutesHandlers(db)
-	
+
 	securityGroup := r.Group("/api/v1/security")
 	{
 		securityGroup.GET("/dashboard", handlers.SecurityDashboard)

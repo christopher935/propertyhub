@@ -15,15 +15,15 @@ type ActivityBroadcaster interface {
 }
 
 type ActivityEventData struct {
-	Type        string                 `json:"type"`
-	SessionID   string                 `json:"session_id"`
-	UserID      int64                  `json:"user_id,omitempty"`
-	UserEmail   string                 `json:"user_email,omitempty"`
-	PropertyID  *int64                 `json:"property_id,omitempty"`
-	Details     string                 `json:"details"`
-	Timestamp   time.Time              `json:"timestamp"`
-	Score       int                    `json:"score,omitempty"`
-	EventData   map[string]interface{} `json:"event_data,omitempty"`
+	Type       string                 `json:"type"`
+	SessionID  string                 `json:"session_id"`
+	UserID     int64                  `json:"user_id,omitempty"`
+	UserEmail  string                 `json:"user_email,omitempty"`
+	PropertyID *int64                 `json:"property_id,omitempty"`
+	Details    string                 `json:"details"`
+	Timestamp  time.Time              `json:"timestamp"`
+	Score      int                    `json:"score,omitempty"`
+	EventData  map[string]interface{} `json:"event_data,omitempty"`
 }
 
 type ActivityBroadcastService struct {
@@ -48,7 +48,7 @@ func (s *ActivityBroadcastService) BroadcastPropertyView(leadID int64, propertyI
 
 	var lead models.Lead
 	var property models.Property
-	
+
 	s.db.Where("id = ?", leadID).First(&lead)
 	s.db.Where("id = ?", propertyID).First(&property)
 
@@ -83,7 +83,7 @@ func (s *ActivityBroadcastService) BroadcastPropertySave(leadID int64, propertyI
 
 	var lead models.Lead
 	var property models.Property
-	
+
 	s.db.Where("id = ?", leadID).First(&lead)
 	s.db.Where("id = ?", propertyID).First(&property)
 
@@ -187,7 +187,7 @@ func (s *ActivityBroadcastService) BroadcastApplication(leadID int64, propertyID
 
 	var lead models.Lead
 	var property models.Property
-	
+
 	s.db.Where("id = ?", leadID).First(&lead)
 	s.db.Where("id = ?", propertyID).First(&property)
 

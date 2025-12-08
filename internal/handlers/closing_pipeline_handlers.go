@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/security"
 	"chrisgross-ctrl-project/internal/utils"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 // ClosingPipelineHandlers manages the closing pipeline workflow
@@ -197,10 +197,10 @@ func (h *ClosingPipelineHandlers) UpdateLeaseWorkflowStatus(c *gin.Context) {
 	}
 
 	var request struct {
-		LeaseSentOut       *bool `json:"lease_sent_out"`
-		LeaseComplete      *bool `json:"lease_complete"`
-		DepositReceived    *bool `json:"deposit_received"`
-		FirstMonthReceived *bool `json:"first_month_received"`
+		LeaseSentOut       *bool    `json:"lease_sent_out"`
+		LeaseComplete      *bool    `json:"lease_complete"`
+		DepositReceived    *bool    `json:"deposit_received"`
+		FirstMonthReceived *bool    `json:"first_month_received"`
 		DepositAmount      *float64 `json:"deposit_amount"`
 		MonthlyRent        *float64 `json:"monthly_rent"`
 	}

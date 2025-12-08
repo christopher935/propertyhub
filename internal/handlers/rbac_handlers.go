@@ -221,7 +221,7 @@ func (h *RBACHandler) CheckUserPermissions(w http.ResponseWriter, r *http.Reques
 		for _, permission := range role.Permissions {
 			permissionKey := fmt.Sprintf("%s:%s", permission.Resource, permission.Action)
 			userPermissions = append(userPermissions, permissionKey)
-			
+
 			if permission.Resource == resource && permission.Action == action {
 				hasPermission = true
 			}

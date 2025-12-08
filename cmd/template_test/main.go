@@ -38,7 +38,7 @@ func main() {
 		}
 
 		relPath, _ := filepath.Rel(templateDir, path)
-		
+
 		_, parseErr := templateSet.FromFile(relPath)
 		if parseErr != nil {
 			errors = append(errors, fmt.Sprintf("❌ %s: %v", relPath, parseErr))

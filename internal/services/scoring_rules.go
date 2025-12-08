@@ -10,29 +10,29 @@ func DefaultScoringRules() *ScoringRules {
 	return &ScoringRules{
 		EventPoints: map[string]int{
 			// Browsing behavior
-			"viewed":   5,  // Viewed a property
-			"browsed":  3,  // Browsed property list
-			
+			"viewed":  5, // Viewed a property
+			"browsed": 3, // Browsed property list
+
 			// Engagement actions
-			"saved":    15, // Saved/favorited a property
-			"shared":   10, // Shared a property
-			
+			"saved":  15, // Saved/favorited a property
+			"shared": 10, // Shared a property
+
 			// High-intent actions
-			"inquired": 25, // Submitted inquiry/contact form
-			"applied":  50, // Submitted rental application
+			"inquired":  25, // Submitted inquiry/contact form
+			"applied":   50, // Submitted rental application
 			"scheduled": 30, // Scheduled a tour/viewing
-			
+
 			// Conversion
 			"converted": 100, // Signed lease
-			
+
 			// Session engagement
-			"session_start": 2,  // Started a session
-			"long_session":  5,  // Session > 5 minutes
-			
+			"session_start": 2, // Started a session
+			"long_session":  5, // Session > 5 minutes
+
 			// Email engagement (from FUB webhooks)
 			"email_opened":  3,  // Opened marketing email
 			"email_clicked": 10, // Clicked link in email
-			
+
 			// Negative signals
 			"unsubscribed": -20, // Unsubscribed from emails
 		},
@@ -67,10 +67,10 @@ type SegmentThresholds struct {
 // DefaultSegmentThresholds returns the default segment configuration
 func DefaultSegmentThresholds() *SegmentThresholds {
 	return &SegmentThresholds{
-		Hot:     70,  // 70-100: High intent, recent activity
-		Warm:    40,  // 40-69: Moderate interest
-		Cold:    10,  // 10-39: Low engagement
-		Dormant: 10,  // 0-9: Minimal or no activity
+		Hot:     70, // 70-100: High intent, recent activity
+		Warm:    40, // 40-69: Moderate interest
+		Cold:    10, // 10-39: Low engagement
+		Dormant: 10, // 0-9: Minimal or no activity
 	}
 }
 

@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/security"
 	"chrisgross-ctrl-project/internal/services"
+	"gorm.io/gorm"
 )
 
 // EnhancedPhotoHandlers provides enhanced photo management with smart protection
@@ -49,7 +49,11 @@ type EnhancedPhotoUploadResponse struct {
 // UploadPropertyPhotoEnhancedHandler handles enhanced property photo uploads with validation
 func (eph *EnhancedPhotoHandlers) UploadPropertyPhotoEnhancedHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -229,7 +233,11 @@ func (eph *EnhancedPhotoHandlers) UploadPropertyPhotoEnhancedHandler(w http.Resp
 // ValidatePhotoHandler validates a photo without uploading it
 func (eph *EnhancedPhotoHandlers) ValidatePhotoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -276,7 +284,11 @@ func (eph *EnhancedPhotoHandlers) ValidatePhotoHandler(w http.ResponseWriter, r 
 // GetPropertyReadinessHandler returns the readiness status of a property
 func (eph *EnhancedPhotoHandlers) GetPropertyReadinessHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	mlsID := r.URL.Query().Get("mls_id")
 	if mlsID == "" {
@@ -302,7 +314,11 @@ func (eph *EnhancedPhotoHandlers) GetPropertyReadinessHandler(w http.ResponseWri
 // AutoFixPropertyReadinessHandler attempts to automatically fix property readiness issues
 func (eph *EnhancedPhotoHandlers) AutoFixPropertyReadinessHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -341,7 +357,11 @@ func (eph *EnhancedPhotoHandlers) AutoFixPropertyReadinessHandler(w http.Respons
 // GetReadinessReportHandler generates a readiness report for multiple properties
 func (eph *EnhancedPhotoHandlers) GetReadinessReportHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -381,7 +401,11 @@ func (eph *EnhancedPhotoHandlers) GetReadinessReportHandler(w http.ResponseWrite
 // GetPhotoStatisticsHandler returns detailed photo statistics for a property
 func (eph *EnhancedPhotoHandlers) GetPhotoStatisticsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	mlsID := r.URL.Query().Get("mls_id")
 	if mlsID == "" {
@@ -407,7 +431,11 @@ func (eph *EnhancedPhotoHandlers) GetPhotoStatisticsHandler(w http.ResponseWrite
 // CleanupInactivePhotosHandler cleans up inactive photos
 func (eph *EnhancedPhotoHandlers) CleanupInactivePhotosHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+	origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if origin == "" {
+		origin = "http://localhost:8080"
+	}
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
