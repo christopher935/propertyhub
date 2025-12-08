@@ -1,0 +1,125 @@
+{{define "admin-base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <title>{{.PageTitle}} - PropertyHub</title>
+    
+    <!-- Core CSS - DO NOT CHANGE ORDER -->
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <link rel="stylesheet" href="/static/css/admin-notifications.css">
+    
+    <!-- Page-specific CSS (optional) -->
+    {{block "additional-css" .}}{{end}}
+    
+    <!-- Alpine.js for reactive components -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Page-specific head content (optional) -->
+    {{block "head" .}}{{end}}
+</head>
+<body>
+    <!-- Page-specific Alpine.js data initialization -->
+    <div class="admin-layout" {{block "layout-data" .}}{{end}}>
+        
+        <!-- Mobile Sidebar Toggle -->
+        <button class="admin-sidebar-toggle" x-data="sidebarToggle()" @click="toggleSidebar">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+        
+        <!-- Sidebar Backdrop (mobile) -->
+        <div class="sidebar-backdrop" x-data="sidebarToggle()" @click="closeSidebar" :class="{ 'show': sidebarOpen }"></div>
+        
+        <!-- CANONICAL SIDEBAR - Single source of truth -->
+        {{template "shared/components/admin-sidebar.html" .}}
+        
+        <!-- Main Content Area -->
+        <main class="admin-main">
+            <!-- CANONICAL TOP BAR - Single source of truth -->
+            <!-- NOTE: Override page title by setting .PageTitle in template data -->
+            <div class="admin-top-bar">
+                <div class="admin-page-header">
+                    <h1 class="admin-page-title">{{.PageTitle}}</h1>
+                </div>
+                
+                <div class="admin-top-bar-right">
+                    <!-- Search -->
+                    <div class="admin-search">
+                        <input type="text" class="form-input" placeholder="Search leads, properties..." id="globalSearch" aria-label="Search leads and properties">
+                        <span class="admin-search-icon" aria-hidden="true">🔍</span>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="admin-notifications">
+                        <button class="admin-notification-button" id="notificationButton" aria-label="Notifications">
+                            <span class="notification-icon" aria-hidden="true">🔔</span>
+                            <span class="notification-badge" id="notificationBadge" aria-live="polite" aria-atomic="true">3</span>
+                        </button>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="admin-user-dropdown">
+                        <button class="admin-user-button" id="userMenuButton" aria-expanded="false" aria-controls="userMenu" aria-label="User menu">
+                            <div class="admin-user-avatar" aria-hidden="true">{{if .User}}{{.User.Initials}}{{else}}CG{{end}}</div>
+                            <div class="admin-user-info">
+                                <div class="admin-user-name">{{if .User}}{{.User.Name}}{{else}}Christopher Gross{{end}}</div>
+                                <div class="admin-user-role">{{if .User}}{{.User.Role}}{{else}}Administrator{{end}}</div>
+                            </div>
+                            <span class="admin-user-chevron" aria-hidden="true">▼</span>
+                        </button>
+                        <div class="admin-user-menu" id="userMenu" role="menu" aria-labelledby="userMenuButton">
+                            <a href="/admin/profile" class="admin-user-menu-item" role="menuitem">
+                                <span class="menu-icon" aria-hidden="true">👤</span>
+                                <span>Profile</span>
+                            </a>
+                            <a href="/admin/settings" class="admin-user-menu-item" role="menuitem">
+                                <span class="menu-icon" aria-hidden="true">⚙️</span>
+                                <span>Settings</span>
+                            </a>
+                            <a href="/help" class="admin-user-menu-item" role="menuitem">
+                                <span class="menu-icon" aria-hidden="true">❓</span>
+                                <span>Help & Support</span>
+                            </a>
+                            <div class="admin-user-menu-divider" role="separator"></div>
+                            <a href="/admin/logout" class="admin-user-menu-item admin-user-menu-logout" role="menuitem" onclick="handleLogout(event)">
+                                <span class="menu-icon" aria-hidden="true">🚪</span>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Page Content - This is where child templates inject their content -->
+            <div class="admin-content">
+                {{block "content" .}}
+                <!-- Child templates MUST define this block -->
+                <div class="text-center text-gray-500 p-8">
+                    <p>No content defined. Please define the "content" block in your template.</p>
+                </div>
+                {{end}}
+            </div>
+        </main>
+    </div>
+    
+    <!-- Core JavaScript -->
+    <script src="/static/js/admin-notifications.js"></script>
+    <script src="/static/js/admin-sidebar.js"></script>
+    
+    <!-- Page-specific JavaScript -->
+    {{block "scripts" .}}{{end}}
+</body>
+</html>
+{{end}}

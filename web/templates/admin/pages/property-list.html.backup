@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Properties & Showings - PropertyHub Admin</title>
+    
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <div class="admin-layout" x-data="propertyListData()" x-init="init()" @keydown.escape="closeBulkModal()">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="/admin/dashboard" class="sidebar-logo">
+                    <div class="sidebar-logo-icon">PH</div>
+                    <span>PropertyHub</span>
+                </a>
+            </div>
+            
+            <nav class="admin-sidebar-nav">
+                <div class="nav-section">
+                    <a href="/admin/dashboard" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Leads</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.total_leads || 0"></span>
+                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/leads" class="nav-item">All Leads <span class="nav-item-badge" x-text="sidebarCounts.total_leads || 0"></span></a></li>
+                        <li><a href="/admin/leads?segment=hot" class="nav-item">Hot Leads <span class="nav-item-badge" x-text="sidebarCounts.hot_leads || 0"></span></a></li>
+                        <li><a href="/admin/leads?segment=warm" class="nav-item">Warm Leads <span class="nav-item-badge" x-text="sidebarCounts.warm_leads || 0"></span></a></li>
+                        <li><a href="/admin/communication" class="nav-item">Communication Center</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section expanded" x-data="{ open: true }">
+                    <button class="nav-section-header active" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Properties</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.active_properties || 0"></span>
+                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a @click.prevent="switchTab('all')" href="#" class="nav-item" :class="{ 'active': activeTab === 'all' }">All Properties</a></li>
+                        <li><a @click.prevent="switchTab('performance')" href="#" class="nav-item" :class="{ 'active': activeTab === 'performance' }">Performance Analytics</a></li>
+                        <li><a @click.prevent="switchTab('calendar')" href="#" class="nav-item" :class="{ 'active': activeTab === 'calendar' }">Showing Calendar</a></li>
+                        <li><a @click.prevent="switchTab('prelisting')" href="#" class="nav-item" :class="{ 'active': activeTab === 'prelisting' }">Pre-Listing Pipeline</a></li>
+                        <li><a @click.prevent="switchTab('valuations')" href="#" class="nav-item" :class="{ 'active': activeTab === 'valuations' }">Valuations</a></li>
+                    </ul>
+                </div>
+               <div class="nav-section">
+                    <a href="/admin/applications" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Applications</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.pending_applications || 0"></span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <a href="/admin/bookings" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Bookings</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.confirmed_bookings || 0"></span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <a href="/admin/closing-pipeline" class="nav-section-header">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Closing Pipeline</span>
+                        <span class="nav-section-badge" x-text="sidebarCounts.closing_pipeline || 0"></span>
+                    </a>
+                </div>
+                
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">Intelligence</span>
+                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/business-intelligence" class="nav-item">Business Intelligence</a></li>
+                        <li><a href="/admin/behavioral-intelligence" class="nav-item">Behavioral Analytics</a></li>
+                        <li><a href="/admin/market-intelligence" class="nav-item">Market Intelligence</a></li>
+                    </ul>
+                </div>
+                
+                <div class="nav-section" x-data="{ open: false }">
+                    <button class="nav-section-header" @click="open = !open">
+                        <div class="nav-section-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <span class="nav-section-title">System</span>
+                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <ul class="nav-section-items" x-show="open" x-collapse>
+                        <li><a href="/admin/settings" class="nav-item">Settings</a></li>
+                        <li><a href="/admin/rbac" class="nav-item">Roles & Permissions</a></li>
+                        <li><a href="/admin/integrations/webhooks" class="nav-item">Integrations</a></li>
+                        <li><a href="/admin/security" class="nav-item">Security Monitoring</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="admin-header-content">
+                    <h1 class="admin-header-title">Properties & Showings</h1>
+                    
+                    <div class="admin-header-actions">
+                        <div class="admin-search">
+                            <input type="search" placeholder="Search properties..." x-model="searchQuery" @input.debounce.300ms="performSearch">
+                            <svg class="admin-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                        
+                        <div class="admin-user-menu">
+                            <div class="admin-user-avatar" x-text="userProfile.initials"></div>
+                            <div class="admin-user-info">
+                                <div class="admin-user-name" x-text="userProfile.username"></div>
+                                <div class="admin-user-role" x-text="userProfile.role"></div>
+                            </div>
+                        </div>
+                        
+                        <a href="/admin/logout" class="btn-logout">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="admin-content">
+                <div class="tab-nav">
+                    <button class="tab-button" :class="{ 'active': activeTab === 'all' }" @click="switchTab('all')">
+                        All Properties
+                        <span class="tab-count" x-show="sidebarCounts.active_properties" x-text="sidebarCounts.active_properties"></span>
+                    </button>
+                    <button class="tab-button" :class="{ 'active': activeTab === 'performance' }" @click="switchTab('performance')">
+                        Performance
+                    </button>
+                    <button class="tab-button" :class="{ 'active': activeTab === 'calendar' }" @click="switchTab('calendar')">
+                        Calendar
+                    </button>
+                    <button class="tab-button" :class="{ 'active': activeTab === 'prelisting' }" @click="switchTab('prelisting')">
+                        Pre-Listing
+                    </button>
+                    <button class="tab-button" :class="{ 'active': activeTab === 'valuations' }" @click="switchTab('valuations')">
+                        Valuations
+                    </button>
+                </div>
+                
+                <div class="tab-content" :class="{ 'active': activeTab === 'all' }">
+                    <!-- Bulk Actions Bar -->
+                    <div class="bulk-actions-bar" x-show="selectedProperties.length > 0" x-transition style="display: none;">
+                        <span class="selected-count" x-text="selectedProperties.length + ' selected'"></span>
+                        <div class="bulk-actions">
+                            <button class="btn btn-sm" @click="showBulkStatusModal()">Update Status</button>
+                            <button class="btn btn-sm" @click="showBulkAssignModal()">Assign to Agent</button>
+                            <button class="btn btn-sm" @click="showBulkFeaturedModal()">Toggle Featured</button>
+                            <button class="btn btn-sm" @click="bulkExport()">Export CSV</button>
+                        </div>
+                        <button class="btn btn-text" @click="clearSelection()">Clear Selection</button>
+                    </div>
+
+                    <!-- Filters and Search -->
+                    <div class="filters-bar">
+                        <div style="display: flex; align-items: center; gap: var(--space-2);">
+                            <input type="checkbox" class="select-all-checkbox" 
+                                   :checked="allPropertiesSelected" 
+                                   @change="toggleAllProperties()"
+                                   :indeterminate.prop="selectedProperties.length > 0 && !allPropertiesSelected">
+                            <label style="font-size: var(--font-size-sm); color: var(--gray-600);">Select All</label>
+                        </div>
+                        <input type="search" class="search-input" placeholder="Search by address, city, or zip code..." x-model="searchQuery" @input.debounce.300ms="performSearch">
+                        
+                        <select class="filter-select">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        
+                        <select class="filter-select">
+                            <option value="all">All Types</option>
+                            <option value="sale">For Sale</option>
+                            <option value="rent">For Rent</option>
+                        </select>
+                        
+                        <div class="view-toggle">
+                            <button class="view-toggle-btn active">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                </svg>
+                                Table
+                            </button>
+                            <button class="view-toggle-btn">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                                </svg>
+                                Grid
+                            </button>
+                        </div>
+                        
+                        <button class="btn btn-primary">
+                            + Add Property
+                        </button>
+                    </div>
+
+                    <!-- Property Table View -->
+                    <div class="table-wrapper">
+                        <table class="property-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;"></th>
+                                    <th>Property</th>
+                                    <th>Address</th>
+                                    <th>Price</th>
+                                    <th>Beds/Baths</th>
+                                    <th>Status</th>
+                                    <th>Listed Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Sample Property Row - Replace with dynamic data -->
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="property-checkbox">
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: var(--space-3);">
+                                            <div style="width: 60px; height: 60px; background: var(--gray-100); border-radius: var(--radius-md); overflow: hidden;">
+                                                <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994" alt="Property" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: var(--font-weight-semibold); color: var(--navy-primary);">
+                                                    Modern Downtown Condo
+                                                </div>
+                                                <div style="font-size: var(--font-size-xs); color: var(--gray-500);">
+                                                    ID: #12345
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>123 Main Street</div>
+                                        <div style="font-size: var(--font-size-xs); color: var(--gray-500);">San Francisco, CA 94105</div>
+                                    </td>
+                                    <td>
+                                        <span style="font-weight: var(--font-weight-semibold); color: var(--gold-primary);">
+                                            $850,000
+                                        </span>
+                                    </td>
+                                    <td>3 / 2</td>
+                                    <td>
+                                        <span class="status-badge status-active">Active</span>
+                                    </td>
+                                    <td>Jan 15, 2024</td>
+                                    <td>
+                                        <div class="action-dropdown">
+                                            <button class="btn btn-secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm);">
+                                                Actions
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: var(--space-8); color: var(--gray-500);">
+                                        <div style="font-size: var(--font-size-lg); margin-bottom: var(--space-2);">
+                                            📦
+                                        </div>
+                                        No additional properties found
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Property Cards Grid View (hidden by default) -->
+                    <div class="property-grid" style="display: none;">
+                        <!-- Sample Property Card -->
+                        <div class="admin-property-card">
+                            <div class="property-image">
+                                <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994" alt="Property">
+                            </div>
+                            <div class="property-info">
+                                <span class="status-badge status-active" style="margin-bottom: var(--space-2);">Active</span>
+                                <div class="property-address">123 Main Street</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-3);">
+                                    San Francisco, CA 94105
+                                </div>
+                                <div class="property-price">$850,000</div>
+                                <div class="property-details">
+                                    <span>3 beds</span>
+                                    <span>•</span>
+                                    <span>2 baths</span>
+                                    <span>•</span>
+                                    <span>1,500 sqft</span>
+                                </div>
+                                <div class="property-actions">
+                                    <button class="btn btn-primary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
+                                        View
+                                    </button>
+                                    <button class="btn btn-secondary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);">
+                                        Edit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" :class="{ 'active': activeTab === 'performance' }">
+                    <div class="section">
+                        <div class="section-label admin-section-label">
+                          <span class="section-label-line"></span>
+                          <span class="section-label-text">Performance Analytics</span>
+                          <span class="section-label-line"></span>
+                        </div>
+                        <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Track property views, leads generated, and engagement metrics</p>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">👁️</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-label">Total Views</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">📧</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-label">Inquiries</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">📅</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-label">Showings</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⭐</div>
+                                <div class="stat-value">0</div>
+                                <div class="stat-label">Favorites</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" :class="{ 'active': activeTab === 'calendar' }">
+                    <div class="section">
+                        <div class="section-label admin-section-label">
+                          <span class="section-label-line"></span>
+                          <span class="section-label-text">Showing Calendar</span>
+                          <span class="section-label-line"></span>
+                        </div>
+                        <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Manage property showings and appointments</p>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                            <div class="stats-grid" style="flex: 1;">
+                                <div class="stat-card">
+                                    <div class="stat-icon">📅</div>
+                                    <div class="stat-value" x-text="bookingStats.total || 0">0</div>
+                                    <div class="stat-label">Total Bookings</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">✅</div>
+                                    <div class="stat-value" x-text="bookingStats.scheduled || 0">0</div>
+                                    <div class="stat-label">Scheduled</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">⏰</div>
+                                    <div class="stat-value" x-text="bookingStats.pending || 0">0</div>
+                                    <div class="stat-label">Pending</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">📊</div>
+                                    <div class="stat-value" x-text="bookingStats.today || 0">0</div>
+                                    <div class="stat-label">Today</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" style="margin-left: var(--space-4);">
+                                + Schedule Showing
+                            </button>
+                        </div>
+                        
+                        <div x-show="loadingBookings" style="text-align: center; padding: var(--space-8);">
+                            <p style="color: var(--gray-500);">Loading bookings...</p>
+                        </div>
+                        
+                        <div x-show="!loadingBookings && bookings.length === 0" style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
+                            <div style="font-size: 3rem; margin-bottom: var(--space-4);">📅</div>
+                            <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">No Showings Scheduled</h3>
+                            <p style="color: var(--gray-500); margin-bottom: var(--space-4);">Schedule property showings to see them here</p>
+                            <button class="btn btn-primary">+ Schedule First Showing</button>
+                        </div>
+                        
+                        <div x-show="!loadingBookings && bookings.length > 0">
+                            <div style="margin-bottom: var(--space-4); display: flex; gap: var(--space-2);">
+                                <button class="btn btn-secondary" :class="{ 'active': bookingFilter === 'all' }" @click="bookingFilter = 'all'">All</button>
+                                <button class="btn btn-secondary" :class="{ 'active': bookingFilter === 'today' }" @click="bookingFilter = 'today'">Today</button>
+                                <button class="btn btn-secondary" :class="{ 'active': bookingFilter === 'week' }" @click="bookingFilter = 'week'">This Week</button>
+                                <button class="btn btn-secondary" :class="{ 'active': bookingFilter === 'month' }" @click="bookingFilter = 'month'">This Month</button>
+                            </div>
+                            
+                            <div style="display: grid; gap: var(--space-3);">
+                                <template x-for="booking in filteredBookings()" :key="booking.id">
+                                    <div style="background: var(--white); border-radius: var(--radius-md); padding: var(--space-4); box-shadow: var(--shadow-sm); display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-4); align-items: center;">
+                                        <div style="text-align: center; padding: var(--space-3); background: var(--blue-50); border-radius: var(--radius-md); min-width: 80px;">
+                                            <div style="font-size: var(--font-size-xs); color: var(--blue-600); text-transform: uppercase; font-weight: var(--font-weight-semibold);" x-text="formatBookingMonth(booking.date)">Jan</div>
+                                            <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--navy-primary);" x-text="formatBookingDay(booking.date)">15</div>
+                                        </div>
+                                        <div>
+                                            <strong style="display: block; font-size: var(--font-size-lg); color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="booking.property_address || 'Property'">Property Address</strong>
+                                            <div style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-1);">
+                                                <span x-text="booking.client_name || 'Client'"></span> • 
+                                                <span x-text="booking.client_email || 'No email'"></span>
+                                            </div>
+                                            <div style="font-size: var(--font-size-sm); color: var(--gray-600);">
+                                                <span x-text="formatBookingTime(booking.date)"></span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-end;">
+                                            <span class="status-badge" :class="'status-' + booking.status" x-text="booking.status">Status</span>
+                                            <div style="display: flex; gap: var(--space-2);">
+                                                <button class="btn btn-secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm);">View</button>
+                                                <button class="btn btn-secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm);">Edit</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" :class="{ 'active': activeTab === 'prelisting' }">
+                    <div class="section">
+                        <div class="section-label admin-section-label">
+                          <span class="section-label-line"></span>
+                          <span class="section-label-text">Pre-Listing Pipeline</span>
+                          <span class="section-label-line"></span>
+                        </div>
+                        <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Properties in preparation before going live</p>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                            <div class="stats-grid" style="flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-3);">
+                                <div class="stat-card" style="padding: var(--space-3);">
+                                    <div class="stat-value" style="font-size: var(--font-size-xl);" x-text="preListingStats.total || 0">0</div>
+                                    <div class="stat-label" style="font-size: var(--font-size-xs);">Total</div>
+                                </div>
+                                <div class="stat-card" style="padding: var(--space-3);">
+                                    <div class="stat-value" style="font-size: var(--font-size-xl);" x-text="preListingStats.initial || 0">0</div>
+                                    <div class="stat-label" style="font-size: var(--font-size-xs);">Initial</div>
+                                </div>
+                                <div class="stat-card" style="padding: var(--space-3);">
+                                    <div class="stat-value" style="font-size: var(--font-size-xl);" x-text="preListingStats.preparing || 0">0</div>
+                                    <div class="stat-label" style="font-size: var(--font-size-xs);">Preparing</div>
+                                </div>
+                                <div class="stat-card" style="padding: var(--space-3);">
+                                    <div class="stat-value" style="font-size: var(--font-size-xl);" x-text="preListingStats.ready || 0">0</div>
+                                    <div class="stat-label" style="font-size: var(--font-size-xs);">Ready</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" @click="showAddPreListingModal = true" style="margin-left: var(--space-4);">+ Add Pre-Listing</button>
+                        </div>
+                        
+                        <div x-show="loadingPreListings" style="text-align: center; padding: var(--space-8);">
+                            <p style="color: var(--gray-500);">Loading pipeline...</p>
+                        </div>
+                        
+                        <div x-show="!loadingPreListings && preListings.length === 0" style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
+                            <div style="font-size: 3rem; margin-bottom: var(--space-4);">📋</div>
+                            <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">No Pre-Listing Properties</h3>
+                            <p style="color: var(--gray-500); margin-bottom: var(--space-4);">Properties awaiting photos, details, or approval will appear here</p>
+                            <button class="btn btn-primary" @click="showAddPreListingModal = true">+ Add Pre-Listing</button>
+                        </div>
+                        
+                        <div x-show="!loadingPreListings && preListings.length > 0" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4);">
+                            <div style="background: var(--gray-50); border-radius: var(--radius-md); padding: var(--space-4);">
+                                <h4 style="font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-3); display: flex; align-items: center; gap: var(--space-2);">
+                                    <span style="background: var(--blue-100); color: var(--blue-600); padding: 2px 8px; border-radius: var(--radius-sm); font-size: var(--font-size-xs);">Initial Contact</span>
+                                </h4>
+                                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                                    <template x-for="item in preListings.filter(p => p.status === 'email_received' || p.status === 'initial')" :key="item.id">
+                                        <div style="background: var(--white); border-radius: var(--radius-md); padding: var(--space-3); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s;" @click="viewPreListingDetails(item)" @mouseenter="$el.style.transform='translateY(-2px)'" @mouseleave="$el.style.transform='translateY(0)'">
+                                            <strong style="display: block; color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="item.address"></strong>
+                                            <p style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-2);" x-text="item.city + ', ' + item.state"></p>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--gray-400);">
+                                                <span x-text="formatDate(item.created_at)"></span>
+                                                <span class="status-badge" style="font-size: 10px;" x-text="item.status"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--gray-50); border-radius: var(--radius-md); padding: var(--space-4);">
+                                <h4 style="font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-3); display: flex; align-items: center; gap: var(--space-2);">
+                                    <span style="background: var(--yellow-100); color: var(--yellow-700); padding: 2px 8px; border-radius: var(--radius-sm); font-size: var(--font-size-xs);">Preparing</span>
+                                </h4>
+                                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                                    <template x-for="item in preListings.filter(p => p.status === 'photos_scheduled' || p.status === 'preparing')" :key="item.id">
+                                        <div style="background: var(--white); border-radius: var(--radius-md); padding: var(--space-3); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s;" @click="viewPreListingDetails(item)" @mouseenter="$el.style.transform='translateY(-2px)'" @mouseleave="$el.style.transform='translateY(0)'">
+                                            <strong style="display: block; color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="item.address"></strong>
+                                            <p style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-2);" x-text="item.city + ', ' + item.state"></p>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--gray-400);">
+                                                <span x-text="formatDate(item.created_at)"></span>
+                                                <span class="status-badge" style="font-size: 10px;" x-text="item.status"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                            
+                            <div style="background: var(--gray-50); border-radius: var(--radius-md); padding: var(--space-4);">
+                                <h4 style="font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-3); display: flex; align-items: center; gap: var(--space-2);">
+                                    <span style="background: var(--green-100); color: var(--green-700); padding: 2px 8px; border-radius: var(--radius-sm); font-size: var(--font-size-xs);">Ready to List</span>
+                                </h4>
+                                <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+                                    <template x-for="item in preListings.filter(p => p.status === 'photos_completed' || p.status === 'ready')" :key="item.id">
+                                        <div style="background: var(--white); border-radius: var(--radius-md); padding: var(--space-3); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s;" @click="viewPreListingDetails(item)" @mouseenter="$el.style.transform='translateY(-2px)'" @mouseleave="$el.style.transform='translateY(0)'">
+                                            <strong style="display: block; color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="item.address"></strong>
+                                            <p style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-2);" x-text="item.city + ', ' + item.state"></p>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: var(--font-size-xs); color: var(--gray-400);">
+                                                <span x-text="formatDate(item.created_at)"></span>
+                                                <span class="status-badge status-active" style="font-size: 10px;" x-text="item.status"></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" :class="{ 'active': activeTab === 'valuations' }">
+                    <div class="section">
+                        <div class="section-label admin-section-label">
+                          <span class="section-label-line"></span>
+                          <span class="section-label-text">Property Valuations</span>
+                          <span class="section-label-line"></span>
+                        </div>
+                        <p style="color: var(--gray-500); margin-bottom: var(--space-6);">AI-powered property valuations and market analysis</p>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6);">
+                            <div class="stats-grid" style="flex: 1;">
+                                <div class="stat-card">
+                                    <div class="stat-icon">💰</div>
+                                    <div class="stat-value" x-text="valuationStats.total_valuations || 0">0</div>
+                                    <div class="stat-label">Total Valuations</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">📈</div>
+                                    <div class="stat-value" x-text="'$' + formatPrice(valuationStats.avg_value || 0)">$0</div>
+                                    <div class="stat-label">Avg Value</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">🎯</div>
+                                    <div class="stat-value" x-text="(valuationStats.avg_confidence || 0) + '%'">0%</div>
+                                    <div class="stat-label">Avg Confidence</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">⏱️</div>
+                                    <div class="stat-value" x-text="valuationStats.recent_count || 0">0</div>
+                                    <div class="stat-label">This Month</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" @click="requestBulkValuation()" style="margin-left: var(--space-4);">
+                                Request Valuations
+                            </button>
+                        </div>
+                        
+                        <div x-show="loadingValuations" style="text-align: center; padding: var(--space-8);">
+                            <p style="color: var(--gray-500);">Loading valuations...</p>
+                        </div>
+                        
+                        <div x-show="valuationError" style="background: var(--red-50); border: 1px solid var(--red-200); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-4); color: var(--red-700);" x-text="valuationError"></div>
+                        
+                        <div x-show="!loadingValuations && valuations.length === 0" style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-8); text-align: center; box-shadow: var(--shadow-sm);">
+                            <div style="font-size: 3rem; margin-bottom: var(--space-4);">💰</div>
+                            <h3 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">No Valuations Yet</h3>
+                            <p style="color: var(--gray-500); margin-bottom: var(--space-4);">Request valuations for your properties to see AI-powered market estimates</p>
+                            <button class="btn btn-primary" @click="requestBulkValuation()">Request First Valuation</button>
+                        </div>
+                        
+                        <div x-show="!loadingValuations && valuations.length > 0" style="display: grid; gap: var(--space-4);">
+                            <template x-for="valuation in valuations" :key="valuation.property_id">
+                                <div style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-4); box-shadow: var(--shadow-sm); display: grid; grid-template-columns: 1fr auto; gap: var(--space-4); align-items: center;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2);">
+                                            <div style="width: 80px; height: 80px; background: var(--gray-100); border-radius: var(--radius-md); overflow: hidden;">
+                                                <img :src="valuation.image || 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=200'" alt="Property" style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                            <div style="flex: 1;">
+                                                <strong style="display: block; font-size: var(--font-size-lg); color: var(--navy-primary); margin-bottom: var(--space-1);" x-text="valuation.address">Address</strong>
+                                                <div style="font-size: var(--font-size-sm); color: var(--gray-500);" x-text="valuation.city + ', ' + valuation.state + ' ' + valuation.zip_code">Location</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: var(--space-4); align-items: center;">
+                                        <div style="text-align: right;">
+                                            <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--gold-primary); margin-bottom: var(--space-1);" x-text="'$' + formatPrice(valuation.estimated_value)">$0</div>
+                                            <div style="font-size: var(--font-size-sm); color: var(--gray-500); margin-bottom: var(--space-1);">
+                                                <span x-text="valuation.confidence + '% confidence'"></span>
+                                            </div>
+                                            <div style="font-size: var(--font-size-xs); color: var(--gray-400);" x-text="'Updated ' + formatDate(valuation.last_updated)">Updated</div>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                                            <button class="btn btn-secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm); white-space: nowrap;" @click="viewValuationReport(valuation.property_id)">
+                                                View Report
+                                            </button>
+                                            <button class="btn btn-secondary" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm); white-space: nowrap;" @click="refreshValuation(valuation.property_id)">
+                                                Refresh
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Property Status Modal -->
+            <div class="bulk-modal-overlay" x-show="showPropertyStatusModal" @click="closeBulkStatusModal()" x-transition style="display: none;">
+                <div class="bulk-modal" @click.stop>
+                    <h3>Update Status for <span x-text="selectedProperties.length"></span> Properties</h3>
+                    <div class="form-group">
+                        <label>New Status</label>
+                        <select x-model="selectedPropertyStatus" class="form-input">
+                            <option value="">Choose status...</option>
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="withdrawn">Withdrawn</option>
+                            <option value="sold">Sold</option>
+                            <option value="leased">Leased</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" @click="closeBulkStatusModal()">Cancel</button>
+                        <button class="btn btn-primary" @click="bulkUpdatePropertyStatus()">Update Status</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Property Assign Modal -->
+            <div class="bulk-modal-overlay" x-show="showPropertyAssignModal" @click="closeBulkAssignModal()" x-transition style="display: none;">
+                <div class="bulk-modal" @click.stop>
+                    <h3>Assign <span x-text="selectedProperties.length"></span> Properties to Agent</h3>
+                    <div class="form-group">
+                        <label>Select Agent</label>
+                        <select x-model="selectedPropertyAgent" class="form-input">
+                            <option value="">Choose an agent...</option>
+                            <option value="agent1">Christopher Gross</option>
+                            <option value="agent2">Agent 2</option>
+                            <option value="agent3">Agent 3</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" @click="closeBulkAssignModal()">Cancel</button>
+                        <button class="btn btn-primary" @click="bulkAssignProperties()">Assign Properties</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Featured Toggle Modal -->
+            <div class="bulk-modal-overlay" x-show="showPropertyFeaturedModal" @click="closeBulkFeaturedModal()" x-transition style="display: none;">
+                <div class="bulk-modal" @click.stop>
+                    <h3>Update Featured Status for <span x-text="selectedProperties.length"></span> Properties</h3>
+                    <div class="form-group">
+                        <label>Featured Status</label>
+                        <select x-model="featuredValue" class="form-input">
+                            <option :value="true">Featured</option>
+                            <option :value="false">Not Featured</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" @click="closeBulkFeaturedModal()">Cancel</button>
+                        <button class="btn btn-primary" @click="bulkUpdateFeatured()">Update Featured</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function propertyListData() {
+            return {
+                activeTab: 'all',
+                loading: false,
+                userProfile: {
+                    username: 'Christopher Gross',
+                    email: 'chris@propertyhub.com',
+                    role: 'Administrator',
+                    initials: 'CG'
+                },
+                sidebarCounts: {
+                    total_leads: 0,
+                    hot_leads: 0,
+                    warm_leads: 0,
+                    active_properties: 0,
+                    pending_images: 0,
+                    pending_applications: 0,
+                    confirmed_bookings: 0,
+                    closing_pipeline: 0
+                },
+                searchQuery: '',
+                properties: [],
+                valuations: [],
+                valuationStats: {},
+                loadingValuations: false,
+                valuationError: '',
+                preListings: [],
+                preListingStats: {},
+                loadingPreListings: false,
+                showAddPreListingModal: false,
+                bookings: [],
+                bookingStats: {},
+                loadingBookings: false,
+                bookingFilter: 'all',
+                selectedProperties: [],
+                allPropertiesSelected: false,
+                showPropertyStatusModal: false,
+                showPropertyAssignModal: false,
+                showPropertyFeaturedModal: false,
+                selectedPropertyStatus: '',
+                selectedPropertyAgent: '',
+                featuredValue: false,
+                
+                async init() {
+                    await this.fetchSidebarCounts();
+                    await this.fetchProperties();
+                    
+                    this.$watch('activeTab', (newTab) => {
+                        if (newTab === 'valuations' && this.valuations.length === 0) {
+                            this.fetchValuations();
+                        } else if (newTab === 'prelisting' && this.preListings.length === 0) {
+                            this.fetchPreListings();
+                        } else if (newTab === 'calendar' && this.bookings.length === 0) {
+                            this.fetchBookings();
+                        }
+                    });
+                },
+                
+                async fetchSidebarCounts() {
+                    try {
+                        const res = await fetch('/api/stats/warm');
+                        if (res.ok) {
+                            const result = await res.json();
+                            this.sidebarCounts = {
+                                total_leads: result.total_leads || 0,
+                                hot_leads: result.hot_leads || 0,
+                                warm_leads: result.warm_leads || 0,
+                                active_properties: result.active_properties || 0,
+                                pending_images: result.pending_images || 0,
+                                pending_applications: result.pending_applications || 0,
+                                confirmed_bookings: result.confirmed_bookings || 0,
+                                closing_pipeline: result.closing_pipeline || 0
+                            };
+                        }
+                    } catch (error) {
+                        console.error('Error fetching sidebar counts:', error);
+                    }
+                },
+                
+                async fetchProperties() {
+                    this.loading = true;
+                    try {
+                        const res = await fetch('/api/admin/properties?page=1&limit=20');
+                        if (res.ok) {
+                            const result = await res.json();
+                            const data = result.data || result;
+                            this.properties = data.properties || [];
+                            console.log('Loaded properties:', this.properties.length);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching properties:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                switchTab(tab) {
+                    console.log('Switching to tab:', tab);
+                    this.activeTab = tab;
+                },
+                
+                performSearch() {
+                    console.log('Search:', this.searchQuery);
+                },
+                
+                async fetchValuations() {
+                    this.loadingValuations = true;
+                    this.valuationError = '';
+                    try {
+                        const res = await fetch('/api/v1/valuation/requests');
+                        if (res.ok) {
+                            const result = await res.json();
+                            if (result.success && result.data) {
+                                this.valuations = result.data.requests || [];
+                                this.valuationStats = {
+                                    total_valuations: this.valuations.length,
+                                    avg_value: this.valuations.reduce((sum, v) => sum + (v.estimated_value || 0), 0) / (this.valuations.length || 1),
+                                    avg_confidence: Math.round(this.valuations.reduce((sum, v) => sum + (v.confidence || 0), 0) / (this.valuations.length || 1)),
+                                    recent_count: this.valuations.filter(v => {
+                                        const date = new Date(v.last_updated);
+                                        const monthAgo = new Date();
+                                        monthAgo.setMonth(monthAgo.getMonth() - 1);
+                                        return date > monthAgo;
+                                    }).length
+                                };
+                            }
+                        } else {
+                            this.valuationError = 'Failed to load valuations. Please try again.';
+                        }
+                    } catch (error) {
+                        console.error('Error fetching valuations:', error);
+                        this.valuationError = 'Error loading valuations: ' + error.message;
+                    } finally {
+                        this.loadingValuations = false;
+                    }
+                },
+                
+                async requestBulkValuation() {
+                    if (!confirm('Request valuations for all active properties? This may take a few moments.')) {
+                        return;
+                    }
+                    
+                    this.loadingValuations = true;
+                    try {
+                        const propertyRequests = this.properties.slice(0, 10).map(p => ({
+                            address: p.address,
+                            city: p.city,
+                            state: p.state,
+                            zip_code: p.zip_code,
+                            bedrooms: p.bedrooms,
+                            bathrooms: p.bathrooms,
+                            square_feet: p.square_feet,
+                            property_type: p.property_type || 'residential'
+                        }));
+                        
+                        const res = await fetch('/api/v1/valuation/bulk-estimate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(propertyRequests)
+                        });
+                        
+                        if (res.ok) {
+                            alert('Valuations requested successfully!');
+                            await this.fetchValuations();
+                        } else {
+                            alert('Failed to request valuations. Please try again.');
+                        }
+                    } catch (error) {
+                        console.error('Error requesting valuations:', error);
+                        alert('Error requesting valuations: ' + error.message);
+                    } finally {
+                        this.loadingValuations = false;
+                    }
+                },
+                
+                async refreshValuation(propertyId) {
+                    alert('Refreshing valuation for property ' + propertyId + '...');
+                },
+                
+                viewValuationReport(propertyId) {
+                    window.location.href = '/admin/valuations/' + propertyId;
+                },
+                
+                async fetchPreListings() {
+                    this.loadingPreListings = true;
+                    try {
+                        const res = await fetch('/api/v1/pre-listing/items?page=1&limit=50');
+                        if (res.ok) {
+                            const result = await res.json();
+                            if (result.success && result.data) {
+                                this.preListings = result.data.items || [];
+                                this.calculatePreListingStats();
+                            }
+                        }
+                        
+                        const statsRes = await fetch('/api/v1/pre-listing/stats');
+                        if (statsRes.ok) {
+                            const statsResult = await statsRes.json();
+                            if (statsResult.success) {
+                                this.preListingStats = statsResult.data || {};
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching pre-listings:', error);
+                    } finally {
+                        this.loadingPreListings = false;
+                    }
+                },
+                
+                calculatePreListingStats() {
+                    this.preListingStats = {
+                        total: this.preListings.length,
+                        initial: this.preListings.filter(p => p.status === 'email_received' || p.status === 'initial').length,
+                        preparing: this.preListings.filter(p => p.status === 'photos_scheduled' || p.status === 'preparing').length,
+                        ready: this.preListings.filter(p => p.status === 'photos_completed' || p.status === 'ready').length
+                    };
+                },
+                
+                viewPreListingDetails(item) {
+                    console.log('Viewing pre-listing:', item);
+                    alert('Pre-listing details for: ' + item.address);
+                },
+                
+                formatDate(dateString) {
+                    if (!dateString) return 'N/A';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                },
+                
+                formatPrice(value) {
+                    if (!value) return '0';
+                    return Math.round(value).toLocaleString('en-US');
+                },
+                
+                async fetchBookings() {
+                    this.loadingBookings = true;
+                    try {
+                        const res = await fetch('/api/v1/bookings?status=scheduled,pending&limit=50');
+                        if (res.ok) {
+                            const result = await res.json();
+                            if (result.success && result.data) {
+                                this.bookings = result.data.bookings || [];
+                                this.calculateBookingStats();
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching bookings:', error);
+                    } finally {
+                        this.loadingBookings = false;
+                    }
+                },
+                
+                calculateBookingStats() {
+                    const now = new Date();
+                    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const todayEnd = new Date(todayStart);
+                    todayEnd.setDate(todayEnd.getDate() + 1);
+                    
+                    this.bookingStats = {
+                        total: this.bookings.length,
+                        scheduled: this.bookings.filter(b => b.status === 'scheduled').length,
+                        pending: this.bookings.filter(b => b.status === 'pending').length,
+                        today: this.bookings.filter(b => {
+                            const bookingDate = new Date(b.date);
+                            return bookingDate >= todayStart && bookingDate < todayEnd;
+                        }).length
+                    };
+                },
+                
+                filteredBookings() {
+                    if (this.bookingFilter === 'all') {
+                        return this.bookings;
+                    }
+                    
+                    const now = new Date();
+                    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    
+                    if (this.bookingFilter === 'today') {
+                        const todayEnd = new Date(todayStart);
+                        todayEnd.setDate(todayEnd.getDate() + 1);
+                        return this.bookings.filter(b => {
+                            const bookingDate = new Date(b.date);
+                            return bookingDate >= todayStart && bookingDate < todayEnd;
+                        });
+                    }
+                    
+                    if (this.bookingFilter === 'week') {
+                        const weekEnd = new Date(todayStart);
+                        weekEnd.setDate(weekEnd.getDate() + 7);
+                        return this.bookings.filter(b => {
+                            const bookingDate = new Date(b.date);
+                            return bookingDate >= todayStart && bookingDate < weekEnd;
+                        });
+                    }
+                    
+                    if (this.bookingFilter === 'month') {
+                        const monthEnd = new Date(todayStart);
+                        monthEnd.setMonth(monthEnd.getMonth() + 1);
+                        return this.bookings.filter(b => {
+                            const bookingDate = new Date(b.date);
+                            return bookingDate >= todayStart && bookingDate < monthEnd;
+                        });
+                    }
+                    
+                    return this.bookings;
+                },
+                
+                formatBookingMonth(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                },
+                
+                formatBookingDay(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    return date.getDate();
+                },
+                
+                formatBookingTime(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                },
+                
+                toggleProperty(propertyId) {
+                    const index = this.selectedProperties.indexOf(propertyId);
+                    if (index > -1) {
+                        this.selectedProperties.splice(index, 1);
+                    } else {
+                        this.selectedProperties.push(propertyId);
+                    }
+                    this.allPropertiesSelected = this.selectedProperties.length === this.properties.length;
+                },
+                
+                toggleAllProperties() {
+                    if (this.allPropertiesSelected) {
+                        this.selectedProperties = [];
+                        this.allPropertiesSelected = false;
+                    } else {
+                        this.selectedProperties = this.properties.map(p => p.id);
+                        this.allPropertiesSelected = true;
+                    }
+                },
+                
+                clearSelection() {
+                    this.selectedProperties = [];
+                    this.allPropertiesSelected = false;
+                },
+                
+                showBulkStatusModal() {
+                    this.showPropertyStatusModal = true;
+                },
+                
+                closeBulkStatusModal() {
+                    this.showPropertyStatusModal = false;
+                },
+                
+                showBulkAssignModal() {
+                    this.showPropertyAssignModal = true;
+                },
+                
+                closeBulkAssignModal() {
+                    this.showPropertyAssignModal = false;
+                },
+                
+                showBulkFeaturedModal() {
+                    this.showPropertyFeaturedModal = true;
+                },
+                
+                closeBulkFeaturedModal() {
+                    this.showPropertyFeaturedModal = false;
+                },
+                
+                closeBulkModal() {
+                    this.showPropertyStatusModal = false;
+                    this.showPropertyAssignModal = false;
+                    this.showPropertyFeaturedModal = false;
+                },
+                
+                async bulkUpdatePropertyStatus() {
+                    if (!this.selectedPropertyStatus) {
+                        alert('Please select a status');
+                        return;
+                    }
+                    try {
+                        const response = await fetch('/api/properties/bulk/status', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                ids: this.selectedProperties,
+                                status: this.selectedPropertyStatus
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert(data.message);
+                            this.closeBulkStatusModal();
+                            this.clearSelection();
+                            await this.fetchProperties();
+                        } else {
+                            alert('Failed to update status: ' + (data.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        alert('Failed to update status: ' + error.message);
+                    }
+                },
+                
+                async bulkAssignProperties() {
+                    if (!this.selectedPropertyAgent) {
+                        alert('Please select an agent');
+                        return;
+                    }
+                    try {
+                        const response = await fetch('/api/properties/bulk/assign', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                ids: this.selectedProperties,
+                                agent_id: this.selectedPropertyAgent
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert(data.message);
+                            this.closeBulkAssignModal();
+                            this.clearSelection();
+                            await this.fetchProperties();
+                        } else {
+                            alert('Failed to assign properties: ' + (data.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        alert('Failed to assign properties: ' + error.message);
+                    }
+                },
+                
+                async bulkUpdateFeatured() {
+                    try {
+                        const response = await fetch('/api/properties/bulk/featured', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                ids: this.selectedProperties,
+                                featured: this.featuredValue
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert(data.message);
+                            this.closeBulkFeaturedModal();
+                            this.clearSelection();
+                            await this.fetchProperties();
+                        } else {
+                            alert('Failed to update featured: ' + (data.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        alert('Failed to update featured: ' + error.message);
+                    }
+                },
+                
+                async bulkExport() {
+                    try {
+                        const response = await fetch('/api/properties/bulk/export', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                ids: this.selectedProperties
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'properties_export.csv';
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                            alert('Properties exported successfully');
+                            this.clearSelection();
+                        } else {
+                            alert('Failed to export properties');
+                        }
+                    } catch (error) {
+                        alert('Failed to export properties: ' + error.message);
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>
