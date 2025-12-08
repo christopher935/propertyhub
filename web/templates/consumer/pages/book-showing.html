@@ -14,6 +14,7 @@
 <link href="/static/css/scout-components.css" rel="stylesheet"/>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script src="/static/js/booking-calendar.js"></script>
+<script src="/static/js/booking-interactions.js"></script>
 <script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITE_KEY"></script>
 </head>
 <body class="scout-consumer-layout page-booking">
@@ -164,64 +165,76 @@
 <h1 class="text-heading-1 font-serif text-navy text-center mb-2">Rental Requirements</h1>
 <p class="text-body text-gray-600 text-center mb-6">To ensure a smooth application process, please confirm you meet these requirements</p>
 <div class="card p-6 max-w-3xl mx-auto">
-<div class="text-center mb-6 pb-4 border-bottom">
-<p class="text-body text-gray-700 mb-2">
-<strong>Click each box below</strong> to confirm you meet all requirements
-                            </p>
-<p class="text-body-sm text-gray-600">
-                                All four requirements must be checked to continue
-                            </p>
+<div class="requirements-progress-container text-center mb-6 pb-4 border-bottom">
+<div class="requirements-progress">
+<div class="progress-text mb-3" x-text="progressMessage"></div>
+<div class="progress-bar-container">
+<div class="progress-bar">
+<div class="progress-fill" :style="'width: ' + (checkedCount/4 * 100) + '%'"></div>
 </div>
-<div class="flex flex-col gap-4 mb-5">
-<div class="requirement-item" data-requirement="income">
-<input class="requirement-checkbox" id="req-income" type="checkbox" x-model="requirementsChecked.income"/>
+<span class="progress-count" x-text="checkedCount + ' of 4 requirements confirmed'"></span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-4 mb-5" role="group" aria-label="Pre-qualification requirements">
+<div class="requirement-item" :class="{ 'checked': requirementsChecked.income }" data-requirement="income" @click="requirementsChecked.income = !requirementsChecked.income">
+<input class="requirement-checkbox" id="req-income" type="checkbox" x-model="requirementsChecked.income" aria-describedby="req-income-desc"/>
 <div class="requirement-checkmark">
 <svg class="icon-gold" height="20" width="20"><use href="#icon-check"></use></svg>
 </div>
-<div class="text-4xl icon-gold"><svg class="icon-gold" height="48" width="48"><use href="#icon-currency-dollar"></use></svg></div>
+<div class="requirement-icon text-4xl icon-gold"><svg class="icon-gold" height="48" width="48"><use href="#icon-currency-dollar"></use></svg></div>
 <div class="flex-1">
 <strong class="block text-navy text-lg mb-1">Income Requirement</strong>
-<p class="text-gray-600 text-sm m-0">Monthly household income is at least 3x the rent</p>
+<p class="text-gray-600 text-sm m-0" id="req-income-desc">Monthly household income is at least 3x the rent</p>
 </div>
 </div>
-<div class="requirement-item" data-requirement="felony">
-<input class="requirement-checkbox" id="req-felony" type="checkbox" x-model="requirementsChecked.felony"/>
+<div class="requirement-item" :class="{ 'checked': requirementsChecked.felony }" data-requirement="felony" @click="requirementsChecked.felony = !requirementsChecked.felony">
+<input class="requirement-checkbox" id="req-felony" type="checkbox" x-model="requirementsChecked.felony" aria-describedby="req-felony-desc"/>
 <div class="requirement-checkmark">
 <svg class="icon-gold" height="20" width="20"><use href="#icon-check"></use></svg>
 </div>
-<div class="text-4xl icon-gold"><svg class="icon-gold" height="48" width="48"><use href="#icon-scale"></use></svg></div>
+<div class="requirement-icon text-4xl icon-gold"><svg class="icon-gold" height="48" width="48"><use href="#icon-scale"></use></svg></div>
 <div class="flex-1">
 <strong class="block text-navy text-lg mb-1">Criminal Background</strong>
-<p class="text-gray-600 text-sm m-0">No felony convictions</p>
+<p class="text-gray-600 text-sm m-0" id="req-felony-desc">No felony convictions</p>
 </div>
 </div>
-<div class="requirement-item" data-requirement="eviction">
-<input class="requirement-checkbox" id="req-eviction" type="checkbox" x-model="requirementsChecked.eviction"/>
+<div class="requirement-item" :class="{ 'checked': requirementsChecked.eviction }" data-requirement="eviction" @click="requirementsChecked.eviction = !requirementsChecked.eviction">
+<input class="requirement-checkbox" id="req-eviction" type="checkbox" x-model="requirementsChecked.eviction" aria-describedby="req-eviction-desc"/>
 <div class="requirement-checkmark">
 <svg class="icon-gold" height="20" width="20"><use href="#icon-check"></use></svg>
 </div>
-<div class="text-4xl icon-gold"><svg class="icon-gold" height="48" width="48"><use href="#icon-home"></use></svg></div>
+<div class="requirement-icon text-4xl icon-gold"><svg class="icon-gold" height="48" width="48"><use href="#icon-home"></use></svg></div>
 <div class="flex-1">
 <strong class="block text-navy text-lg mb-1">Rental History</strong>
-<p class="text-gray-600 text-sm m-0">No evictions or broken leases in the past 7 years</p>
+<p class="text-gray-600 text-sm m-0" id="req-eviction-desc">No evictions or broken leases in the past 7 years</p>
 </div>
 </div>
-<div class="requirement-item" data-requirement="credit">
-<input class="requirement-checkbox" id="req-credit" type="checkbox" x-model="requirementsChecked.credit"/>
+<div class="requirement-item" :class="{ 'checked': requirementsChecked.credit }" data-requirement="credit" @click="requirementsChecked.credit = !requirementsChecked.credit">
+<input class="requirement-checkbox" id="req-credit" type="checkbox" x-model="requirementsChecked.credit" aria-describedby="req-credit-desc"/>
 <div class="requirement-checkmark">
 <svg class="icon-gold" height="20" width="20"><use href="#icon-check"></use></svg>
 </div>
-<div class="text-4xl icon-gold"><svg class="icon-gold" height="48" width="48"><use href="#icon-chart-bar"></use></svg></div>
+<div class="requirement-icon text-4xl icon-gold"><svg class="icon-gold" height="48" width="48"><use href="#icon-chart-bar"></use></svg></div>
 <div class="flex-1">
 <strong class="block text-navy text-lg mb-1">Credit Score</strong>
-<p class="text-gray-600 text-sm m-0">Credit score of 550 or higher</p>
+<p class="text-gray-600 text-sm m-0" id="req-credit-desc">Credit score of 550 or higher</p>
 </div>
 </div>
 </div>
-<div class="bg-gray-50 border-left-gold p-4 rounded">
-<p class="text-body-sm text-gray-600 m-0">
-<svg class="inline-icon-sm" height="16" width="16"><use href="#icon-information-circle"></use></svg> <strong>Note:</strong> Meeting these requirements does not guarantee approval. Final approval is subject to verification and landlord discretion.
-                            </p>
+<div class="requirement-note bg-gray-50 border-left-gold p-4 rounded" x-data="{ noteExpanded: true }">
+<div class="note-header" @click="noteExpanded = !noteExpanded" role="button" tabindex="0" @keydown.enter="noteExpanded = !noteExpanded" @keydown.space.prevent="noteExpanded = !noteExpanded">
+<p class="text-body-sm text-gray-600 m-0 note-title">
+<svg class="inline-icon-sm" height="16" width="16"><use href="#icon-info"></use></svg> <strong>Important Information</strong>
+<span class="note-toggle" x-show="!noteExpanded">+</span>
+<span class="note-toggle" x-show="noteExpanded">−</span>
+</p>
+</div>
+<div x-show="noteExpanded" x-transition class="note-content">
+<p class="text-body-sm text-gray-600 m-0 mt-2">
+These requirements help us match you with the right property. Final approval is subject to verification and landlord review.
+</p>
+</div>
 </div>
 </div>
 <div class="step-actions">
@@ -423,43 +436,7 @@
 
         // Step navigation handled by Alpine.js
 
-        // Step 1: Pre-Qualification
-        const requirementCheckboxes = document.querySelectorAll('.requirement-checkbox');
-        const requirementItems = document.querySelectorAll('.requirement-item');
-        
-        requirementItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                if (e.target.classList.contains('requirement-checkbox')) return;
-                
-                const checkbox = this.querySelector('.requirement-checkbox');
-                checkbox.checked = !checkbox.checked;
-                
-                if (checkbox.checked) {
-                    this.classList.add('checked');
-                } else {
-                    this.classList.remove('checked');
-                }
-                
-                const allChecked = Array.from(requirementCheckboxes).every(cb => cb.checked);
-                document.getElementById('step1-next').disabled = !allChecked;
-            });
-        });
-        
-        requirementCheckboxes.forEach(cb => {
-            cb.addEventListener('change', function() {
-                const item = this.closest('.requirement-item');
-                if (this.checked) {
-                    item.classList.add('checked');
-                } else {
-                    item.classList.remove('checked');
-                }
-                
-                const allChecked = Array.from(requirementCheckboxes).every(cb => cb.checked);
-                document.getElementById('step1-next').disabled = !allChecked;
-            });
-        });
-
-        // Step 1 navigation handled by Alpine.js
+        // Step 1: Pre-Qualification - handled by Alpine.js
 
         // Step 2: Calendar
         function generateCalendar(year, month) {
