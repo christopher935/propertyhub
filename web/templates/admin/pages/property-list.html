@@ -20,7 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 <body>
-    <div class="admin-layout" x-data="propertyListData()" x-init="init()">
+    <div class="admin-layout" x-data="propertyListData()" x-init="init()" @keydown.escape="closeBulkModal()">
         <aside class="admin-sidebar">
             <div class="sidebar-header">
                 <a href="/admin/dashboard" class="sidebar-logo">
@@ -213,8 +213,27 @@
                 </div>
                 
                 <div class="tab-content" :class="{ 'active': activeTab === 'all' }">
+                    <!-- Bulk Actions Bar -->
+                    <div class="bulk-actions-bar" x-show="selectedProperties.length > 0" x-transition style="display: none;">
+                        <span class="selected-count" x-text="selectedProperties.length + ' selected'"></span>
+                        <div class="bulk-actions">
+                            <button class="btn btn-sm" @click="showBulkStatusModal()">Update Status</button>
+                            <button class="btn btn-sm" @click="showBulkAssignModal()">Assign to Agent</button>
+                            <button class="btn btn-sm" @click="showBulkFeaturedModal()">Toggle Featured</button>
+                            <button class="btn btn-sm" @click="bulkExport()">Export CSV</button>
+                        </div>
+                        <button class="btn btn-text" @click="clearSelection()">Clear Selection</button>
+                    </div>
+
                     <!-- Filters and Search -->
                     <div class="filters-bar">
+                        <div style="display: flex; align-items: center; gap: var(--space-2);">
+                            <input type="checkbox" class="select-all-checkbox" 
+                                   :checked="allPropertiesSelected" 
+                                   @change="toggleAllProperties()"
+                                   :indeterminate.prop="selectedProperties.length > 0 && !allPropertiesSelected">
+                            <label style="font-size: var(--font-size-sm); color: var(--gray-600);">Select All</label>
+                        </div>
                         <input type="search" class="search-input" placeholder="Search by address, city, or zip code..." x-model="searchQuery" @input.debounce.300ms="performSearch">
                         
                         <select class="filter-select">
@@ -255,6 +274,7 @@
                         <table class="property-table">
                             <thead>
                                 <tr>
+                                    <th style="width: 40px;"></th>
                                     <th>Property</th>
                                     <th>Address</th>
                                     <th>Price</th>
@@ -267,6 +287,9 @@
                             <tbody>
                                 <!-- Sample Property Row - Replace with dynamic data -->
                                 <tr>
+                                    <td>
+                                        <input type="checkbox" class="property-checkbox">
+                                    </td>
                                     <td>
                                         <div style="display: flex; align-items: center; gap: var(--space-3);">
                                             <div style="width: 60px; height: 60px; background: var(--gray-100); border-radius: var(--radius-md); overflow: hidden;">
@@ -659,6 +682,67 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Bulk Property Status Modal -->
+            <div class="bulk-modal-overlay" x-show="showPropertyStatusModal" @click="closeBulkStatusModal()" x-transition style="display: none;">
+                <div class="bulk-modal" @click.stop>
+                    <h3>Update Status for <span x-text="selectedProperties.length"></span> Properties</h3>
+                    <div class="form-group">
+                        <label>New Status</label>
+                        <select x-model="selectedPropertyStatus" class="form-input">
+                            <option value="">Choose status...</option>
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="withdrawn">Withdrawn</option>
+                            <option value="sold">Sold</option>
+                            <option value="leased">Leased</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" @click="closeBulkStatusModal()">Cancel</button>
+                        <button class="btn btn-primary" @click="bulkUpdatePropertyStatus()">Update Status</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Property Assign Modal -->
+            <div class="bulk-modal-overlay" x-show="showPropertyAssignModal" @click="closeBulkAssignModal()" x-transition style="display: none;">
+                <div class="bulk-modal" @click.stop>
+                    <h3>Assign <span x-text="selectedProperties.length"></span> Properties to Agent</h3>
+                    <div class="form-group">
+                        <label>Select Agent</label>
+                        <select x-model="selectedPropertyAgent" class="form-input">
+                            <option value="">Choose an agent...</option>
+                            <option value="agent1">Christopher Gross</option>
+                            <option value="agent2">Agent 2</option>
+                            <option value="agent3">Agent 3</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" @click="closeBulkAssignModal()">Cancel</button>
+                        <button class="btn btn-primary" @click="bulkAssignProperties()">Assign Properties</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Featured Toggle Modal -->
+            <div class="bulk-modal-overlay" x-show="showPropertyFeaturedModal" @click="closeBulkFeaturedModal()" x-transition style="display: none;">
+                <div class="bulk-modal" @click.stop>
+                    <h3>Update Featured Status for <span x-text="selectedProperties.length"></span> Properties</h3>
+                    <div class="form-group">
+                        <label>Featured Status</label>
+                        <select x-model="featuredValue" class="form-input">
+                            <option :value="true">Featured</option>
+                            <option :value="false">Not Featured</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary" @click="closeBulkFeaturedModal()">Cancel</button>
+                        <button class="btn btn-primary" @click="bulkUpdateFeatured()">Update Featured</button>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
     
@@ -697,6 +781,14 @@
                 bookingStats: {},
                 loadingBookings: false,
                 bookingFilter: 'all',
+                selectedProperties: [],
+                allPropertiesSelected: false,
+                showPropertyStatusModal: false,
+                showPropertyAssignModal: false,
+                showPropertyFeaturedModal: false,
+                selectedPropertyStatus: '',
+                selectedPropertyAgent: '',
+                featuredValue: false,
                 
                 async init() {
                     await this.fetchSidebarCounts();
@@ -978,6 +1070,171 @@
                     if (!dateString) return '';
                     const date = new Date(dateString);
                     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                },
+                
+                toggleProperty(propertyId) {
+                    const index = this.selectedProperties.indexOf(propertyId);
+                    if (index > -1) {
+                        this.selectedProperties.splice(index, 1);
+                    } else {
+                        this.selectedProperties.push(propertyId);
+                    }
+                    this.allPropertiesSelected = this.selectedProperties.length === this.properties.length;
+                },
+                
+                toggleAllProperties() {
+                    if (this.allPropertiesSelected) {
+                        this.selectedProperties = [];
+                        this.allPropertiesSelected = false;
+                    } else {
+                        this.selectedProperties = this.properties.map(p => p.id);
+                        this.allPropertiesSelected = true;
+                    }
+                },
+                
+                clearSelection() {
+                    this.selectedProperties = [];
+                    this.allPropertiesSelected = false;
+                },
+                
+                showBulkStatusModal() {
+                    this.showPropertyStatusModal = true;
+                },
+                
+                closeBulkStatusModal() {
+                    this.showPropertyStatusModal = false;
+                },
+                
+                showBulkAssignModal() {
+                    this.showPropertyAssignModal = true;
+                },
+                
+                closeBulkAssignModal() {
+                    this.showPropertyAssignModal = false;
+                },
+                
+                showBulkFeaturedModal() {
+                    this.showPropertyFeaturedModal = true;
+                },
+                
+                closeBulkFeaturedModal() {
+                    this.showPropertyFeaturedModal = false;
+                },
+                
+                closeBulkModal() {
+                    this.showPropertyStatusModal = false;
+                    this.showPropertyAssignModal = false;
+                    this.showPropertyFeaturedModal = false;
+                },
+                
+                async bulkUpdatePropertyStatus() {
+                    if (!this.selectedPropertyStatus) {
+                        alert('Please select a status');
+                        return;
+                    }
+                    try {
+                        const response = await fetch('/api/properties/bulk/status', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                ids: this.selectedProperties,
+                                status: this.selectedPropertyStatus
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert(data.message);
+                            this.closeBulkStatusModal();
+                            this.clearSelection();
+                            await this.fetchProperties();
+                        } else {
+                            alert('Failed to update status: ' + (data.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        alert('Failed to update status: ' + error.message);
+                    }
+                },
+                
+                async bulkAssignProperties() {
+                    if (!this.selectedPropertyAgent) {
+                        alert('Please select an agent');
+                        return;
+                    }
+                    try {
+                        const response = await fetch('/api/properties/bulk/assign', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                ids: this.selectedProperties,
+                                agent_id: this.selectedPropertyAgent
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert(data.message);
+                            this.closeBulkAssignModal();
+                            this.clearSelection();
+                            await this.fetchProperties();
+                        } else {
+                            alert('Failed to assign properties: ' + (data.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        alert('Failed to assign properties: ' + error.message);
+                    }
+                },
+                
+                async bulkUpdateFeatured() {
+                    try {
+                        const response = await fetch('/api/properties/bulk/featured', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                ids: this.selectedProperties,
+                                featured: this.featuredValue
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert(data.message);
+                            this.closeBulkFeaturedModal();
+                            this.clearSelection();
+                            await this.fetchProperties();
+                        } else {
+                            alert('Failed to update featured: ' + (data.error || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        alert('Failed to update featured: ' + error.message);
+                    }
+                },
+                
+                async bulkExport() {
+                    try {
+                        const response = await fetch('/api/properties/bulk/export', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                ids: this.selectedProperties
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'properties_export.csv';
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                            alert('Properties exported successfully');
+                            this.clearSelection();
+                        } else {
+                            alert('Failed to export properties');
+                        }
+                    } catch (error) {
+                        alert('Failed to export properties: ' + error.message);
+                    }
                 }
             };
         }

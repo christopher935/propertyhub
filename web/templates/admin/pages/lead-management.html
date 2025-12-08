@@ -66,7 +66,7 @@
             </div>
         </div>
     </header>
-    <div class="admin-content" x-data="leadManagementData()" x-init="init()">
+    <div class="admin-content" x-data="leadManagementData()" x-init="init()" @keydown.escape="closeBulkModal()"">
         <!-- Lead Statistics -->
         <div class="section">
             <div class="section-label admin-section-label">
@@ -103,9 +103,30 @@
             </div>
         </div>
 
+        <!-- Bulk Actions Bar -->
+        <div class="bulk-actions-bar" x-show="selectedLeads.length > 0" x-transition style="display: none;">
+            <span class="selected-count" x-text="selectedLeads.length + ' selected'"></span>
+            <div class="bulk-actions">
+                <button class="btn btn-sm" @click="showBulkEmailModal()">Send Email</button>
+                <button class="btn btn-sm" @click="showBulkAssignModal()">Assign to Agent</button>
+                <button class="btn btn-sm" @click="showBulkStatusModal()">Update Status</button>
+                <button class="btn btn-sm" @click="showBulkTagModal()">Add Tag</button>
+                <button class="btn btn-sm btn-danger" @click="bulkArchive()">Archive</button>
+            </div>
+            <button class="btn btn-text" @click="clearSelection()">Clear Selection</button>
+        </div>
+
         <!-- Filters and Search -->
         <div class="section">
             <div class="filters-bar">
+                <div style="display: flex; align-items: center; gap: var(--space-2);">
+                    <input type="checkbox" class="select-all-checkbox" 
+                           :checked="allSelected" 
+                           @change="toggleAll()"
+                           :indeterminate.prop="selectedLeads.length > 0 && !allSelected">
+                    <label style="font-size: var(--font-size-sm); color: var(--gray-600);">Select All</label>
+                </div>
+                
                 <input type="search" class="search-input" placeholder="Search leads by name, email, or phone...">
                 
                 <select class="filter-select">
@@ -191,6 +212,92 @@
                 </div>
             </div>
         </div>
+
+        <!-- Bulk Email Modal -->
+        <div class="bulk-modal-overlay" x-show="showEmailModal" @click="closeEmailModal()" x-transition style="display: none;">
+            <div class="bulk-modal" @click.stop>
+                <h3>Send Email to <span x-text="selectedLeads.length"></span> Leads</h3>
+                <div class="form-group">
+                    <label>Template</label>
+                    <select x-model="emailTemplate" @change="loadEmailTemplate()">
+                        <option value="">Custom Message</option>
+                        <option value="follow_up">Follow Up</option>
+                        <option value="new_listing">New Listing Alert</option>
+                        <option value="price_drop">Price Reduction</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" x-model="emailSubject" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea x-model="emailBody" rows="6" class="form-textarea"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" @click="closeEmailModal()">Cancel</button>
+                    <button class="btn btn-primary" @click="sendBulkEmail()">Send to <span x-text="selectedLeads.length"></span> Leads</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Assign Modal -->
+        <div class="bulk-modal-overlay" x-show="showAssignModal" @click="closeAssignModal()" x-transition style="display: none;">
+            <div class="bulk-modal" @click.stop>
+                <h3>Assign <span x-text="selectedLeads.length"></span> Leads to Agent</h3>
+                <div class="form-group">
+                    <label>Select Agent</label>
+                    <select x-model="selectedAgent" class="form-input">
+                        <option value="">Choose an agent...</option>
+                        <option value="agent1">Agent 1</option>
+                        <option value="agent2">Agent 2</option>
+                        <option value="agent3">Agent 3</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" @click="closeAssignModal()">Cancel</button>
+                    <button class="btn btn-primary" @click="bulkAssign()">Assign Leads</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Status Modal -->
+        <div class="bulk-modal-overlay" x-show="showStatusModal" @click="closeStatusModal()" x-transition style="display: none;">
+            <div class="bulk-modal" @click.stop>
+                <h3>Update Status for <span x-text="selectedLeads.length"></span> Leads</h3>
+                <div class="form-group">
+                    <label>New Status</label>
+                    <select x-model="selectedStatus" class="form-input">
+                        <option value="">Choose status...</option>
+                        <option value="new">New</option>
+                        <option value="contacted">Contacted</option>
+                        <option value="qualified">Qualified</option>
+                        <option value="negotiating">Negotiating</option>
+                        <option value="closed">Closed</option>
+                        <option value="lost">Lost</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" @click="closeStatusModal()">Cancel</button>
+                    <button class="btn btn-primary" @click="bulkUpdateStatus()">Update Status</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Tag Modal -->
+        <div class="bulk-modal-overlay" x-show="showTagModal" @click="closeTagModal()" x-transition style="display: none;">
+            <div class="bulk-modal" @click.stop>
+                <h3>Add Tags to <span x-text="selectedLeads.length"></span> Leads</h3>
+                <div class="form-group">
+                    <label>Tags (comma-separated)</label>
+                    <input type="text" x-model="newTags" placeholder="e.g., VIP, Houston, Buyer" class="form-input">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" @click="closeTagModal()">Cancel</button>
+                    <button class="btn btn-primary" @click="bulkTag()">Add Tags</button>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 <script>
@@ -199,6 +306,18 @@ return {
 leads: [],
 stats: { total: 0, hot: 0, warm: 0, cold: 0 },
 loading: true,
+selectedLeads: [],
+allSelected: false,
+showEmailModal: false,
+showAssignModal: false,
+showStatusModal: false,
+showTagModal: false,
+emailTemplate: '',
+emailSubject: '',
+emailBody: '',
+selectedAgent: '',
+selectedStatus: '',
+newTags: '',
 async init() {
 await this.fetchLeads();
 },
@@ -229,6 +348,212 @@ window.location.href = `/admin/leads/${leadId}`;
 },
 contactLead(lead) {
 window.location.href = `/admin/communication?lead=${lead.id}`;
+},
+toggleLead(leadId) {
+const index = this.selectedLeads.indexOf(leadId);
+if (index > -1) {
+this.selectedLeads.splice(index, 1);
+} else {
+this.selectedLeads.push(leadId);
+}
+this.allSelected = this.selectedLeads.length === this.leads.length;
+},
+toggleAll() {
+if (this.allSelected) {
+this.selectedLeads = [];
+this.allSelected = false;
+} else {
+this.selectedLeads = this.leads.map(l => l.id);
+this.allSelected = true;
+}
+},
+clearSelection() {
+this.selectedLeads = [];
+this.allSelected = false;
+},
+showBulkEmailModal() {
+this.showEmailModal = true;
+},
+closeEmailModal() {
+this.showEmailModal = false;
+},
+showBulkAssignModal() {
+this.showAssignModal = true;
+},
+closeAssignModal() {
+this.showAssignModal = false;
+},
+showBulkStatusModal() {
+this.showStatusModal = true;
+},
+closeStatusModal() {
+this.showStatusModal = false;
+},
+showBulkTagModal() {
+this.showTagModal = true;
+},
+closeTagModal() {
+this.showTagModal = false;
+},
+closeBulkModal() {
+this.showEmailModal = false;
+this.showAssignModal = false;
+this.showStatusModal = false;
+this.showTagModal = false;
+},
+loadEmailTemplate() {
+const templates = {
+follow_up: {
+subject: 'Following up on your property inquiry',
+body: 'Hi there,\n\nI wanted to follow up on your recent inquiry about our properties. Are you still interested in viewing some listings?\n\nBest regards,\nPropertyHub Team'
+},
+new_listing: {
+subject: 'New listings that match your criteria',
+body: 'Hi there,\n\nWe have some exciting new properties that match what you\'re looking for. Would you like to schedule a viewing?\n\nBest regards,\nPropertyHub Team'
+},
+price_drop: {
+subject: 'Price reduction on properties you viewed',
+body: 'Hi there,\n\nGood news! Some properties you viewed recently have had price reductions. This might be a great opportunity.\n\nBest regards,\nPropertyHub Team'
+}
+};
+if (this.emailTemplate && templates[this.emailTemplate]) {
+this.emailSubject = templates[this.emailTemplate].subject;
+this.emailBody = templates[this.emailTemplate].body;
+}
+},
+async sendBulkEmail() {
+if (!this.emailSubject || !this.emailBody) {
+alert('Please fill in subject and message');
+return;
+}
+try {
+const response = await fetch('/api/leads/bulk/email', {
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+ids: this.selectedLeads,
+template: this.emailTemplate,
+subject: this.emailSubject,
+body: this.emailBody
+})
+});
+const data = await response.json();
+if (data.success) {
+alert(data.message);
+this.closeEmailModal();
+this.clearSelection();
+} else {
+alert('Failed to send emails: ' + (data.error || 'Unknown error'));
+}
+} catch (error) {
+alert('Failed to send emails: ' + error.message);
+}
+},
+async bulkAssign() {
+if (!this.selectedAgent) {
+alert('Please select an agent');
+return;
+}
+try {
+const response = await fetch('/api/leads/bulk/assign', {
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+ids: this.selectedLeads,
+agent_id: this.selectedAgent
+})
+});
+const data = await response.json();
+if (data.success) {
+alert(data.message);
+this.closeAssignModal();
+this.clearSelection();
+await this.fetchLeads();
+} else {
+alert('Failed to assign leads: ' + (data.error || 'Unknown error'));
+}
+} catch (error) {
+alert('Failed to assign leads: ' + error.message);
+}
+},
+async bulkUpdateStatus() {
+if (!this.selectedStatus) {
+alert('Please select a status');
+return;
+}
+try {
+const response = await fetch('/api/leads/bulk/status', {
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+ids: this.selectedLeads,
+status: this.selectedStatus
+})
+});
+const data = await response.json();
+if (data.success) {
+alert(data.message);
+this.closeStatusModal();
+this.clearSelection();
+await this.fetchLeads();
+} else {
+alert('Failed to update status: ' + (data.error || 'Unknown error'));
+}
+} catch (error) {
+alert('Failed to update status: ' + error.message);
+}
+},
+async bulkTag() {
+if (!this.newTags) {
+alert('Please enter tags');
+return;
+}
+const tags = this.newTags.split(',').map(t => t.trim()).filter(t => t);
+try {
+const response = await fetch('/api/leads/bulk/tag', {
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+ids: this.selectedLeads,
+tags: tags
+})
+});
+const data = await response.json();
+if (data.success) {
+alert(data.message);
+this.closeTagModal();
+this.clearSelection();
+await this.fetchLeads();
+} else {
+alert('Failed to add tags: ' + (data.error || 'Unknown error'));
+}
+} catch (error) {
+alert('Failed to add tags: ' + error.message);
+}
+},
+async bulkArchive() {
+if (!confirm(`Are you sure you want to archive ${this.selectedLeads.length} leads?`)) {
+return;
+}
+try {
+const response = await fetch('/api/leads/bulk/archive', {
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+ids: this.selectedLeads
+})
+});
+const data = await response.json();
+if (data.success) {
+alert(data.message);
+this.clearSelection();
+await this.fetchLeads();
+} else {
+alert('Failed to archive leads: ' + (data.error || 'Unknown error'));
+}
+} catch (error) {
+alert('Failed to archive leads: ' + error.message);
+}
 }
 }
 }

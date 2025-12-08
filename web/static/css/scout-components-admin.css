@@ -7542,3 +7542,215 @@ opacity: 0.7;
   content: "⚠️";
   font-size: var(--font-size-xl);
 }
+
+/* ============================================
+   BULK OPERATIONS COMPONENTS
+   ============================================ */
+
+.bulk-actions-bar {
+  position: sticky;
+  top: 0;
+  background: var(--gold-primary);
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 10;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-md);
+}
+
+.bulk-actions-bar .selected-count {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.bulk-actions .btn-sm {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 6px 12px;
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.bulk-actions .btn-sm:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.bulk-actions .btn-sm.btn-danger {
+  background: rgba(220, 38, 38, 0.9);
+  border-color: rgba(220, 38, 38, 1);
+}
+
+.bulk-actions .btn-sm.btn-danger:hover {
+  background: rgba(220, 38, 38, 1);
+}
+
+.bulk-actions-bar .btn-text {
+  background: transparent;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.bulk-actions-bar .btn-text:hover {
+  opacity: 0.8;
+}
+
+.select-all-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--gold-primary);
+}
+
+.lead-checkbox,
+.property-checkbox {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--gold-primary);
+  z-index: 2;
+}
+
+.lead-card {
+  position: relative;
+}
+
+.lead-card.selected {
+  background: rgba(196, 169, 98, 0.1);
+  border-left: 3px solid var(--gold-primary);
+  box-shadow: 0 0 0 2px rgba(196, 169, 98, 0.2);
+}
+
+.property-card.selected {
+  background: rgba(196, 169, 98, 0.1);
+  border: 2px solid var(--gold-primary);
+  box-shadow: 0 0 0 2px rgba(196, 169, 98, 0.2);
+}
+
+.bulk-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.bulk-modal {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  max-width: 500px;
+  width: 100%;
+  box-shadow: var(--shadow-xl);
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bulk-modal h3 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--navy-primary);
+  margin-bottom: var(--space-4);
+}
+
+.bulk-modal .form-group {
+  margin-bottom: var(--space-4);
+}
+
+.bulk-modal .form-group label {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  color: var(--gray-700);
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.bulk-modal .form-input,
+.bulk-modal .form-textarea {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  transition: border-color 0.2s ease;
+}
+
+.bulk-modal .form-input:focus,
+.bulk-modal .form-textarea:focus {
+  outline: none;
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(196, 169, 98, 0.1);
+}
+
+.bulk-modal .form-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.bulk-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.bulk-modal .modal-actions .btn {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+}
+
+.bulk-modal .modal-actions .btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+.bulk-modal .modal-actions .btn-secondary:hover {
+  background: var(--gray-200);
+}
+
+.bulk-modal .modal-actions .btn-primary {
+  background: var(--gold-primary);
+  color: white;
+  border: none;
+}
+
+.bulk-modal .modal-actions .btn-primary:hover {
+  background: var(--gold-dark);
+}

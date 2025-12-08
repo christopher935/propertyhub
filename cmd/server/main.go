@@ -166,6 +166,7 @@ log.Println("✅ Email automation models migrated")
 // Lead Management & Reengagement
 leadReengagementHandler := handlers.NewLeadReengagementHandler(gormDB, encryptionManager)
 leadsListHandler := handlers.NewLeadsListHandler(gormDB, encryptionManager)
+bulkOperationsHandler := handlers.NewBulkOperationsHandler(gormDB)
 log.Println("👥 Lead management handlers initialized")
 
 // Team Management
@@ -448,6 +449,7 @@ _ = leadSafetyFilter
 		// HARMarket removed - HAR blocked access
 		LeadReengagement:      leadReengagementHandler,
 		LeadsList:             leadsListHandler,
+		BulkOperations:        bulkOperationsHandler,
 		Team:                  teamHandler,
 		PreListing:            preListingHandler,
 		Properties:            propertiesHandler,
