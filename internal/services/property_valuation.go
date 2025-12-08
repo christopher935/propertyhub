@@ -116,12 +116,11 @@ type MarketData struct {
 }
 
 // NewPropertyValuationService creates a new property valuation service
-func NewPropertyValuationService(config *config.Config, db *gorm.DB, scraperService *scraper.ScraperService, harScraper interface{}) *PropertyValuationService {
+func NewPropertyValuationService(config *config.Config, db *gorm.DB, scraperService *scraper.ScraperService) *PropertyValuationService {
 	return &PropertyValuationService{
 		config:          config,
 		db:              db,
 		scraperService:  scraperService,
-		harScraper:      harScraper,
 		marketDataCache: make(map[string]*MarketData),
 		cacheTTL:        24 * time.Hour,
 	}
