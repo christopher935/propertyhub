@@ -117,7 +117,7 @@ func (svc *AWSCommunicationService) SendBulkEmail(recipients []string, subject, 
 	}
 
 	successCount := 0
-	
+
 	// AWS SES supports bulk send but we'll send individually for better error tracking
 	// For production scale, use SES SendBulkTemplatedEmail instead
 	for _, recipient := range recipients {
@@ -127,7 +127,7 @@ func (svc *AWSCommunicationService) SendBulkEmail(recipients []string, subject, 
 			continue
 		}
 		successCount++
-		
+
 		// Rate limiting: AWS SES typically allows 14 emails/second
 		// Add small delay if sending to many recipients
 		if len(recipients) > 100 {
@@ -156,7 +156,7 @@ func (svc *AWSCommunicationService) SendSMS(to, message string) error {
 			},
 			"AWS.SNS.SMS.SMSType": {
 				DataType:    aws.String("String"),
-				StringValue: aws.String("Transactional"), // Transactional = high priority
+				StringValue: aws.String("Transactional"),
 			},
 		},
 	}
@@ -179,7 +179,7 @@ func (svc *AWSCommunicationService) SendBulkSMS(recipients []string, message str
 	}
 
 	successCount := 0
-	
+
 	for _, recipient := range recipients {
 		err := svc.SendSMS(recipient, message)
 		if err != nil {
