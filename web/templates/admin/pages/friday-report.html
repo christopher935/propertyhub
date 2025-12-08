@@ -1,263 +1,244 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{{define "friday-report"}}
+{{template "admin-base" .}}
+
+{{define "additional-css"}}
+<style>
+.friday-report-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-8);
+}
+
+.report-actions {
+    display: flex;
+    gap: var(--space-3);
+}
+
+.report-output {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-top: var(--space-6);
+}
+
+.report-text {
+    width: 100%;
+    min-height: 600px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.8;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-base);
+    padding: var(--space-4);
+    resize: vertical;
+    white-space: pre-wrap;
+}
+
+.loading-state {
+    text-align: center;
+    padding: var(--space-12);
+    color: var(--gray-500);
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--gray-100);
+    border-top: 4px solid var(--navy-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--space-4);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.success-message {
+    background: var(--success-light);
+    border: 1px solid var(--success);
+    color: var(--success-dark);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+    display: none;
+}
+
+.error-message {
+    background: var(--error-light);
+    border: 1px solid var(--error);
+    color: var(--error-dark);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+    display: none;
+}
+</style>
+{{end}}
+
+{{define "content"}}
+<div class="friday-report-container">
+    <div class="report-header">
+        <div>
+            <h1 class="text-3xl font-semibold mb-2">Friday Report</h1>
+            <p class="text-gray-500">Weekly property status report for property owners</p>
+        </div>
+        
+        <button id="generate-report-btn" class="btn btn-primary">
+            Generate Report
+        </button>
+    </div>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Friday Report - PropertyHub Admin</title>
+    <div id="success-message" class="success-message"></div>
+    <div id="error-message" class="error-message"></div>
     
-    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <div id="loading-state" class="loading-state" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Generating report...</p>
+    </div>
     
-    <style>
-        .friday-report-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 24px;
-        }
-        
-        .report-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
-        }
-        
-        .report-actions {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .report-output {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 24px;
-            margin-top: 24px;
-        }
-        
-        .report-text {
-            width: 100%;
-            min-height: 600px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 14px;
-            line-height: 1.8;
-            border: 1px solid #e5e7eb;
-            border-radius: 4px;
-            padding: 16px;
-            resize: vertical;
-            white-space: pre-wrap;
-        }
-        
-        .loading-state {
-            text-align: center;
-            padding: 48px;
-            color: #6b7280;
-        }
-        
-        .loading-spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f4f6;
-            border-top: 4px solid #2563eb;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 16px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .success-message {
-            background: #d1fae5;
-            border: 1px solid #10b981;
-            color: #065f46;
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            display: none;
-        }
-        
-        .error-message {
-            background: #fee2e2;
-            border: 1px solid #ef4444;
-            color: #991b1b;
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            display: none;
-        }
-    </style>
-</head>
-<body class="admin-layout">
-    
-    {{template "_sidebar.html" .}}
-    
-    <div class="admin-main">
-        
-        {{template "_topbar.html" .}}
-        
-        <div class="admin-content">
-            <div class="friday-report-container">
-                <div class="report-header">
-                    <div>
-                        <h1 style="font-size: 28px; font-weight: 600; margin-bottom: 8px;">Friday Report</h1>
-                        <p style="color: #6b7280;">Weekly property status report for property owners</p>
-                    </div>
-                    
-                    <button id="generate-report-btn" class="btn-primary" style="padding: 12px 24px;">
-                        Generate Report
-                    </button>
-                </div>
-                
-                <div id="success-message" class="success-message"></div>
-                <div id="error-message" class="error-message"></div>
-                
-                <div id="loading-state" class="loading-state" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <p>Generating report...</p>
-                </div>
-                
-                <div id="report-output" class="report-output" style="display: none;">
-                    <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="font-size: 18px; font-weight: 600;">Generated Report</h3>
-                        <div class="report-actions">
-                            <button id="copy-report-btn" class="btn-secondary">
-                                Copy to Clipboard
-                            </button>
-                            <button id="send-email-btn" class="btn-primary">
-                                Send via Email
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <textarea id="report-text" class="report-text" placeholder="Report will appear here..."></textarea>
-                    
-                    <div style="margin-top: 16px;">
-                        <label for="recipient-email" style="display: block; margin-bottom: 8px; font-weight: 500;">Email Recipient(s):</label>
-                        <input type="email" id="recipient-email" placeholder="owner@example.com (comma-separated for multiple)" 
-                               style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 14px;">
-                        <p style="color: #6b7280; font-size: 13px; margin-top: 4px;">Enter one or more email addresses separated by commas</p>
-                    </div>
-                </div>
+    <div id="report-output" class="report-output" style="display: none;">
+        <div class="flex justify-between align-center mb-4">
+            <h3 class="text-lg font-semibold">Generated Report</h3>
+            <div class="report-actions">
+                <button id="copy-report-btn" class="btn btn-secondary">
+                    Copy to Clipboard
+                </button>
+                <button id="send-email-btn" class="btn btn-primary">
+                    Send via Email
+                </button>
             </div>
         </div>
+        
+        <textarea id="report-text" class="report-text" placeholder="Report will appear here..."></textarea>
+        
+        <div class="mt-4">
+            <label for="recipient-email" class="form-label">Email Recipient(s):</label>
+            <input type="email" id="recipient-email" placeholder="owner@example.com (comma-separated for multiple)" class="form-input">
+            <p class="text-gray-500 text-xs mt-1">Enter one or more email addresses separated by commas</p>
+        </div>
     </div>
+</div>
+{{end}}
 
-    <script>
-        const generateBtn = document.getElementById('generate-report-btn');
-        const copyBtn = document.getElementById('copy-report-btn');
-        const sendEmailBtn = document.getElementById('send-email-btn');
-        const loadingState = document.getElementById('loading-state');
-        const reportOutput = document.getElementById('report-output');
-        const reportText = document.getElementById('report-text');
-        const successMessage = document.getElementById('success-message');
-        const errorMessage = document.getElementById('error-message');
-        const recipientEmail = document.getElementById('recipient-email');
-        
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 5000);
-        }
-        
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
+{{define "scripts"}}
+<script>
+    const generateBtn = document.getElementById('generate-report-btn');
+    const copyBtn = document.getElementById('copy-report-btn');
+    const sendEmailBtn = document.getElementById('send-email-btn');
+    const loadingState = document.getElementById('loading-state');
+    const reportOutput = document.getElementById('report-output');
+    const reportText = document.getElementById('report-text');
+    const successMessage = document.getElementById('success-message');
+    const errorMessage = document.getElementById('error-message');
+    const recipientEmail = document.getElementById('recipient-email');
+    
+    function showSuccess(message) {
+        successMessage.textContent = message;
+        successMessage.style.display = 'block';
+        errorMessage.style.display = 'none';
+        setTimeout(() => {
             successMessage.style.display = 'none';
+        }, 5000);
+    }
+    
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorMessage.style.display = 'block';
+        successMessage.style.display = 'none';
+    }
+    
+    async function generateReport() {
+        try {
+            loadingState.style.display = 'block';
+            reportOutput.style.display = 'none';
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            const response = await fetch('/api/v1/bi/reports/friday?format=text');
+            const data = await response.json();
+            
+            if (data.success && data.text_format) {
+                reportText.value = data.text_format;
+                reportOutput.style.display = 'block';
+                showSuccess('Report generated successfully!');
+            } else {
+                showError('Failed to generate report: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            showError('Error generating report: ' + error.message);
+        } finally {
+            loadingState.style.display = 'none';
+        }
+    }
+    
+    function copyToClipboard() {
+        reportText.select();
+        document.execCommand('copy');
+        showSuccess('Report copied to clipboard!');
+    }
+    
+    async function sendEmail() {
+        const email = recipientEmail.value.trim();
+        
+        if (!email) {
+            showError('Please enter at least one email address');
+            return;
         }
         
-        async function generateReport() {
-            try {
-                loadingState.style.display = 'block';
-                reportOutput.style.display = 'none';
-                errorMessage.style.display = 'none';
-                successMessage.style.display = 'none';
-                
-                const response = await fetch('/api/v1/bi/reports/friday?format=text');
-                const data = await response.json();
-                
-                if (data.success && data.text_format) {
-                    reportText.value = data.text_format;
-                    reportOutput.style.display = 'block';
-                    showSuccess('Report generated successfully!');
-                } else {
-                    showError('Failed to generate report: ' + (data.error || 'Unknown error'));
-                }
-            } catch (error) {
-                showError('Error generating report: ' + error.message);
-            } finally {
-                loadingState.style.display = 'none';
-            }
+        const emails = email.split(',').map(e => e.trim());
+        const reportContent = reportText.value;
+        
+        if (!reportContent) {
+            showError('Please generate a report first');
+            return;
         }
         
-        function copyToClipboard() {
-            reportText.select();
-            document.execCommand('copy');
-            showSuccess('Report copied to clipboard!');
+        try {
+            sendEmailBtn.disabled = true;
+            sendEmailBtn.textContent = 'Sending...';
+            
+            const response = await fetch('/api/v1/bi/reports/friday/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    recipients: emails,
+                    report_text: reportContent
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showSuccess('Report sent successfully to ' + emails.join(', '));
+                recipientEmail.value = '';
+            } else {
+                showError('Failed to send report: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            showError('Error sending email: ' + error.message);
+        } finally {
+            sendEmailBtn.disabled = false;
+            sendEmailBtn.textContent = 'Send via Email';
         }
-        
-        async function sendEmail() {
-            const email = recipientEmail.value.trim();
-            
-            if (!email) {
-                showError('Please enter at least one email address');
-                return;
-            }
-            
-            const emails = email.split(',').map(e => e.trim());
-            const reportContent = reportText.value;
-            
-            if (!reportContent) {
-                showError('Please generate a report first');
-                return;
-            }
-            
-            try {
-                sendEmailBtn.disabled = true;
-                sendEmailBtn.textContent = 'Sending...';
-                
-                const response = await fetch('/api/v1/bi/reports/friday/send', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        recipients: emails,
-                        report_text: reportContent
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showSuccess('Report sent successfully to ' + emails.join(', '));
-                    recipientEmail.value = '';
-                } else {
-                    showError('Failed to send report: ' + (data.error || 'Unknown error'));
-                }
-            } catch (error) {
-                showError('Error sending email: ' + error.message);
-            } finally {
-                sendEmailBtn.disabled = false;
-                sendEmailBtn.textContent = 'Send via Email';
-            }
-        }
-        
-        generateBtn.addEventListener('click', generateReport);
-        copyBtn.addEventListener('click', copyToClipboard);
-        sendEmailBtn.addEventListener('click', sendEmail);
-    </script>
-</body>
-</html>
+    }
+    
+    generateBtn.addEventListener('click', generateReport);
+    copyBtn.addEventListener('click', copyToClipboard);
+    sendEmailBtn.addEventListener('click', sendEmail);
+</script>
+{{end}}
+
+{{end}}
