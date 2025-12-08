@@ -8,7 +8,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
-	"chrisgross-ctrl-project/internal/security"
 	"time"
 )
 
