@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Title}} - Landlords of Texas</title>
+    <title>{{ Title }} - Landlords of Texas</title>
     <link href="/static/css/design-tokens.css" rel="stylesheet"/>
     <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
     <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
@@ -156,26 +156,26 @@
                     <p class="text-center text-muted mb-6">Choose the property you'd like to tour</p>
 
                     <div class="property-selection">
-                        {{range .Properties}}
-                        <div class="property-card selectable" data-property-id="{{.ID}}" data-property-address="{{.Address}}" data-property-price="{{.MonthlyRent}}">
+                        {% for item in Properties %}
+                        <div class="property-card selectable" data-property-id="{{ ID }}" data-property-address="{{ Address }}" data-property-price="{{ MonthlyRent }}">
                             <div class="property-image">
                                 <span class="badge badge-success" style="position: absolute; top: 8px; left: 8px; z-index: 10;">FOR RENT</span>
-                                {{if .FeaturedImage}}
-                                <img alt="{{.Address}}" loading="lazy" src="{{.FeaturedImage}}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
-                                {{else if .Images}}
-                                <img alt="{{.Address}}" loading="lazy" src="{{index .Images 0}}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
-                                {{end}}
-                                <div class="property-placeholder" style="{{if or .FeaturedImage .Images}}display: none;{{else}}display: flex;{{end}}">
+                                {% if FeaturedImage %}
+                                <img alt="{{ Address }}" loading="lazy" src="{{ FeaturedImage }}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
+                                {% elif Images %}
+                                <img alt="{{ Address }}" loading="lazy" src="{{ Images.0 }}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
+                                {% endif %}
+                                <div class="property-placeholder" style="{% if FeaturedImage or Images %}display: none;{% else %}display: flex;{% endif %}">
                                     <svg height="80" width="80" style="color: var(--gray-400);"><use href="#icon-home"></use></svg>
                                 </div>
                             </div>
                             <div class="property-info">
-                                <h3 class="property-address">{{.Address}}</h3>
-                                <p class="property-price">${{.MonthlyRent | formatNumber}}/month</p>
-                                <p class="property-specs">{{.Bedrooms}} bed • {{.Bathrooms}} bath • {{.SquareFeet | formatNumber}} sq ft</p>
+                                <h3 class="property-address">{{ Address }}</h3>
+                                <p class="property-price">${{ MonthlyRent|formatNumber }}/month</p>
+                                <p class="property-specs">{{ Bedrooms }} bed • {{ Bathrooms }} bath • {{ SquareFeet|formatNumber }} sq ft</p>
                             </div>
                         </div>
-                        {{end}}
+                        {% endfor %}
                     </div>
 
                     <div class="step-actions">
@@ -248,7 +248,7 @@
                     <p class="text-center text-muted mb-6">Please provide your details for the tour confirmation</p>
 
                     <form class="booking-form" id="contact-form">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="csrf_token" value="{{ CSRFToken }}">
                         <div class="form-group">
                             <label for="full-name">Full Name</label>
                             <input type="text" id="full-name" name="full_name" class="form-input" required>

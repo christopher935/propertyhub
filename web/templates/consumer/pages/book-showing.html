@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>{{.Title}} - Landlords of Texas</title>
+<title>{{ Title }} - Landlords of Texas</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;family=Source+Sans+3:wght@300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
@@ -15,9 +15,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script src="/static/js/booking-calendar.js"></script>
 <script src="/static/js/booking-interactions.js"></script>
-{{if .RecaptchaSiteKey}}
-<script src="https://www.google.com/recaptcha/api.js?render={{.RecaptchaSiteKey}}"></script>
-{{end}}
+{% if RecaptchaSiteKey %}
+<script src="https://www.google.com/recaptcha/api.js?render={{ RecaptchaSiteKey }}"></script>
+{% endif %}
 <script src="/static/js/mobile-nav.js"></script>
 </head>
 <body class="scout-consumer-layout page-booking">
@@ -338,7 +338,7 @@ These requirements help us match you with the right property. Final approval is 
 <h1 class="text-heading-1 font-serif text-navy text-center mb-2">Contact Information</h1>
 <p class="text-body text-gray-600 text-center mb-6">Please provide your details for the tour confirmation</p>
 <form class="booking-form" id="contact-form">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="csrf_token" value="{{ CSRFToken }}">
 <div class="form-group">
 <label class="form-label" for="full-name">First Name</label>
 <input class="form-input" id="first-name" name="first_name" required="" type="text" x-model="form.firstName"/>

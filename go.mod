@@ -11,6 +11,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.32.3
 	github.com/aws/aws-sdk-go-v2/service/ses v1.34.15
 	github.com/aws/aws-sdk-go-v2/service/sns v1.39.8
+	github.com/dustin/go-humanize v1.0.1
+	github.com/flosch/pongo2/v6 v6.0.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/uuid v1.6.0

@@ -78,7 +78,7 @@
 <p class="text-body-lg text-gray-600">View details and make changes to your property tour</p>
 </div>
 
-            {{if .Booking}}
+            {% if Booking %}
             <!-- Two Column Layout -->
 <div class="contact-grid">
 <!-- Left Column: Booking Details -->
@@ -87,99 +87,99 @@
 <div class="card">
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
 <h2 class="text-heading-2 text-navy">Booking Details</h2>
-<span class="badge badge-{{.Booking.StatusClass}}">
-                                {{.Booking.Status}}
+<span class="badge badge-{{ Booking.StatusClass }}">
+                                {{ Booking.Status }}
                             </span>
 </div>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
 <div>
 <p style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 4px;">Booking ID</p>
-<p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">{{.Booking.ID}}</p>
+<p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">{{ Booking.ID }}</p>
 </div>
 <div>
 <p style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 4px;">Property</p>
-<p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">{{.Booking.PropertyAddress}}</p>
+<p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">{{ Booking.PropertyAddress }}</p>
 </div>
 <div>
 <p style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 4px;">Tour Date</p>
 <p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">
 <svg height="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16"><use href="#icon-calendar"></use></svg>
-                                    {{.Booking.TourDate}}
+                                    {{ Booking.TourDate }}
                                 </p>
 </div>
 <div>
 <p style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 4px;">Tour Time</p>
 <p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">
 <svg height="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16"><use href="#icon-clock"></use></svg>
-                                    {{.Booking.TourTime}}
+                                    {{ Booking.TourTime }}
                                 </p>
 </div>
 <div>
 <p style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 4px;">Contact Name</p>
 <p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">
 <svg height="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16"><use href="#icon-user"></use></svg>
-                                    {{.Booking.ContactName}}
+                                    {{ Booking.ContactName }}
                                 </p>
 </div>
 <div>
 <p style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 4px;">Contact Email</p>
 <p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">
 <svg height="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16"><use href="#icon-envelope"></use></svg>
-                                    {{.Booking.ContactEmail}}
+                                    {{ Booking.ContactEmail }}
                                 </p>
 </div>
 <div>
 <p style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 4px;">Contact Phone</p>
 <p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">
 <svg height="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16"><use href="#icon-phone"></use></svg>
-                                    {{.Booking.ContactPhone}}
+                                    {{ Booking.ContactPhone }}
                                 </p>
 </div>
 <div>
 <p style="font-size: 0.875rem; color: var(--gray-600); margin-bottom: 4px;">Created</p>
-<p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">{{.Booking.CreatedAt}}</p>
+<p style="font-size: 1rem; color: var(--navy-primary); font-weight: 600; margin: 0;">{{ Booking.CreatedAt }}</p>
 </div>
 </div>
 
-                        {{if .Booking.Notes}}
+                        {% if Booking.Notes %}
                         <div style="margin-top: 24px; padding: 16px; background: var(--gray-50); border-radius: 8px;">
 <h3 class="text-heading-3 text-navy mb-2">Additional Notes</h3>
-<p style="color: var(--gray-700); margin: 0;">{{.Booking.Notes}}</p>
+<p style="color: var(--gray-700); margin: 0;">{{ Booking.Notes }}</p>
 </div>
-                        {{end}}
+                        {% endif %}
                     </div>
 <!-- Property Preview Card -->
-                    {{if .Property}}
+                    {% if Property %}
                     <div class="card">
 <h2 class="text-heading-2 text-navy mb-8">Property Information</h2>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-                            {{if .Property.ImageURL}}
+                            {% if Property.ImageURL %}
                             <div style="grid-column: 1 / -1;">
-<img alt="{{.Property.Address}}" src="{{.Property.ImageURL}}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px;"/>
+<img alt="{{ Property.Address }}" src="{{ Property.ImageURL }}" style="width: 100%; height: 300px; object-fit: cover; border-radius: 12px;"/>
 </div>
-                            {{end}}
+                            {% endif %}
                             <div style="grid-column: 1 / -1;">
-<h3 class="text-heading-3 text-navy mb-2">{{.Property.Address}}</h3>
+<h3 class="text-heading-3 text-navy mb-2">{{ Property.Address }}</h3>
 <p style="color: var(--gray-600); margin-bottom: 16px;">
 <svg height="16" style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16"><use href="#icon-map-pin"></use></svg>
-                                    {{.Property.City}}, {{.Property.State}} {{.Property.Zip}}
+                                    {{ Property.City }}, {{ Property.State }} {{ Property.Zip }}
                                 </p>
 <div style="display: flex; gap: 16px; margin-bottom: 16px;">
-<span style="padding: 8px 16px; background: var(--gray-100); border-radius: 8px; font-size: 0.875rem; color: var(--gray-700);">{{.Property.Bedrooms}} bed</span>
-<span style="padding: 8px 16px; background: var(--gray-100); border-radius: 8px; font-size: 0.875rem; color: var(--gray-700);">{{.Property.Bathrooms}} bath</span>
-<span style="padding: 8px 16px; background: var(--gray-100); border-radius: 8px; font-size: 0.875rem; color: var(--gray-700);">{{.Property.SquareFeet}} sq ft</span>
+<span style="padding: 8px 16px; background: var(--gray-100); border-radius: 8px; font-size: 0.875rem; color: var(--gray-700);">{{ Property.Bedrooms }} bed</span>
+<span style="padding: 8px 16px; background: var(--gray-100); border-radius: 8px; font-size: 0.875rem; color: var(--gray-700);">{{ Property.Bathrooms }} bath</span>
+<span style="padding: 8px 16px; background: var(--gray-100); border-radius: 8px; font-size: 0.875rem; color: var(--gray-700);">{{ Property.SquareFeet }} sq ft</span>
 </div>
-<p style="font-size: 1.75rem; color: var(--gold-primary); font-weight: 700; margin-bottom: 16px;">${{.Property.Rent}}/month</p>
-<a class="btn btn-secondary" href="/property/{{.Property.ID}}">View Full Details</a>
+<p style="font-size: 1.75rem; color: var(--gold-primary); font-weight: 700; margin-bottom: 16px;">${{ Property.Rent }}/month</p>
+<a class="btn btn-secondary" href="/property/{{ Property.ID }}">View Full Details</a>
 </div>
 </div>
 </div>
-                    {{end}}
+                    {% endif %}
                 </div>
 <!-- Right Column: Actions -->
 <div style="display: flex; flex-direction: column; gap: 24px;">
                     
-                    {{if eq .Booking.Status "confirmed"}}
+                    {% if Booking.Status == "confirmed" %}
                     <!-- Manage Booking Card -->
 <div style="background: var(--white); padding: 32px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
 <h3 class="text-heading-3 text-navy mb-6">Manage Booking</h3>
@@ -194,7 +194,7 @@
                             </button>
 </div>
 </div>
-                    {{end}}
+                    {% endif %}
 
                     <!-- Help Card -->
 <div style="background: var(--gold-50); padding: 32px; border-radius: 16px; border: 2px solid var(--gold-200);">
@@ -217,7 +217,7 @@
 </div>
 </div>
 
-            {{else}}
+            {% else %}
             <!-- No Booking Found -->
 <div style="max-width: 600px; margin: 0 auto;">
 <div style="background: var(--white); padding: 64px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); text-align: center;">
@@ -227,7 +227,7 @@
 <a class="btn btn-primary" href="/properties">Browse Properties</a>
 </div>
 </div>
-            {{end}}
+            {% endif %}
         </div>
 </section>
 </main>
@@ -243,7 +243,7 @@
 </button>
 </div>
 <form id="reschedule-form">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="csrf_token" value="{{ CSRFToken }}">
 <div class="modal-content">
 <div class="form-group">
 <label class="form-label" for="new-date">New Tour Date</label>
@@ -287,7 +287,7 @@
 </button>
 </div>
 <form id="cancel-form">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="csrf_token" value="{{ CSRFToken }}">
 <div style="padding: 24px;">
 <div class="alert alert-danger" style="margin-bottom: 24px;">
 <h4 style="color: var(--red-700); font-weight: 600; margin-bottom: 8px;">Are you sure?</h4>
@@ -402,7 +402,7 @@ document.addEventListener('keydown', function(e) {
 document.getElementById('reschedule-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = {
-        booking_id: '{{.Booking.ID}}',
+        booking_id: '{{ Booking.ID }}',
         new_date: document.getElementById('new-date').value,
         new_time: document.getElementById('new-time').value,
         reason: document.getElementById('reschedule-reason').value
@@ -430,7 +430,7 @@ document.getElementById('reschedule-form').addEventListener('submit', async (e) 
 document.getElementById('cancel-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = {
-        booking_id: '{{.Booking.ID}}',
+        booking_id: '{{ Booking.ID }}',
         reason: document.getElementById('cancel-reason').value
     };
     

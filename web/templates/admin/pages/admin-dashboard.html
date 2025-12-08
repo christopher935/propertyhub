@@ -1,17 +1,17 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "additional-css"}}
+{% block additional_css %}
 <link rel="stylesheet" href="/static/css/password-strength.css">
 <link rel="stylesheet" href="/static/css/live-sessions.css">
-{{end}}
+{% endblock %}
 
-{{define "head"}}
+{% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-{{end}}
+{% endblock %}
 
-{{define "layout-data"}}x-data="dashboardData()" x-init="init()"{{end}}
+{% block layout_data %}x-data="dashboardData()" x-init="init()"{% endblock %}
 
-{{define "content"}}
+{% block content %}
 <div x-data="mfaPromptData()" x-init="init()">
     <div class="mfa-prompt" x-show="!dismissed && !hasMFA">
         <svg class="mfa-prompt-icon" width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -408,9 +408,9 @@
         </div>
     </div>
 </template>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script src="/static/js/mfa-prompt.js"></script>
 <script src="/static/js/dashboard.js"></script>
-{{end}}
+{% endblock %}

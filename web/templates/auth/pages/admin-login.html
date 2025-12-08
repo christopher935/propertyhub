@@ -50,7 +50,7 @@
 </div>
 <!-- Login Form -->
 <form action="/admin/login" class="auth-form login-form" method="POST" id="loginForm" @submit="handleSubmit">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="csrf_token" value="{{ CSRFToken }}">
 <!-- Email Field -->
 <div class="form-group">
 <label class="form-label" for="email">Email Address</label>

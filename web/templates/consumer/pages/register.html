@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>{{.Title}} - Landlords of Texas</title>
+<title>{{ Title }} - Landlords of Texas</title>
 <meta content="Create your account to schedule tours and manage bookings with Landlords of Texas." name="description"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -82,7 +82,7 @@
 <h1 class="text-heading-1 font-serif text-navy text-center mb-2">Create Your Account</h1>
 <p class="text-body text-gray-600 text-center mb-6">Let's start with your basic information</p>
 <form id="registration-form">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="csrf_token" value="{{ CSRFToken }}">
 <div class="form-group">
 <label class="form-label" for="first-name">First Name</label>
 <input autocomplete="given-name" class="form-input" id="first-name" name="first_name" required="" type="text"/>

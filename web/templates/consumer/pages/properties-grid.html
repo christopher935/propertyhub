@@ -242,47 +242,47 @@
 </div>
 <!-- Property Grid -->
 <div class="properties-grid" id="propertyGrid">
-            {{range .Properties}}
-            <div class="property-card" data-bathrooms="{{.Bathrooms}}" data-bedrooms="{{.Bedrooms}}" data-location="{{.Neighborhood}}" data-price="{{.MonthlyRent}}">
+            {% for item in Properties %}
+            <div class="property-card" data-bathrooms="{{ Bathrooms }}" data-bedrooms="{{ Bedrooms }}" data-location="{{ Neighborhood }}" data-price="{{ MonthlyRent }}">
 <div class="property-image">
-                    {{if .FeaturedImage}}
-                    <img alt="{{.Address}}" loading="lazy" src="{{.FeaturedImage}}" onerror="this.style.display='none'; this.parentElement.querySelector('.property-placeholder').style.display='flex'"/>
-                    {{else if .Images}}
-                    <img alt="{{.Address}}" loading="lazy" src="{{index .Images 0}}" onerror="this.style.display='none'; this.parentElement.querySelector('.property-placeholder').style.display='flex'"/>
-                    {{end}}
-                    <div class="property-placeholder" style="{{if or .FeaturedImage .Images}}display: none;{{else}}display: flex;{{end}}">
+                    {% if FeaturedImage %}
+                    <img alt="{{ Address }}" loading="lazy" src="{{ FeaturedImage }}" onerror="this.style.display='none'; this.parentElement.querySelector('.property-placeholder').style.display='flex'"/>
+                    {% elif Images %}
+                    <img alt="{{ Address }}" loading="lazy" src="{{ Images.0 }}" onerror="this.style.display='none'; this.parentElement.querySelector('.property-placeholder').style.display='flex'"/>
+                    {% endif %}
+                    <div class="property-placeholder" style="{% if FeaturedImage or Images %}display: none;{% else %}display: flex;{% endif %}">
                         <svg height="120" width="120" style="color: var(--gray-400);"><use href="#icon-home"></use></svg>
                     </div>
                     <div class="property-badges">
-                        <span class="badge badge-{{if eq .Status "available"}}success{{else if eq .Status "just-listed"}}info{{else}}secondary{{end}}">
-                            {{if eq .Status "available"}}Available{{else if eq .Status "just-listed"}}New Listing{{else}}For Rent{{end}}
+                        <span class="badge badge-{% if Status == "available" %}success{% elif Status == "just-listed" %}info{% else %}secondary{% endif %}">
+                            {% if Status == "available" %}Available{% elif Status == "just-listed" %}New Listing{% else %}For Rent{% endif %}
                         </span>
-                        {{if .Featured}}
+                        {% if Featured %}
                         <span class="badge badge-featured">
                             <svg class="badge-icon"><use href="#icon-star"></use></svg> Featured
                         </span>
-                        {{end}}
-                        {{if .ViewCount}}{{if gt .ViewCount 50}}
+                        {% endif %}
+                        {% if ViewCount %}{% if ViewCount > 50 %}
                         <span class="badge badge-hot">
                             <svg class="badge-icon"><use href="#icon-fire"></use></svg> Popular
                         </span>
-                        {{end}}{{end}}
+                        {% endif %}{% endif %}
                     </div>
 </div>
 <div class="property-details">
 <h3 class="property-title">
-<a href="/properties/{{.ID}}">{{.Address}}</a>
+<a href="/properties/{{ ID }}">{{ Address }}</a>
 </h3>
 <p class="property-location">
 <svg height="16" width="16"><use href="#icon-map-pin"></use></svg>
-                        {{.Neighborhood}}, {{.City}}, TX {{.ZipCode}}
+                        {{ Neighborhood }}, {{ City }}, TX {{ ZipCode }}
                     </p>
-<div class="property-price">${{.MonthlyRent}}/month</div>
-<p class="property-specs">{{.Bedrooms}} bed • {{.Bathrooms}} bath • {{.SquareFeet}} sq ft</p>
-<a class="btn btn-primary" href="/book-showing?property={{.ID}}">Schedule A Tour</a>
+<div class="property-price">${{ MonthlyRent }}/month</div>
+<p class="property-specs">{{ Bedrooms }} bed • {{ Bathrooms }} bath • {{ SquareFeet }} sq ft</p>
+<a class="btn btn-primary" href="/book-showing?property={{ ID }}">Schedule A Tour</a>
 </div>
 </div>
-            {{end}}
+            {% endfor %}
         </div>
 <!-- Empty State (hidden by default, shown when no results) -->
 <div aria-live="polite" class="properties-empty-state hidden" id="emptyState" role="status">

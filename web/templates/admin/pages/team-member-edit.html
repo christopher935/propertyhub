@@ -1,8 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "layout-data"}}x-data="teamMemberEditData()" x-init="init()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="mb-2">
     <a href="/admin/team" class="text-gray-500 text-sm">← Back to Team</a>
 </div>
@@ -99,9 +101,9 @@
         </div>
     </form>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     function teamMemberEditData() {
         return {
@@ -174,4 +176,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

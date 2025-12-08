@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>{{.Property.Address}} | Landlords of Texas</title>
+<title>{{ Property.Address }} | Landlords of Texas</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&amp;family=Source+Sans+3:wght@300;400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
@@ -119,24 +119,24 @@
 <div class="container">
 <div class="property-header mb-8">
 <div>
-<h1 class="text-heading-1 text-navy mb-2">{{.Property.Address}}</h1>
-<p class="text-body text-gray-600 mb-4">{{.Property.City}}, {{.Property.State}} {{.Property.ZipCode}}</p>
+<h1 class="text-heading-1 text-navy mb-2">{{ Property.Address }}</h1>
+<p class="text-body text-gray-600 mb-4">{{ Property.City }}, {{ Property.State }} {{ Property.ZipCode }}</p>
 <div class="property-badges">
-<span class="badge badge-navy">{{.Property.PropertyType}}</span>
-{{if eq .Property.Status "available"}}
+<span class="badge badge-navy">{{ Property.PropertyType }}</span>
+{% if Property.Status == "available" %}
 <span class="badge badge-green">Available</span>
-{{else if eq .Property.Status "for_lease"}}
+{% elif Property.Status == "for_lease" %}
 <span class="badge badge-success">For Lease</span>
-{{else if eq .Property.Status "pending"}}
+{% elif Property.Status == "pending" %}
 <span class="badge badge-yellow">Pending</span>
-{{end}}
-{{if .Property.MLSId}}
-<span class="badge badge-gray">MLS #{{.Property.MLSId}}</span>
-{{end}}
+{% endif %}
+{% if Property.MLSId %}
+<span class="badge badge-gray">MLS #{{ Property.MLSId }}</span>
+{% endif %}
 </div>
 </div>
 <div class="property-price-header">
-<div class="text-heading-1 text-gold">{{formatPrice .Property.Price}}</div>
+<div class="text-heading-1 text-gold">{{ Property.Price|formatPrice }}</div>
 <div class="text-sm text-gray-600">per month</div>
 </div>
 </div>
@@ -150,17 +150,17 @@
 <div class="property-layout">
 <div class="property-main">
 <div id="gallery" class="property-gallery mb-8">
-{{if .Property.FeaturedImage}}
+{% if Property.FeaturedImage %}
 <div class="gallery-main">
-<img src="{{.Property.FeaturedImage}}" alt="{{.Property.Address}}" style="width: 100%; height: auto; border-radius: 8px;">
+<img src="{{ Property.FeaturedImage }}" alt="{{ Property.Address }}" style="width: 100%; height: auto; border-radius: 8px;">
 </div>
-{{else}}
+{% else %}
 <div class="image-placeholder">
 <div class="placeholder-icon"><svg height="80" width="80"><use href="#icon-home-modern"></use></svg></div>
 <p class="text-heading-4 text-gray-500 mb-2">Professional photos coming soon</p>
 <p class="text-sm text-gray-400">Images are being professionally prepared for this listing</p>
 </div>
-{{end}}
+{% endif %}
 <div class="gallery-thumbnails">
 <button class="btn btn-outline btn-sm"><svg class="inline-icon" height="16" width="16"><use href="#icon-camera"></use></svg> Photos</button>
 <button class="btn btn-outline btn-sm"><svg class="inline-icon" height="16" width="16"><use href="#icon-home-modern"></use></svg> Interior</button>
@@ -171,11 +171,11 @@
 <section id="details" class="property-section mb-8">
 <h2 class="text-heading-2 text-navy mb-4">Property Description</h2>
 <div class="property-description text-body text-gray-700">
-{{if .Property.Description}}
-<p class="mb-4">{{.Property.Description}}</p>
-{{else}}
+{% if Property.Description %}
+<p class="mb-4">{{ Property.Description }}</p>
+{% else %}
 <p class="mb-4 text-gray-500">No description available for this property.</p>
-{{end}}
+{% endif %}
 </div>
 </section>
 <section id="location" class="property-section mb-8">
@@ -245,11 +245,11 @@ No similar properties found at this time.
 <div class="details-table">
 <div class="detail-row">
 <span class="detail-label">Bedrooms</span>
-<span class="detail-value">{{.Property.Bedrooms}}</span>
+<span class="detail-value">{{ Property.Bedrooms }}</span>
 </div>
 <div class="detail-row">
 <span class="detail-label">Bathrooms</span>
-<span class="detail-value">{{.Property.Bathrooms}}</span>
+<span class="detail-value">{{ Property.Bathrooms }}</span>
 </div>
 <div class="detail-row">
 <span class="detail-label">Square Feet</span>
@@ -257,38 +257,38 @@ No similar properties found at this time.
 </div>
 <div class="detail-row">
 <span class="detail-label">Property Type</span>
-<span class="detail-value">{{.Property.PropertyType}}</span>
+<span class="detail-value">{{ Property.PropertyType }}</span>
 </div>
-{{if .Property.YearBuilt}}
+{% if Property.YearBuilt %}
 <div class="detail-row">
 <span class="detail-label">Year Built</span>
-<span class="detail-value">{{.Property.YearBuilt}}</span>
+<span class="detail-value">{{ Property.YearBuilt }}</span>
 </div>
-{{end}}
+{% endif %}
 <div class="detail-row">
 <span class="detail-label">Days on Market</span>
-<span class="detail-value">{{.DaysOnMarket}}</span>
+<span class="detail-value">{{ DaysOnMarket }}</span>
 </div>
 <div class="detail-row">
 <span class="detail-label">Listing Agent</span>
-<span class="detail-value">{{.Agent.Name}}</span>
+<span class="detail-value">{{ Agent.Name }}</span>
 </div>
 </div>
 </div>
 <div class="sidebar-card">
 <h3 class="text-heading-3 text-navy mb-4">Schedule Your Tour</h3>
 <p class="text-body text-gray-600 mb-6">See this property in person with expert guidance</p>
-<a class="btn btn-primary-consumer btn-block mb-3" href="/book-showing?property_id={{.Property.ID}}"><svg class="inline-icon" height="16" width="16"><use href="#icon-calendar"></use></svg> Schedule A Tour</a>
+<a class="btn btn-primary-consumer btn-block mb-3" href="/book-showing?property_id={{ Property.ID }}"><svg class="inline-icon" height="16" width="16"><use href="#icon-calendar"></use></svg> Schedule A Tour</a>
 <div class="contact-buttons">
 <a class="btn btn-outline" href="tel:+12819257222">Call</a>
 <a class="btn btn-outline" href="sms:+12819257222">Text</a>
 </div>
 <div class="agent-card mt-6">
-<div class="agent-avatar">{{.Agent.Initials}}</div>
+<div class="agent-avatar">{{ Agent.Initials }}</div>
 <div class="agent-info">
-<h4 class="text-heading-4 text-navy mb-1">{{.Agent.Name}}</h4>
+<h4 class="text-heading-4 text-navy mb-1">{{ Agent.Name }}</h4>
 <p class="text-sm text-gray-600 mb-1">Licensed Real Estate Agent</p>
-<p class="text-xs text-gray-500">License #{{.Agent.LicenseNumber}}</p>
+<p class="text-xs text-gray-500">License #{{ Agent.LicenseNumber }}</p>
 </div>
 </div>
 </div>

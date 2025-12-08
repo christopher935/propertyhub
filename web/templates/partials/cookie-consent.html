@@ -1,0 +1,124 @@
+<div id="cookieConsentBanner" class="cookie-consent-banner" style="display: none;">
+    <div class="cookie-consent-content">
+        <div class="cookie-consent-text">
+            <div class="cookie-icon">🍪</div>
+            <div>
+                <h3 class="cookie-title">We Value Your Privacy</h3>
+                <p class="cookie-description">
+                    We use cookies and tracking technologies to improve your experience, analyze site usage, 
+                    and help our agents provide better service through behavioral intelligence. 
+                    You can choose which cookies to accept.
+                    <a href="/privacy-policy" class="cookie-learn-more">Learn more</a>
+                </p>
+            </div>
+        </div>
+        <div class="cookie-consent-actions">
+            <button onclick="cookieConsent.acceptAll()" class="btn-cookie-accept">
+                Accept All
+            </button>
+            <button onclick="cookieConsent.acceptEssential()" class="btn-cookie-essential">
+                Essential Only
+            </button>
+            <button onclick="cookieConsent.showSettings()" class="btn-cookie-settings">
+                Customize
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="cookieSettingsModal" class="cookie-modal" style="display: none;">
+    <div class="cookie-modal-overlay" onclick="cookieConsent.closeSettings()"></div>
+    <div class="cookie-modal-content">
+        <div class="cookie-modal-header">
+            <h2>Cookie Preferences</h2>
+            <button onclick="cookieConsent.closeSettings()" class="cookie-modal-close">&times;</button>
+        </div>
+        
+        <div class="cookie-modal-body">
+            <p class="cookie-modal-intro">
+                We use different types of cookies to optimize your experience. You can choose which categories to allow.
+            </p>
+
+            <div class="cookie-category">
+                <div class="cookie-category-header">
+                    <div>
+                        <h3>Essential Cookies</h3>
+                        <p>Required for the website to function. Cannot be disabled.</p>
+                    </div>
+                    <label class="cookie-toggle">
+                        <input type="checkbox" id="cookie-essential" checked disabled>
+                        <span class="cookie-toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="cookie-category-details">
+                    <strong>Purpose:</strong> Authentication, security, basic site functionality<br>
+                    <strong>Examples:</strong> Login sessions, CSRF tokens, load balancing
+                </div>
+            </div>
+
+            <div class="cookie-category">
+                <div class="cookie-category-header">
+                    <div>
+                        <h3>Analytics & Performance</h3>
+                        <p>Help us understand how visitors use our website.</p>
+                    </div>
+                    <label class="cookie-toggle">
+                        <input type="checkbox" id="cookie-analytics" checked>
+                        <span class="cookie-toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="cookie-category-details">
+                    <strong>Purpose:</strong> Page views, time on site, bounce rate, traffic sources<br>
+                    <strong>Tools:</strong> Google Analytics, internal analytics<br>
+                    <strong>Data:</strong> Anonymized usage statistics
+                </div>
+            </div>
+
+            <div class="cookie-category">
+                <div class="cookie-category-header">
+                    <div>
+                        <h3>Behavioral Intelligence</h3>
+                        <p>Track your property viewing behavior to provide better service.</p>
+                    </div>
+                    <label class="cookie-toggle">
+                        <input type="checkbox" id="cookie-behavioral" checked>
+                        <span class="cookie-toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="cookie-category-details">
+                    <strong>Purpose:</strong> Lead scoring, personalized recommendations, agent prioritization<br>
+                    <strong>Tracking:</strong> Properties viewed, searches, showings requested, email engagement<br>
+                    <strong>Integration:</strong> FollowUpBoss CRM for agent coordination<br>
+                    <strong>Benefit:</strong> Faster response times, relevant property suggestions
+                </div>
+            </div>
+
+            <div class="cookie-category">
+                <div class="cookie-category-header">
+                    <div>
+                        <h3>Marketing & Communication</h3>
+                        <p>Used to show you relevant property updates and market information.</p>
+                    </div>
+                    <label class="cookie-toggle">
+                        <input type="checkbox" id="cookie-marketing" checked>
+                        <span class="cookie-toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="cookie-category-details">
+                    <strong>Purpose:</strong> Email campaigns, property alerts, market updates<br>
+                    <strong>Personalization:</strong> Based on your preferences and viewing history<br>
+                    <strong>Opt-out:</strong> You can unsubscribe from emails anytime
+                </div>
+            </div>
+        </div>
+
+        <div class="cookie-modal-footer">
+            <button onclick="cookieConsent.savePreferences()" class="btn-cookie-save">
+                Save Preferences
+            </button>
+            <button onclick="cookieConsent.acceptAll(); cookieConsent.closeSettings();" class="btn-cookie-accept-all">
+                Accept All
+            </button>
+        </div>
+    </div>
+</div>
