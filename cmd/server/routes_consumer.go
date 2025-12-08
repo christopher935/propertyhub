@@ -31,13 +31,25 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 		})
 	})
 	r.GET("/properties", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "consumer/pages/properties-grid.html", gin.H{"Title": "Properties"})
+		var properties []models.Property
+		h.DB.Where("status = ?", "available").Order("created_at DESC").Limit(50).Find(&properties)
+		c.HTML(http.StatusOK, "consumer/pages/properties-grid.html", gin.H{
+			"Title":      "Properties",
+			"Properties": properties,
+			"CSRFToken":  c.GetString("csrf_token"),
+		})
 	})
 	r.GET("/saved-properties", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "consumer/pages/saved-properties.html", gin.H{"Title": "Saved Properties"})
+		c.HTML(http.StatusOK, "consumer/pages/saved-properties.html", gin.H{
+			"Title":     "Saved Properties",
+			"CSRFToken": c.GetString("csrf_token"),
+		})
 	})
 	r.GET("/property-alerts", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "consumer/pages/property-alerts.html", gin.H{"Title": "Property Alerts"})
+		c.HTML(http.StatusOK, "consumer/pages/property-alerts.html", gin.H{
+			"Title":     "Property Alerts",
+			"CSRFToken": c.GetString("csrf_token"),
+		})
 	})
 	r.GET("/property/:id", func(c *gin.Context) {
 		propertyID := c.Param("id")
@@ -65,6 +77,7 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 			"SimilarProperties": similarProperties,
 			"ContactPhone":      "(281) 925-7222",
 			"ListingAgent":      "Christopher Gross",
+			"CSRFToken":         c.GetString("csrf_token"),
 			"Agent": gin.H{
 				"Name":          "Christopher Gross",
 				"Initials":      "CG",
@@ -87,19 +100,34 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 		c.HTML(http.StatusOK, "consumer/pages/booking-confirmation.html", gin.H{"Title": "Booking Confirmed"})
 	})
 	r.GET("/contact", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "consumer/pages/contact.html", gin.H{"Title": "Contact"})
+		c.HTML(http.StatusOK, "consumer/pages/contact.html", gin.H{
+			"Title":     "Contact",
+			"CSRFToken": c.GetString("csrf_token"),
+		})
 	})
 	r.GET("/about", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "consumer/pages/about.html", gin.H{"Title": "About"})
+		c.HTML(http.StatusOK, "consumer/pages/about.html", gin.H{
+			"Title":     "About",
+			"CSRFToken": c.GetString("csrf_token"),
+		})
 	})
 
 	// Booking routes
 	r.GET("/booking", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "consumer/pages/booking.html", gin.H{"Title": "Booking"})
+		var properties []models.Property
+		h.DB.Where("status = ?", "available").Order("created_at DESC").Find(&properties)
+		c.HTML(http.StatusOK, "consumer/pages/booking.html", gin.H{
+			"Title":      "Booking",
+			"Properties": properties,
+			"CSRFToken":  c.GetString("csrf_token"),
+		})
 	})
 
 	r.GET("/manage-booking", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "consumer/pages/manage-booking.html", gin.H{"Title": "Manage Booking"})
+		c.HTML(http.StatusOK, "consumer/pages/manage-booking.html", gin.H{
+			"Title":     "Manage Booking",
+			"CSRFToken": c.GetString("csrf_token"),
+		})
 	})
 
 	// Error pages
@@ -150,8 +178,64 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 	r.GET("/login", func(c *gin.Context) {
 		c.HTML(200, "consumer/pages/login.html", gin.H{"Title": "Login", "CSRFToken": c.GetString("csrf_token")})
 	})
+	r.POST("/login", func(c *gin.Context) {
+		email := c.PostForm("email")
+		password := c.PostForm("password")
+		_ = c.PostForm("remember")
+
+		if email == "" || password == "" {
+			c.HTML(http.StatusBadRequest, "consumer/pages/login.html", gin.H{
+				"Title":      "Login",
+				"CSRFToken":  c.GetString("csrf_token"),
+				"Error":      "Email and password are required",
+				"Email":      email,
+			})
+			return
+		}
+
+		c.HTML(http.StatusOK, "consumer/pages/login.html", gin.H{
+			"Title":      "Login",
+			"CSRFToken":  c.GetString("csrf_token"),
+			"Error":      "Authentication feature coming soon. Please check back later.",
+			"Email":      email,
+		})
+	})
 	r.GET("/register", func(c *gin.Context) {
 		c.HTML(200, "consumer/pages/register.html", gin.H{"Title": "Create Account", "CSRFToken": c.GetString("csrf_token")})
+	})
+	r.POST("/register", func(c *gin.Context) {
+		email := c.PostForm("email")
+		password := c.PostForm("password")
+		firstName := c.PostForm("first_name")
+		lastName := c.PostForm("last_name")
+		phone := c.PostForm("phone")
+
+		if email == "" || password == "" {
+			c.HTML(http.StatusBadRequest, "consumer/pages/register.html", gin.H{
+				"Title":     "Create Account",
+				"CSRFToken": c.GetString("csrf_token"),
+				"Error":     "Email and password are required",
+				"FormData": gin.H{
+					"email":      email,
+					"first_name": firstName,
+					"last_name":  lastName,
+					"phone":      phone,
+				},
+			})
+			return
+		}
+
+		c.HTML(http.StatusOK, "consumer/pages/register.html", gin.H{
+			"Title":     "Create Account",
+			"CSRFToken": c.GetString("csrf_token"),
+			"Error":     "Registration feature coming soon. Please check back later.",
+			"FormData": gin.H{
+				"email":      email,
+				"first_name": firstName,
+				"last_name":  lastName,
+				"phone":      phone,
+			},
+		})
 	})
 	r.GET("/forgot-password", func(c *gin.Context) {
 		c.HTML(200, "auth/pages/forgot-password.html", gin.H{"Title": "Reset Password", "CSRFToken": c.GetString("csrf_token")})
