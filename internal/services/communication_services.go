@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -8,18 +9,20 @@ import (
 	"strconv"
 	"chrisgross-ctrl-project/internal/config"
 	"chrisgross-ctrl-project/internal/safety"
-	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ses"
+	"github.com/aws/aws-sdk-go-v2/service/ses/types"
 	"github.com/twilio/twilio-go"
 	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
 type EmailService struct {
-	db            *gorm.DB
-	sendgrid      *sendgrid.Client
-	fromEmail     string
-	fromName      string
-	isConfigured  bool
+	db           *gorm.DB
+	sesClient    *ses.Client
+	fromEmail    string
+	fromName     string
+	isConfigured bool
 }
 
 type SMSService struct {
@@ -45,17 +48,17 @@ type BehavioralLeadScoringService struct {
 }
 
 func NewEmailService(cfg *config.Config, db *gorm.DB) *EmailService {
-	if cfg.SendGridAPIKey == "" {
-		log.Printf("⚠️  WARNING: SENDGRID_API_KEY not configured - email sending will be disabled")
-		return &EmailService{
-			db:           db,
-			isConfigured: false,
-		}
+	awsCfg, err := awsconfig.LoadDefaultConfig(context.TODO(),
+		awsconfig.WithRegion("us-east-2"),
+	)
+	if err != nil {
+		log.Printf("⚠️  WARNING: AWS config failed - email sending will be disabled: %v", err)
+		return &EmailService{db: db, isConfigured: false}
 	}
 
 	return &EmailService{
 		db:           db,
-		sendgrid:     sendgrid.NewSendClient(cfg.SendGridAPIKey),
+		sesClient:    ses.NewFromConfig(awsCfg),
 		fromEmail:    cfg.EmailFromAddress,
 		fromName:     cfg.EmailFromName,
 		isConfigured: true,
@@ -115,22 +118,33 @@ func (es *EmailService) SendEmail(to, subject, content string, metadata map[stri
 		return fmt.Errorf("email service not configured")
 	}
 
-	from := mail.NewEmail(es.fromName, es.fromEmail)
-	toEmail := mail.NewEmail("", to)
-	message := mail.NewSingleEmail(from, subject, toEmail, content, content)
+	input := &ses.SendEmailInput{
+		Source: aws.String(fmt.Sprintf("%s <%s>", es.fromName, es.fromEmail)),
+		Destination: &types.Destination{
+			ToAddresses: []string{to},
+		},
+		Message: &types.Message{
+			Subject: &types.Content{
+				Data: aws.String(subject),
+			},
+			Body: &types.Body{
+				Html: &types.Content{
+					Data: aws.String(content),
+				},
+				Text: &types.Content{
+					Data: aws.String(content),
+				},
+			},
+		},
+	}
 
-	response, err := es.sendgrid.Send(message)
+	_, err := es.sesClient.SendEmail(context.TODO(), input)
 	if err != nil {
 		log.Printf("❌ Email send failed: %v", err)
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 
-	if response.StatusCode >= 400 {
-		log.Printf("❌ Email send failed with status %d: %s", response.StatusCode, response.Body)
-		return fmt.Errorf("email send failed with status %d", response.StatusCode)
-	}
-
-	log.Printf("📧 Email sent to %s, status: %d", to, response.StatusCode)
+	log.Printf("📧 Email sent to %s via AWS SES", to)
 	return nil
 }
 

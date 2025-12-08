@@ -49,8 +49,7 @@ type Config struct {
         SMTPUsername string
         SMTPPassword string
 
-        // SendGrid configuration (from database)
-        SendGridAPIKey    string
+        // Email configuration (from database)
         EmailFromAddress  string
         EmailFromName     string
 
@@ -134,10 +133,9 @@ func LoadConfig() *Config {
                 SMTPUsername: dbSettings["SMTP_USERNAME"],
                 SMTPPassword: dbSettings["SMTP_PASSWORD"],
 
-                // SendGrid
-                SendGridAPIKey:   dbSettings["SENDGRID_API_KEY"],
-                EmailFromAddress: getDbSetting(dbSettings, "EMAIL_FROM_ADDRESS", "noreply@landlordsoftexas.com"),
-                EmailFromName:    getDbSetting(dbSettings, "EMAIL_FROM_NAME", "Landlords of Texas"),
+                // Email settings
+                EmailFromAddress: getDbSetting(dbSettings, "EMAIL_FROM_ADDRESS", "info@llotschedule.online"),
+                EmailFromName:    getDbSetting(dbSettings, "EMAIL_FROM_NAME", "PropertyHub"),
 
                 // Twilio
                 TwilioAccountSID:  dbSettings["TWILIO_ACCOUNT_SID"],
