@@ -17,7 +17,7 @@ import (
 func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.SpiderwebAIOrchestrator, authManager *auth.SimpleAuthManager) {
 	// Public admin login page (no auth required)
 	r.GET("/admin", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "admin-login.html", gin.H{"Title": "Admin Login"})
+		c.HTML(http.StatusOK, "auth/pages/admin-login.html", gin.H{"Title": "Admin Login"})
 	})
 
 	// Admin login POST endpoint
@@ -27,7 +27,7 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 		rememberMe := c.PostForm("remember") == "1"
 
 		if email == "" || password == "" {
-			c.HTML(http.StatusBadRequest, "admin-login.html", gin.H{
+			c.HTML(http.StatusBadRequest, "auth/pages/admin-login.html", gin.H{
 				"Title": "Admin Login",
 				"Error": "Email and password are required",
 			})
@@ -37,7 +37,7 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 		// Authenticate user
 		loginResp, err := authManager.AuthenticateUser(email, password)
 		if err != nil || !loginResp.Success {
-			c.HTML(http.StatusUnauthorized, "admin-login.html", gin.H{
+			c.HTML(http.StatusUnauthorized, "auth/pages/admin-login.html", gin.H{
 				"Title": "Admin Login",
 				"Error": "Invalid email or password",
 			})
@@ -96,7 +96,7 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 	{
 		// 1. Dashboard - Overview
 		admin.GET("/dashboard", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "admin-dashboard.html", gin.H{"Title": "Dashboard"})
+		c.HTML(http.StatusOK, "admin/pages/admin-dashboard.html", gin.H{"Title": "Dashboard"})
 	})
 
 		// 2. Calendar - Showing Management
@@ -104,60 +104,60 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 
 		// 2. Properties & Showings (with tabs: All Properties, Property Performance, Photos, Showing Calendar, Booking Management, HAR Sync, Pre-Listing Manager, Valuations)
 		admin.GET("/property-list", func(c *gin.Context) {
-		c.HTML(200, "property-list.html", gin.H{"Title": "Properties & Showings"})
+		c.HTML(200, "admin/pages/property-list.html", gin.H{"Title": "Properties & Showings"})
 	})
 
 		// 3. Leads & Conversion (with tabs: Lead Management, Lead Sources, Conversion Funnel, Client Portal, Behavioral Intelligence)
 		admin.GET("/lead-management", func(c *gin.Context) {
-		c.HTML(200, "lead-management.html", gin.H{"Title": "Leads & Conversion"})
+		c.HTML(200, "admin/pages/lead-management.html", gin.H{"Title": "Leads & Conversion"})
 	})
 
 		// 4. Communications (with tabs: Communication Center, Email Management)
 		admin.GET("/communication-center", func(c *gin.Context) {
-		c.HTML(200, "communication-center.html", gin.H{"Title": "Communications"})
+		c.HTML(200, "admin/pages/communication-center.html", gin.H{"Title": "Communications"})
 	})
 
 		// 5. Workflow (with tabs: Applications, Approvals, Closing Pipeline)
 		admin.GET("/application-workflow", func(c *gin.Context) {
-		c.HTML(200, "application-workflow.html", gin.H{"Title": "Workflow"})
+		c.HTML(200, "admin/pages/application-workflow.html", gin.H{"Title": "Workflow"})
 	})
 
 		// 6. Analytics & Reports (with tabs: Business Intelligence, Market Analytics, Performance Reports, Custom Reports, Friday Reports)
 		admin.GET("/business-intelligence", func(c *gin.Context) {
-		c.HTML(200, "business-intelligence.html", gin.H{"Title": "Analytics & Reports"})
+		c.HTML(200, "admin/pages/business-intelligence.html", gin.H{"Title": "Analytics & Reports"})
 	})
 
 		// 7. Team
 		admin.GET("/team-dashboard", func(c *gin.Context) {
-		c.HTML(200, "team-dashboard.html", gin.H{"Title": "Team"})
+		c.HTML(200, "admin/pages/team-dashboard.html", gin.H{"Title": "Team"})
 	})
 
 		// 8. System (with tabs: Settings, Security, User Management, Access Control, Audit Logs, Integrations, Data Migration)
 		admin.GET("/settings", func(c *gin.Context) {
-		c.HTML(200, "system-settings.html", gin.H{"Title": "System"})
+		c.HTML(200, "admin/pages/system-settings.html", gin.H{"Title": "System"})
 	})
 
 		// Supporting detail/action routes
 		admin.GET("/property-detail/:id", func(c *gin.Context) {
-		c.HTML(200, "property-detail.html", gin.H{"Title": "Property Details"})
+		c.HTML(200, "admin/pages/property-detail.html", gin.H{"Title": "Property Details"})
 	})
 		admin.GET("/property-create", func(c *gin.Context) {
-		c.HTML(200, "property-create.html", gin.H{"Title": "Add Property"})
+		c.HTML(200, "admin/pages/property-create.html", gin.H{"Title": "Add Property"})
 	})
 		admin.GET("/property-edit/:id", func(c *gin.Context) {
-		c.HTML(200, "property-edit.html", gin.H{"Title": "Edit Property"})
+		c.HTML(200, "admin/pages/property-edit.html", gin.H{"Title": "Edit Property"})
 	})
 		admin.GET("/booking-detail/:id", func(c *gin.Context) {
-		c.HTML(200, "booking-detail.html", gin.H{"Title": "Showing Details"})
+		c.HTML(200, "admin/pages/booking-detail.html", gin.H{"Title": "Showing Details"})
 	})
 		admin.GET("/application-detail/:id", func(c *gin.Context) {
-		c.HTML(200, "application-detail.html", gin.H{"Title": "Application Review"})
+		c.HTML(200, "admin/pages/application-detail.html", gin.H{"Title": "Application Review"})
 	})
 		admin.GET("/lead-detail/:id", func(c *gin.Context) {
-		c.HTML(200, "lead-detail.html", gin.H{"Title": "Lead Detail"})
+		c.HTML(200, "admin/pages/lead-detail.html", gin.H{"Title": "Lead Detail"})
 	})
 		admin.GET("/commission-detail/:id", func(c *gin.Context) {
-		c.HTML(200, "commission-detail.html", gin.H{"Title": "Commission Detail"})
+		c.HTML(200, "admin/pages/commission-detail.html", gin.H{"Title": "Commission Detail"})
 	})
 
 		// Handler-based routes (keep these as-is)
@@ -165,29 +165,29 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 		admin.GET("/email-senders", h.EmailSender.AdminEmailSendersPage)
 		admin.GET("/command-center", h.CommandCenter.RenderPage)
 		admin.GET("/friday-report", func(c *gin.Context) {
-			c.HTML(200, "friday-report.html", gin.H{"Title": "Friday Report"})
+			c.HTML(200, "admin/pages/friday-report.html", gin.H{"Title": "Friday Report"})
 		})
 
 		// Customer Feedback
 		admin.GET("/customer-feedback", func(c *gin.Context) {
-		c.HTML(200, "customer-feedback.html", gin.H{"Title": "Customer Feedback"})
+		c.HTML(200, "admin/pages/customer-feedback.html", gin.H{"Title": "Customer Feedback"})
 	})
 		admin.GET("/feedback-detail/:id", func(c *gin.Context) {
-		c.HTML(200, "feedback-detail.html", gin.H{"Title": "Feedback Detail"})
+		c.HTML(200, "admin/pages/feedback-detail.html", gin.H{"Title": "Feedback Detail"})
 	})
 
 		// Admin Confirmation Pages
 		admin.GET("/property-added-success", func(c *gin.Context) {
-		c.HTML(200, "property-added-success.html", gin.H{"Title": "Property Added"})
+		c.HTML(200, "admin/pages/property-added-success.html", gin.H{"Title": "Property Added"})
 	})
 		admin.GET("/property-updated-success", func(c *gin.Context) {
-		c.HTML(200, "property-updated-success.html", gin.H{"Title": "Property Updated"})
+		c.HTML(200, "admin/pages/property-updated-success.html", gin.H{"Title": "Property Updated"})
 	})
 		admin.GET("/lead-added-success", func(c *gin.Context) {
-		c.HTML(200, "lead-added-success.html", gin.H{"Title": "Lead Added"})
+		c.HTML(200, "admin/pages/lead-added-success.html", gin.H{"Title": "Lead Added"})
 	})
 		admin.GET("/commission-updated-success", func(c *gin.Context) {
-		c.HTML(200, "commission-updated-success.html", gin.H{"Title": "Commission Updated"})
+		c.HTML(200, "admin/pages/commission-updated-success.html", gin.H{"Title": "Commission Updated"})
 	})
 
 		// ============================================================================
@@ -196,7 +196,7 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 
 		// Agent Dashboard (for agents to view their own data)
 		admin.GET("/agent-dashboard", func(c *gin.Context) {
-		c.HTML(200, "dashboard.html", gin.H{"Title": "My Dashboard"})
+		c.HTML(200, "admin/pages/admin-dashboard.html", gin.H{"Title": "My Dashboard"})
 	})
 
 		// Admin Team Management
@@ -204,26 +204,26 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 		c.HTML(200, "team-dashboard.html", gin.H{"Title": "Team Dashboard"})
 	})
 		admin.GET("/team/add", func(c *gin.Context) {
-		c.HTML(200, "team-member-add.html", gin.H{"Title": "Add Team Member"})
+		c.HTML(200, "admin/pages/team-member-add.html", gin.H{"Title": "Add Team Member"})
 	})
 		admin.GET("/team/edit/:id", func(c *gin.Context) {
-		c.HTML(200, "team-member-edit.html", gin.H{"Title": "Edit Team Member"})
+		c.HTML(200, "admin/pages/team-member-edit.html", gin.H{"Title": "Edit Team Member"})
 	})
 
 		// Lead Assignment
 		admin.GET("/leads/assign", func(c *gin.Context) {
-		c.HTML(200, "lead-assignment.html", gin.H{"Title": "Lead Assignment"})
+		c.HTML(200, "admin/pages/lead-assignment.html", gin.H{"Title": "Lead Assignment"})
 	})
 		admin.GET("/leads/add", func(c *gin.Context) {
-		c.HTML(200, "lead-add.html", gin.H{"Title": "Add Lead"})
+		c.HTML(200, "admin/pages/lead-add.html", gin.H{"Title": "Add Lead"})
 	})
 
 		// Team Confirmation Pages
 		admin.GET("/team-member-added-success", func(c *gin.Context) {
-		c.HTML(200, "team-member-added-success.html", gin.H{"Title": "Team Member Added"})
+		c.HTML(200, "admin/pages/team-member-added-success.html", gin.H{"Title": "Team Member Added"})
 	})
 		admin.GET("/team-member-updated-success", func(c *gin.Context) {
-		c.HTML(200, "team-member-updated-success.html", gin.H{"Title": "Team Member Updated"})
+		c.HTML(200, "admin/pages/team-member-updated-success.html", gin.H{"Title": "Team Member Updated"})
 	})
 
 		// ============================================================================

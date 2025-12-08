@@ -1,4 +1,3 @@
-{{define "lead-management"}}
 {{template "admin-base" .}}
 
 {{define "layout-data"}}x-data="leadManagementData()" x-init="init()" @keydown.escape="closeBulkModal()"{{end}}
@@ -223,6 +222,4 @@
 
 {{define "scripts"}}
 <script src="/static/js/lead-management.js"></script>
-{{end}}
-
 {{end}}
