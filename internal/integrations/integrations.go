@@ -8,26 +8,14 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 	"time"
-
-	"chrisgross-ctrl-project/internal/models"
-	"chrisgross-ctrl-project/internal/security"
 )
 
 // IntegrationManager manages all external integrations
 type IntegrationManager struct {
-	harClient *HARClient
 	fubClient *FUBClient
 	ctx       context.Context
 	cancel    context.CancelFunc
-}
-
-// HARClient handles Houston Association of Realtors MLS integration
-type HARClient struct {
-	apiKey     string
-	baseURL    string
-	httpClient *http.Client
 }
 
 // FUBClient handles Follow Up Boss CRM integration
@@ -39,17 +27,7 @@ type FUBClient struct {
 
 // Integration types
 const (
-	IntegrationHAR = "har"
 	IntegrationFUB = "fub"
-)
-
-// HAR API endpoints
-const (
-	HAREndpointListings     = "/listings"
-	HAREndpointComparables  = "/comparables"
-	HAREndpointMarketStats  = "/market-stats"
-	HAREndpointProperties   = "/properties"
-	HAREndpointAgents       = "/agents"
 )
 
 // FUB API endpoints
@@ -85,36 +63,6 @@ type SyncResult struct {
 	Duration      string    `json:"duration"`
 	Success       bool      `json:"success"`
 	ErrorMessage  string    `json:"error_message,omitempty"`
-}
-
-// HARListing represents a HAR MLS listing
-type HARListing struct {
-	MLSID           string    `json:"mls_id"`
-	Address         string    `json:"address"`
-	City            string    `json:"city"`
-	State           string    `json:"state"`
-	ZipCode         string    `json:"zip_code"`
-	County          string    `json:"county"`
-	ListPrice       float64   `json:"list_price"`
-	SoldPrice       float64   `json:"sold_price,omitempty"`
-	Status          string    `json:"status"`
-	PropertyType    string    `json:"property_type"`
-	Bedrooms        int       `json:"bedrooms"`
-	Bathrooms       float64   `json:"bathrooms"`
-	SquareFeet      int       `json:"square_feet"`
-	LotSize         float64   `json:"lot_size"`
-	YearBuilt       int       `json:"year_built"`
-	ListingDate     time.Time `json:"listing_date"`
-	SoldDate        *time.Time `json:"sold_date,omitempty"`
-	DaysOnMarket    int       `json:"days_on_market"`
-	Photos          []string  `json:"photos"`
-	Description     string    `json:"description"`
-	Features        []string  `json:"features"`
-	ListingAgent    string    `json:"listing_agent"`
-	ListingOffice   string    `json:"listing_office"`
-	Latitude        float64   `json:"latitude"`
-	Longitude       float64   `json:"longitude"`
-	LastUpdated     time.Time `json:"last_updated"`
 }
 
 // FUBContact represents a Follow Up Boss contact
@@ -169,17 +117,10 @@ type ContactEvent struct {
 }
 
 // NewIntegrationManager creates a new integration manager
-func NewIntegrationManager(harAPIKey, fubAPIKey string) *IntegrationManager {
+func NewIntegrationManager(fubAPIKey string) *IntegrationManager {
 	ctx, cancel := context.WithCancel(context.Background())
 	
 	return &IntegrationManager{
-		harClient: &HARClient{
-			apiKey:  harAPIKey,
-			baseURL: "https://api.har.com/v1",
-			httpClient: &http.Client{
-				Timeout: 30 * time.Second,
-			},
-		},
 		fubClient: &FUBClient{
 			apiKey:  fubAPIKey,
 			baseURL: "https://api.followupboss.com/v1",
@@ -190,137 +131,6 @@ func NewIntegrationManager(harAPIKey, fubAPIKey string) *IntegrationManager {
 		ctx:    ctx,
 		cancel: cancel,
 	}
-}
-
-// GetHARListings fetches listings from HAR MLS
-func (im *IntegrationManager) GetHARListings(filters map[string]interface{}) ([]HARListing, error) {
-	url := fmt.Sprintf("%s%s", im.harClient.baseURL, HAREndpointListings)
-	
-	// Build query parameters
-	queryParams := make([]string, 0)
-	for key, value := range filters {
-		queryParams = append(queryParams, fmt.Sprintf("%s=%v", key, value))
-	}
-	
-	if len(queryParams) > 0 {
-		url += "?" + strings.Join(queryParams, "&")
-	}
-	
-	req, err := http.NewRequestWithContext(im.ctx, "GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	
-	req.Header.Set("Authorization", "Bearer "+im.harClient.apiKey)
-	req.Header.Set("Content-Type", "application/json")
-	
-	resp, err := im.harClient.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("HAR API error: %d - %s", resp.StatusCode, string(body))
-	}
-	
-	var response struct {
-		Listings []HARListing `json:"listings"`
-		Total    int          `json:"total"`
-		Page     int          `json:"page"`
-	}
-	
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, err
-	}
-	
-	return response.Listings, nil
-}
-
-// GetMarketComparables gets comparable properties from HAR
-func (im *IntegrationManager) GetMarketComparables(address string, filters map[string]interface{}) ([]HARListing, error) {
-	url := fmt.Sprintf("%s%s", im.harClient.baseURL, HAREndpointComparables)
-	
-	requestData := map[string]interface{}{
-		"address": address,
-		"filters": filters,
-	}
-	
-	jsonData, err := json.Marshal(requestData)
-	if err != nil {
-		return nil, err
-	}
-	
-	req, err := http.NewRequestWithContext(im.ctx, "POST", url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, err
-	}
-	
-	req.Header.Set("Authorization", "Bearer "+im.harClient.apiKey)
-	req.Header.Set("Content-Type", "application/json")
-	
-	resp, err := im.harClient.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("HAR API error: %d - %s", resp.StatusCode, string(body))
-	}
-	
-	var response struct {
-		Comparables []HARListing `json:"comparables"`
-		Total       int          `json:"total"`
-	}
-	
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		return nil, err
-	}
-	
-	return response.Comparables, nil
-}
-
-// SyncHARListings synchronizes HAR listings
-func (im *IntegrationManager) SyncHARListings(filters map[string]interface{}) (*SyncResult, error) {
-	startTime := time.Now()
-	result := &SyncResult{
-		Integration: IntegrationHAR,
-		StartTime:   startTime,
-		Success:     true,
-	}
-	
-	listings, err := im.GetHARListings(filters)
-	if err != nil {
-		result.Success = false
-		result.ErrorMessage = err.Error()
-		result.EndTime = time.Now()
-		result.Duration = result.EndTime.Sub(result.StartTime).String()
-		return result, err
-	}
-	
-	result.RecordsTotal = len(listings)
-	
-	// Process each listing (this would typically save to database)
-	for _, listing := range listings {
-		// Convert to internal model and save
-		if err := im.processHARListing(listing); err != nil {
-			result.RecordsErrors++
-			log.Printf("Error processing HAR listing %s: %v", listing.MLSID, err)
-		} else {
-			result.RecordsNew++ // This would be determined by checking if record exists
-		}
-	}
-	
-	result.EndTime = time.Now()
-	result.Duration = result.EndTime.Sub(result.StartTime).String()
-	
-	log.Printf("HAR sync completed: %d total, %d new, %d errors", 
-		result.RecordsTotal, result.RecordsNew, result.RecordsErrors)
-	
-	return result, nil
 }
 
 // GetFUBContacts fetches contacts from Follow Up Boss
@@ -551,40 +361,6 @@ func (im *IntegrationManager) CreateFUBTask(contactID, title, description string
 	return nil
 }
 
-// processHARListing processes a HAR listing and converts to internal model
-func (im *IntegrationManager) processHARListing(listing HARListing) error {
-	// Convert HAR listing to internal Property model
-	bedroomsPtr := &listing.Bedrooms
-	bathroomsFloat32 := float32(listing.Bathrooms)
-	bathroomsPtr := &bathroomsFloat32
-	sqFtPtr := &listing.SquareFeet
-	
-	property := &models.Property{
-		MLSId:           listing.MLSID,
-		Source:          "HAR",
-		Description:     listing.Description,
-		Address:         security.EncryptedString(listing.Address),
-		City:            listing.City,
-		State:           listing.State,
-		ZipCode:         listing.ZipCode,
-		PropertyType:    listing.PropertyType,
-		Bedrooms:        bedroomsPtr,
-		Bathrooms:       bathroomsPtr,
-		SquareFeet:      sqFtPtr,
-		YearBuilt:       listing.YearBuilt,
-		PropertyFeatures: strings.Join(listing.Features, ","),
-		Status:          "active",
-		Price:           listing.ListPrice,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
-	}
-	
-	// This would typically save to database via repository
-	log.Printf("Processed HAR listing: %s (MLS: %s)", property.City, property.MLSId)
-	
-	return nil
-}
-
 // processFUBContact processes a FUB contact and converts to internal model
 func (im *IntegrationManager) processFUBContact(contact FUBContact) error {
 	// This would typically convert FUB contact to internal model and save to database
@@ -598,14 +374,6 @@ func (im *IntegrationManager) processFUBContact(contact FUBContact) error {
 func (im *IntegrationManager) HealthCheck() map[string]IntegrationStatus {
 	status := make(map[string]IntegrationStatus)
 	
-	// Check HAR integration
-	if err := im.testHARConnection(); err != nil {
-		status[IntegrationHAR] = StatusError
-		log.Printf("HAR integration health check failed: %v", err)
-	} else {
-		status[IntegrationHAR] = StatusActive
-	}
-	
 	// Check FUB integration
 	if err := im.testFUBConnection(); err != nil {
 		status[IntegrationFUB] = StatusError
@@ -615,30 +383,6 @@ func (im *IntegrationManager) HealthCheck() map[string]IntegrationStatus {
 	}
 	
 	return status
-}
-
-// testHARConnection tests HAR API connection
-func (im *IntegrationManager) testHARConnection() error {
-	url := fmt.Sprintf("%s/health", im.harClient.baseURL)
-	
-	req, err := http.NewRequestWithContext(im.ctx, "GET", url, nil)
-	if err != nil {
-		return err
-	}
-	
-	req.Header.Set("Authorization", "Bearer "+im.harClient.apiKey)
-	
-	resp, err := im.harClient.httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HAR API returned status %d", resp.StatusCode)
-	}
-	
-	return nil
 }
 
 // testFUBConnection tests FUB API connection

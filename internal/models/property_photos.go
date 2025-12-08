@@ -49,12 +49,12 @@ type PropertyBookingEligibility struct {
 	MLSID      string `json:"mls_id" gorm:"not null;index"`
 
 	// Eligibility criteria
-	HasActiveStatus bool `json:"has_active_status"` // From HAR scraping
-	HasPrimaryPhoto bool `json:"has_primary_photo"` // From photo uploads
-	IsBookable      bool `json:"is_bookable"`       // Computed: both conditions true
+	HasActiveStatus bool `json:"has_active_status"`
+	HasPrimaryPhoto bool `json:"has_primary_photo"`
+	IsBookable      bool `json:"is_bookable"`
 
 	// Status details
-	PropertyStatus string `json:"property_status"`  // Current HAR status
+	PropertyStatus string `json:"property_status"`
 	PhotoCount     int    `json:"photo_count"`      // Number of active photos
 	PrimaryPhotoID *uint  `json:"primary_photo_id"` // Reference to primary photo
 

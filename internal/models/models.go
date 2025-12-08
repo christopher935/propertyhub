@@ -554,7 +554,7 @@ const (
 type PropertyState struct {
 	ID uint `json:"id" gorm:"primaryKey"`
 
-	// Core Property Data (from HAR scraper)
+	// Core Property Data
 	MLSId        string   `json:"mls_id" gorm:"uniqueIndex"`
 	Address      string   `json:"address"`
 	Price        *float64 `json:"price"`
@@ -569,7 +569,7 @@ type PropertyState struct {
 	StatusUpdatedAt time.Time `json:"status_updated_at"`
 
 	// System Integration Tracking
-	HARScraperData  JSONB `json:"har_scraper_data" gorm:"type:json"`
+	ExternalData    JSONB `json:"external_data" gorm:"type:json"`
 	PropertyHubData JSONB `json:"property_hub_data" gorm:"type:json"`
 	FUBData         JSONB `json:"fub_data" gorm:"type:json"`
 	EmailData       JSONB `json:"email_data" gorm:"type:json"`

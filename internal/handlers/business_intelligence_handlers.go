@@ -330,7 +330,6 @@ func (bih *BusinessIntelligenceHandlers) GetRealtimeStats(c *gin.Context) {
 		},
 		"sync_status": gin.H{
 			"propertyhub": "ACTIVE",
-			"har":         "ACTIVE",
 			"fub":         "ACTIVE",
 			"email":       "ACTIVE",
 		},

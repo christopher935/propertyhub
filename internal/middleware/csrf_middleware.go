@@ -105,11 +105,7 @@ func isCSRFExemptPath(path string) bool {
 	// Category 1: Internal automation/sync endpoints
 	// These should be protected by API authentication, IP whitelisting, or admin sessions
 	internalAutomation := []string{
-		"/api/v1/properties/sync/",     // HAR property synchronization
 		"/api/v1/jobs/",                 // Background job management
-		"/api/v1/har/trigger-scraping",  // Manual HAR scraping trigger
-		"/api/har/properties/scrape",      // HAR property scraper (no v1 prefix)
-		"/api/v1/har/schedule-weekly",   // HAR scraping scheduler
 		"/api/v1/fub/sync",              // Follow Up Boss sync
 		"/api/v1/email/process",         // Email processing jobs
 	}

@@ -102,7 +102,7 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 		// 2. Calendar - Showing Management
 		admin.GET("/calendar", h.Calendar.CalendarManagementDashboard)
 
-		// 2. Properties & Showings (with tabs: All Properties, Property Performance, Photos, Showing Calendar, Booking Management, HAR Sync, Pre-Listing Manager, Valuations)
+		// 2. Properties & Showings (with tabs: All Properties, Property Performance, Photos, Showing Calendar, Booking Management, Pre-Listing Manager, Valuations)
 		admin.GET("/property-list", func(c *gin.Context) {
 		c.HTML(200, "admin/pages/property-list.html", gin.H{"Title": "Properties & Showings"})
 	})

@@ -523,34 +523,6 @@ func GetEmailParsingLogs(c *gin.Context) {
 }
 
 // ============================================================================
-// HAR MARKET HANDLERS (3 endpoints)
-// ============================================================================
-
-func GetHARScrapeStats(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"stats": gin.H{
-			"total_scrapes": 0,
-			"successful": 0,
-			"failed": 0,
-		},
-	})
-}
-
-func PostHARTriggerScrape(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Scrape initiated",
-		"scrape_id": "stub-scrape-1",
-	})
-}
-
-func GetHARScrapeLogs(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"logs": []interface{}{},
-		"total": 0,
-	})
-}
-
-// ============================================================================
 // LEADS HANDLERS (6 endpoints)
 // ============================================================================
 

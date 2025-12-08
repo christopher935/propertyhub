@@ -147,10 +147,6 @@ func (h *SetupHandlers) SetupWizardPage(w http.ResponseWriter, r *http.Request )
                     <input type="text" name="fub_api_key" placeholder="Optional - for CRM integration">
                 </div>
                 <div class="form-group">
-                    <label>HAR Scraper API Key:</label>
-                    <input type="text" name="scraper_api_key" placeholder="Optional - for market data">
-                </div>
-                <div class="form-group">
                     <label>SMTP Host:</label>
                     <input type="text" name="smtp_host" placeholder="Optional - for email notifications">
                 </div>
@@ -327,9 +323,6 @@ func (h *SetupHandlers) ConfigureAPIKeys(w http.ResponseWriter, r *http.Request 
 	// Save API keys to environment
 	if fubKey := r.FormValue("fub_api_key"); fubKey != "" {
 		h.saveToEnvFile("FUB_API_KEY", fubKey)
-	}
-	if scraperKey := r.FormValue("scraper_api_key"); scraperKey != "" {
-		h.saveToEnvFile("SCRAPER_API_KEY", scraperKey)
 	}
 	if smtpHost := r.FormValue("smtp_host"); smtpHost != "" {
 		h.saveToEnvFile("SMTP_HOST", smtpHost)
