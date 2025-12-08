@@ -1,253 +1,157 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Add Lead - PropertyHub Admin</title>
-    
-    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
-    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
-    
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body>
-    <div class="admin-layout" x-data="leadAddData()">
-        <aside class="admin-sidebar">
-            <div class="sidebar-header">
-                <a href="/admin/dashboard" class="sidebar-logo">
-                    <div class="sidebar-logo-icon">PH</div>
-                    <span>PropertyHub</span>
-                </a>
-            </div>
+{{define "lead-add"}}
+{{template "admin-base" .}}
+
+{{define "layout-data"}}x-data="leadAddData()"{{end}}
+
+{{define "content"}}
+<div class="mb-2">
+    <a href="/admin/leads" class="text-gray-500 text-sm">← Back to Leads</a>
+</div>
+
+<div class="max-w-3xl mx-auto">
+    <form @submit.prevent="submitForm" class="card p-6">
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-navy-primary mb-4">Contact Information</h3>
             
-            <nav class="admin-sidebar-nav">
-                <div class="nav-section">
-                    <a href="/admin/dashboard" class="nav-section-header">
-                        <div class="nav-section-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                        </div>
-                        <span class="nav-section-title">Dashboard</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section expanded" x-data="{ open: true }">
-                    <button class="nav-section-header active" @click="open = !open">
-                        <div class="nav-section-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                        </div>
-                        <span class="nav-section-title">Leads</span>
-                        <svg class="w-4 h-4 nav-section-toggle transition" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </button>
-                    <ul class="nav-section-items" x-show="open" x-collapse>
-                        <li><a href="/admin/leads" class="nav-item">All Leads</a></li>
-                        <li><a href="/admin/leads?segment=hot" class="nav-item">Hot Leads</a></li>
-                        <li><a href="/admin/leads?segment=warm" class="nav-item">Warm Leads</a></li>
-                    </ul>
-                </div>
-            </nav>
-        </aside>
-        
-        <main class="admin-main">
-            <header class="admin-header">
-                <div class="admin-header-content">
+            <div class="d-grid gap-4">
+                <div class="d-grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-3);">
                     <div>
-                        <div style="margin-bottom: var(--space-2);">
-                            <a href="/admin/leads" style="color: var(--gray-500); font-size: var(--font-size-sm); text-decoration: none;">
-                                ← Back to Leads
-                            </a>
-                        </div>
-                        <h1 class="admin-header-title">Add New Lead</h1>
+                        <label class="form-label">
+                            First Name <span class="text-error">*</span>
+                        </label>
+                        <input type="text" x-model="form.first_name" required class="form-input">
                     </div>
-                    
-                    <div class="admin-header-actions">
-                        <div class="admin-user-menu">
-                            <div class="admin-user-avatar">AD</div>
-                            <div class="admin-user-info">
-                                <div class="admin-user-name">Admin</div>
-                                <div class="admin-user-role">Administrator</div>
-                            </div>
-                        </div>
+                    <div>
+                        <label class="form-label">
+                            Last Name <span class="text-error">*</span>
+                        </label>
+                        <input type="text" x-model="form.last_name" required class="form-input">
                     </div>
                 </div>
-            </header>
-            
-            <div class="admin-content">
-                <div style="max-width: 800px; margin: 0 auto;">
-                    <form @submit.prevent="submitForm" style="background: var(--white); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm);">
-                        <div style="margin-bottom: var(--space-6);">
-                            <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Contact Information</h3>
-                            
-                            <div style="display: grid; gap: var(--space-4);">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
-                                    <div>
-                                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                            First Name <span style="color: var(--error);">*</span>
-                                        </label>
-                                        <input type="text" x-model="form.first_name" required 
-                                               style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); font-size: var(--font-size-base);">
-                                    </div>
-                                    <div>
-                                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                            Last Name <span style="color: var(--error);">*</span>
-                                        </label>
-                                        <input type="text" x-model="form.last_name" required 
-                                               style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                        Email <span style="color: var(--error);">*</span>
-                                    </label>
-                                    <input type="email" x-model="form.email" required 
-                                           style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                </div>
-                                
-                                <div>
-                                    <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                        Phone <span style="color: var(--error);">*</span>
-                                    </label>
-                                    <input type="tel" x-model="form.phone" required 
-                                           style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div style="margin-bottom: var(--space-6);">
-                            <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-4);">Lead Details</h3>
-                            
-                            <div style="display: grid; gap: var(--space-4);">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
-                                    <div>
-                                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                            Lead Source
-                                        </label>
-                                        <select x-model="form.source" 
-                                                style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                            <option value="">Select Source</option>
-                                            <option value="website">Website</option>
-                                            <option value="referral">Referral</option>
-                                            <option value="social_media">Social Media</option>
-                                            <option value="phone_call">Phone Call</option>
-                                            <option value="walk_in">Walk In</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                            Status
-                                        </label>
-                                        <select x-model="form.status" 
-                                                style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                            <option value="new">New</option>
-                                            <option value="contacted">Contacted</option>
-                                            <option value="qualified">Qualified</option>
-                                            <option value="hot">Hot</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
-                                    <div>
-                                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                            Interest Type
-                                        </label>
-                                        <select x-model="form.interest_type" 
-                                                style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                            <option value="">Select Type</option>
-                                            <option value="buying">Buying</option>
-                                            <option value="renting">Renting</option>
-                                            <option value="selling">Selling</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                            Budget Range
-                                        </label>
-                                        <input type="text" x-model="form.budget" placeholder="e.g., $300,000 - $500,000" 
-                                               style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <label style="display: block; font-weight: var(--font-weight-semibold); color: var(--navy-primary); margin-bottom: var(--space-2);">
-                                        Notes
-                                    </label>
-                                    <textarea x-model="form.notes" rows="4" placeholder="Additional information about the lead..." 
-                                              style="width: 100%; padding: var(--space-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md); resize: vertical;"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; gap: var(--space-3); justify-content: flex-end;">
-                            <a href="/admin/leads" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary" :disabled="submitting">
-                                <span x-show="!submitting">Add Lead</span>
-                                <span x-show="submitting">Adding...</span>
-                            </button>
-                        </div>
-                    </form>
+                
+                <div>
+                    <label class="form-label">
+                        Email <span class="text-error">*</span>
+                    </label>
+                    <input type="email" x-model="form.email" required class="form-input">
+                </div>
+                
+                <div>
+                    <label class="form-label">
+                        Phone <span class="text-error">*</span>
+                    </label>
+                    <input type="tel" x-model="form.phone" required class="form-input">
                 </div>
             </div>
-        </main>
-    </div>
-    
-    <script>
-        function leadAddData() {
-            return {
-                submitting: false,
-                form: {
-                    first_name: '',
-                    last_name: '',
-                    email: '',
-                    phone: '',
-                    source: '',
-                    status: 'new',
-                    interest_type: '',
-                    budget: '',
-                    notes: ''
-                },
+        </div>
+        
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-navy-primary mb-4">Lead Details</h3>
+            
+            <div class="d-grid gap-4">
+                <div class="d-grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+                    <div>
+                        <label class="form-label">Lead Source</label>
+                        <select x-model="form.source" class="form-input">
+                            <option value="">Select Source</option>
+                            <option value="website">Website</option>
+                            <option value="referral">Referral</option>
+                            <option value="social_media">Social Media</option>
+                            <option value="phone_call">Phone Call</option>
+                            <option value="walk_in">Walk In</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Status</label>
+                        <select x-model="form.status" class="form-input">
+                            <option value="new">New</option>
+                            <option value="contacted">Contacted</option>
+                            <option value="qualified">Qualified</option>
+                            <option value="hot">Hot</option>
+                        </select>
+                    </div>
+                </div>
                 
-                async submitForm() {
-                    this.submitting = true;
+                <div class="d-grid" style="grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+                    <div>
+                        <label class="form-label">Interest Type</label>
+                        <select x-model="form.interest_type" class="form-input">
+                            <option value="">Select Type</option>
+                            <option value="buying">Buying</option>
+                            <option value="renting">Renting</option>
+                            <option value="selling">Selling</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Budget Range</label>
+                        <input type="text" x-model="form.budget" placeholder="e.g., $300,000 - $500,000" class="form-input">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="form-label">Notes</label>
+                    <textarea x-model="form.notes" rows="4" placeholder="Additional information about the lead..." class="form-input" style="resize: vertical;"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex gap-3 justify-end">
+            <a href="/admin/leads" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" :disabled="submitting">
+                <span x-show="!submitting">Add Lead</span>
+                <span x-show="submitting">Adding...</span>
+            </button>
+        </div>
+    </form>
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script>
+    function leadAddData() {
+        return {
+            submitting: false,
+            form: {
+                first_name: '',
+                last_name: '',
+                email: '',
+                phone: '',
+                source: '',
+                status: 'new',
+                interest_type: '',
+                budget: '',
+                notes: ''
+            },
+            
+            async submitForm() {
+                this.submitting = true;
+                
+                try {
+                    const response = await fetch('/api/leads', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(this.form)
+                    });
                     
-                    try {
-                        const response = await fetch('/api/leads', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(this.form)
-                        });
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            window.location.href = `/admin/lead-added-success?id=${data.id}`;
-                        } else {
-                            alert('Failed to create lead. Please try again.');
-                        }
-                    } catch (error) {
-                        console.error('Error creating lead:', error);
-                        alert('An error occurred. Please try again.');
-                    } finally {
-                        this.submitting = false;
+                    if (response.ok) {
+                        const data = await response.json();
+                        window.location.href = `/admin/lead-added-success?id=${data.id}`;
+                    } else {
+                        alert('Failed to create lead. Please try again.');
                     }
+                } catch (error) {
+                    console.error('Error creating lead:', error);
+                    alert('An error occurred. Please try again.');
+                } finally {
+                    this.submitting = false;
                 }
-            };
-        }
-    </script>
-</body>
-</html>
+            }
+        };
+    }
+</script>
+{{end}}
+
+{{end}}

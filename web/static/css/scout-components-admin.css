@@ -7947,3 +7947,67 @@ opacity: 0.7;
   align-items: center;
   justify-content: center;
 }
+
+/* Admin Top Bar Icon Styling - Production SVG Icons */
+.admin-search-icon,
+.notification-icon,
+.admin-user-chevron {
+  flex-shrink: 0;
+}
+
+.admin-search-icon {
+  color: var(--gray-500);
+}
+
+.notification-icon {
+  color: var(--gray-600);
+  transition: color 0.2s ease;
+}
+
+.admin-notification-button:hover .notification-icon {
+  color: var(--navy-primary);
+}
+
+.admin-user-chevron {
+  color: var(--gray-500);
+  transition: transform 0.2s ease;
+}
+
+.admin-user-button[aria-expanded="true"] .admin-user-chevron {
+  transform: rotate(180deg);
+}
+
+/* User Menu Icons */
+.menu-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--gray-600);
+}
+
+.admin-user-menu-item:hover .menu-icon {
+  color: var(--navy-primary);
+}
+
+/* User Avatar - Initials Circle */
+.admin-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--navy-primary);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* User Avatar - Supports both initials and images */
+.admin-user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

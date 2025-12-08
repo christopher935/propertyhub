@@ -21,44 +21,36 @@ func NewAdminHandlers(biService *services.BusinessIntelligenceService) *AdminHan
 
 // AdminDashboard renders the admin dashboard page
 func (h *AdminHandlers) AdminDashboard(c *gin.Context) {
-	// Render the dashboard template
-	// The template will use Alpine.js to fetch data from /api/metrics/dashboard
-	c.HTML(http.StatusOK, "admin-dashboard.html", gin.H{
-		"Title": "Dashboard - PropertyHub",
-	})
+	data := GetAdminPageData(c, "Overview")
+	c.HTML(http.StatusOK, "admin-dashboard.html", data)
 }
 
 // AdminLeads renders the leads management page
 func (h *AdminHandlers) AdminLeads(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin-leads.html", gin.H{
-		"Title": "Leads - PropertyHub",
-	})
+	data := GetAdminPageData(c, "Leads Management")
+	c.HTML(http.StatusOK, "admin-leads.html", data)
 }
 
 // AdminProperties renders the properties management page
 func (h *AdminHandlers) AdminProperties(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin-properties.html", gin.H{
-		"Title": "Properties - PropertyHub",
-	})
+	data := GetAdminPageData(c, "Properties & Showings")
+	c.HTML(http.StatusOK, "admin-properties.html", data)
 }
 
 // AdminBookings renders the bookings management page
 func (h *AdminHandlers) AdminBookings(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin-bookings.html", gin.H{
-		"Title": "Bookings - PropertyHub",
-	})
+	data := GetAdminPageData(c, "Booking Management")
+	c.HTML(http.StatusOK, "admin-bookings.html", data)
 }
 
 // AdminReports renders the reports page
 func (h *AdminHandlers) AdminReports(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin-reports.html", gin.H{
-		"Title": "Reports - PropertyHub",
-	})
+	data := GetAdminPageData(c, "Reports")
+	c.HTML(http.StatusOK, "admin-reports.html", data)
 }
 
 // AdminSettings renders the settings page
 func (h *AdminHandlers) AdminSettings(c *gin.Context) {
-	c.HTML(http.StatusOK, "admin-settings.html", gin.H{
-		"Title": "Settings - PropertyHub",
-	})
+	data := GetAdminPageData(c, "Settings")
+	c.HTML(http.StatusOK, "admin-settings.html", data)
 }
