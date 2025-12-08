@@ -12,6 +12,10 @@
 <link href="/static/css/scout-utilities.css" rel="stylesheet"/>
 <link href="/static/css/scout-layouts.css" rel="stylesheet"/>
 <link href="/static/css/scout-components.css" rel="stylesheet"/>
+<link href="/static/css/password-strength.css" rel="stylesheet"/>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link href="/static/css/password-strength.css" rel="stylesheet"/>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="page-login">
 <!-- SVG Icon Sprite -->
@@ -26,7 +30,7 @@
 <path d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" stroke-linecap="round" stroke-linejoin="round"></path>
 </symbol>
 </svg>
-<div class="login-container">
+<div class="login-container" x-data="loginData()">
 <div class="login-card">
 <!-- Header -->
 <div class="login-header">
@@ -39,8 +43,13 @@
 <h2>Admin Sign In</h2>
 <p>Access your admin dashboard</p>
 </div>
+<!-- Rate Limit Notice -->
+<div class="rate-limit-notice" x-show="rateLimited" x-cloak>
+<p>Too many login attempts. Please wait <span x-text="retryAfter"></span> seconds.</p>
+<p class="text-sm">Forgot your password? <a href="/forgot-password">Reset it here</a></p>
+</div>
 <!-- Login Form -->
-<form action="/admin/login" class="auth-form login-form" method="POST" id="loginForm">
+<form action="/admin/login" class="auth-form login-form" method="POST" id="loginForm" @submit="handleSubmit">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 <!-- Email Field -->
 <div class="form-group">
@@ -73,5 +82,43 @@
 </div>
 </div>
 </div>
+<script>
+function loginData() {
+    return {
+        rateLimited: false,
+        retryAfter: 0,
+        
+        init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('rate_limited')) {
+                this.rateLimited = true;
+                this.retryAfter = parseInt(urlParams.get('retry_after') || '60');
+                this.startCountdown();
+            }
+        },
+        
+        startCountdown() {
+            const interval = setInterval(() => {
+                this.retryAfter--;
+                if (this.retryAfter <= 0) {
+                    clearInterval(interval);
+                    this.rateLimited = false;
+                    const url = new URL(window.location);
+                    url.searchParams.delete('rate_limited');
+                    url.searchParams.delete('retry_after');
+                    window.history.replaceState({}, '', url);
+                }
+            }, 1000);
+        },
+        
+        handleSubmit(e) {
+            if (this.rateLimited) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    };
+}
+</script>
 </body>
 </html>
