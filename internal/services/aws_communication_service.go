@@ -63,8 +63,7 @@ func NewAWSCommunicationService(fromEmail, senderID string) (*AWSCommunicationSe
 // SendEmail sends an email via AWS SES
 func (svc *AWSCommunicationService) SendEmail(to, subject, bodyHTML, bodyText string) error {
 	if !svc.enabled {
-		log.Printf("📧 [DISABLED] Would send email to %s: %s", to, subject)
-		return nil
+		return fmt.Errorf("AWS email service not configured - check AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY environment variables")
 	}
 
 	input := &ses.SendEmailInput{
@@ -112,8 +111,7 @@ func (svc *AWSCommunicationService) SendEmail(to, subject, bodyHTML, bodyText st
 // SendBulkEmail sends bulk emails via AWS SES (up to 50 recipients per call)
 func (svc *AWSCommunicationService) SendBulkEmail(recipients []string, subject, bodyHTML, bodyText string) (int, error) {
 	if !svc.enabled {
-		log.Printf("📧 [DISABLED] Would send bulk email to %d recipients", len(recipients))
-		return 0, nil
+		return 0, fmt.Errorf("AWS email service not configured - check AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY environment variables")
 	}
 
 	successCount := 0
@@ -142,8 +140,7 @@ func (svc *AWSCommunicationService) SendBulkEmail(recipients []string, subject, 
 // SendSMS sends an SMS via AWS SNS
 func (svc *AWSCommunicationService) SendSMS(to, message string) error {
 	if !svc.enabled {
-		log.Printf("📱 [DISABLED] Would send SMS to %s: %s", to, message)
-		return nil
+		return fmt.Errorf("AWS SMS service not configured - check AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY environment variables")
 	}
 
 	input := &sns.PublishInput{
@@ -174,8 +171,7 @@ func (svc *AWSCommunicationService) SendSMS(to, message string) error {
 // SendBulkSMS sends SMS to multiple recipients
 func (svc *AWSCommunicationService) SendBulkSMS(recipients []string, message string) (int, error) {
 	if !svc.enabled {
-		log.Printf("📱 [DISABLED] Would send bulk SMS to %d recipients", len(recipients))
-		return 0, nil
+		return 0, fmt.Errorf("AWS SMS service not configured - check AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY environment variables")
 	}
 
 	successCount := 0

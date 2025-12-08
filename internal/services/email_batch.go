@@ -44,6 +44,7 @@ type EmailBatchService struct {
 
 	// Email provider settings
 	smtpConfig SMTPConfig
+	awsService *AWSCommunicationService
 }
 
 // EmailJob represents a single email to be sent
@@ -103,6 +104,11 @@ type SMTPConfig struct {
 func NewEmailBatchService(redis *redis.Client, smtpConfig SMTPConfig) *EmailBatchService {
 	ctx, cancel := context.WithCancel(context.Background())
 
+	awsService, err := NewAWSCommunicationService(smtpConfig.From, "PropertyHub")
+	if err != nil {
+		log.Printf("⚠️  Failed to initialize AWS service for email batch: %v", err)
+	}
+
 	return &EmailBatchService{
 		redis:         redis,
 		batchSize:     10,               // Send up to 10 emails per batch
@@ -121,6 +127,7 @@ func NewEmailBatchService(redis *redis.Client, smtpConfig SMTPConfig) *EmailBatc
 		rateLimitBurst:     10, // Allow bursts up to 10
 
 		smtpConfig: smtpConfig,
+		awsService: awsService,
 	}
 }
 
@@ -332,19 +339,24 @@ func (e *EmailBatchService) emailWorker(id int) {
 	}
 }
 
-// sendEmail sends a single email (placeholder implementation)
+// sendEmail sends a single email via AWS SES
 func (e *EmailBatchService) sendEmail(email EmailJob) (bool, error) {
-	// In production, this would use a real SMTP client or email service API
-	// For now, simulate email sending
-
 	log.Printf("📨 Sending email %s to %v: %s", email.ID, email.To, email.Subject)
 
-	// Simulate sending time
-	time.Sleep(time.Millisecond * 100)
+	if e.awsService == nil {
+		return false, fmt.Errorf("AWS email service not initialized - check AWS credentials")
+	}
 
-	// Simulate occasional failures (5% failure rate)
-	if time.Now().UnixNano()%20 == 0 {
-		return false, fmt.Errorf("simulated email delivery failure")
+	for _, recipient := range email.To {
+		var err error
+		if email.HTMLBody != "" {
+			err = e.awsService.SendEmail(recipient, email.Subject, email.HTMLBody, email.Body)
+		} else {
+			err = e.awsService.SendEmail(recipient, email.Subject, email.Body, email.Body)
+		}
+		if err != nil {
+			return false, fmt.Errorf("failed to send email to %s: %w", recipient, err)
+		}
 	}
 
 	return true, nil

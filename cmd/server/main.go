@@ -33,6 +33,14 @@ func main() {
         cfg := config.LoadConfig()
         log.Println("⚙️ Enterprise configuration loaded")
 
+        // Validate AWS credentials for SES/SNS
+        if os.Getenv("AWS_REGION") == "" || os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+                log.Println("⚠️  WARNING: AWS credentials not configured - email/SMS will not work")
+                log.Println("   Required: AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY")
+        } else {
+                log.Printf("✅ AWS credentials configured for SES/SNS (region: %s)", os.Getenv("AWS_REGION"))
+        }
+
         // Initialize enterprise database
         gormDB, err := gorm.Open(postgres.Open(cfg.DatabaseURL), &gorm.Config{})
         if err != nil {
