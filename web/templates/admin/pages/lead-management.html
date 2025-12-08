@@ -1,624 +1,228 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <title>Lead Management - PropertyHub</title>
-    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
-    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
-    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
-    <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
-<body class="admin-layout">
-<aside class="admin-sidebar">
-    <div class="sidebar-header">
-        <a href="/" class="sidebar-logo">
-            <div class="sidebar-logo-icon">PH</div>
-            <span>PropertyHub</span>
+{{define "lead-management"}}
+{{template "admin-base" .}}
+
+{{define "layout-data"}}x-data="leadManagementData()" x-init="init()" @keydown.escape="closeBulkModal()"{{end}}
+
+{{define "content"}}
+<div class="section">
+    <div class="stats-grid stats-grid-4">
+        <div class="stat-card">
+            <div class="stat-value" x-text="stats.hot">0</div>
+            <div class="stat-label">Hot Leads</div>
+            <span class="score-badge hot">Score ≥70</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" x-text="stats.warm">0</div>
+            <div class="stat-label">Warm Leads</div>
+            <span class="score-badge warm">Score 40-69</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" x-text="stats.cold">0</div>
+            <div class="stat-label">Cold Leads</div>
+            <span class="score-badge cold">Score <40</span>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" x-text="stats.total">0</div>
+            <div class="stat-label">Total Leads</div>
+        </div>
+    </div>
+</div>
+
+<div class="bulk-actions-bar" x-show="selectedLeads.length > 0" x-transition style="display: none;">
+    <span class="selected-count" x-text="selectedLeads.length + ' selected'"></span>
+    <div class="bulk-actions">
+        <button class="btn btn-sm" @click="showBulkEmailModal()">Send Email</button>
+        <button class="btn btn-sm" @click="showBulkAssignModal()">Assign to Agent</button>
+        <button class="btn btn-sm" @click="showBulkStatusModal()">Update Status</button>
+        <button class="btn btn-sm" @click="showBulkTagModal()">Add Tag</button>
+        <button class="btn btn-sm btn-danger" @click="bulkArchive()">Archive</button>
+    </div>
+    <button class="btn btn-text" @click="clearSelection()">Clear Selection</button>
+</div>
+
+<div class="section">
+    <div class="filters-bar">
+        <div class="flex align-center gap-2">
+            <input type="checkbox" class="select-all-checkbox" 
+                   :checked="allSelected" 
+                   @change="toggleAll()"
+                   :indeterminate.prop="selectedLeads.length > 0 && !allSelected">
+            <label class="text-sm text-gray-600">Select All</label>
+        </div>
+        
+        <input type="search" class="search-input" placeholder="Search leads by name, email, or phone..." x-model="searchQuery">
+        
+        <select class="filter-select" x-model="filterSegment" @change="applyFilters()">
+            <option value="all">All Leads</option>
+            <option value="hot">Hot (≥70)</option>
+            <option value="warm">Warm (40-69)</option>
+            <option value="cold">Cold (<40)</option>
+        </select>
+        
+        <select class="filter-select" x-model="filterTime" @change="applyFilters()">
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+        </select>
+        
+        <a href="/admin/leads/add" class="btn btn-primary">
+            + Add Lead
         </a>
     </div>
-    <nav class="admin-sidebar-nav">
-        <div class="nav-section">
-            <a href="/admin/dashboard" class="nav-section-header">
-                <span class="nav-section-icon">OV</span>
-                <span class="nav-section-title">Overview</span>
-            </a>
-        </div>
-        <div class="nav-section">
-            <a href="/admin/property-list" class="nav-section-header">
-                <span class="nav-section-icon">PR</span>
-                <span class="nav-section-title">Properties</span>
-            </a>
-        </div>
-        <div class="nav-section">
-            <a href="/admin/lead-management" class="nav-section-header active">
-                <span class="nav-section-icon">LD</span>
-                <span class="nav-section-title">Leads</span>
-            </a>
-        </div>
-        <div class="nav-section">
-            <a href="/admin/application-workflow" class="nav-section-header">
-                <span class="nav-section-icon">WF</span>
-                <span class="nav-section-title">Workflow</span>
-            </a>
-        </div>
-        <div class="nav-section">
-            <a href="/admin/communication-center" class="nav-section-header">
-                <span class="nav-section-icon">CM</span>
-                <span class="nav-section-title">Communications</span>
-            </a>
-        </div>
-    </nav>
-</aside>
-<main class="admin-main">
-    <header class="admin-header">
-        <div class="admin-header-content">
-            <h1 class="admin-header-title">Lead Management</h1>
-            <div class="admin-header-actions">
-                <button class="btn btn-logout" onclick="location.href='/admin/logout'">Logout</button>
-            </div>
-        </div>
-    </header>
-    <div class="admin-content" x-data="leadManagementData()" x-init="init()" @keydown.escape="closeBulkModal()"">
-        <!-- Lead Statistics -->
-        <div class="section">
-            <div class="section-label admin-section-label">
-              <span class="section-label-line"></span>
-              <span class="section-label-text">Lead Overview</span>
-              <span class="section-label-line"></span>
-            </div>
-            <p style="color: var(--gray-500); margin-bottom: var(--space-6);">Manage and track all your leads with behavioral scoring</p>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">🔥</div>
-                    <div class="stat-value" x-text="stats.hot">0</div>
-                    <div class="stat-label">Hot Leads</div>
-                    <span class="score-badge hot">Score ≥70</span>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">⚡</div>
-                    <div class="stat-value" x-text="stats.warm">0</div>
-                    <div class="stat-label">Warm Leads</div>
-                    <span class="score-badge warm">Score 40-69</span>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">❄️</div>
-                    <div class="stat-value" x-text="stats.cold">0</div>
-                    <div class="stat-label">Cold Leads</div>
-                    <span class="score-badge cold">Score <40</span>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-value" x-text="stats.total">0</div>
-                    <div class="stat-label">Total Leads</div>
-                </div>
-            </div>
-        </div>
+</div>
 
-        <!-- Bulk Actions Bar -->
-        <div class="bulk-actions-bar" x-show="selectedLeads.length > 0" x-transition style="display: none;">
-            <span class="selected-count" x-text="selectedLeads.length + ' selected'"></span>
-            <div class="bulk-actions">
-                <button class="btn btn-sm" @click="showBulkEmailModal()">Send Email</button>
-                <button class="btn btn-sm" @click="showBulkAssignModal()">Assign to Agent</button>
-                <button class="btn btn-sm" @click="showBulkStatusModal()">Update Status</button>
-                <button class="btn btn-sm" @click="showBulkTagModal()">Add Tag</button>
-                <button class="btn btn-sm btn-danger" @click="bulkArchive()">Archive</button>
-            </div>
-            <button class="btn btn-text" @click="clearSelection()">Clear Selection</button>
-        </div>
-
-        <!-- Filters and Search -->
-        <div class="section">
-            <div class="filters-bar">
-                <div style="display: flex; align-items: center; gap: var(--space-2);">
-                    <input type="checkbox" class="select-all-checkbox" 
-                           :checked="allSelected" 
-                           @change="toggleAll()"
-                           :indeterminate.prop="selectedLeads.length > 0 && !allSelected">
-                    <label style="font-size: var(--font-size-sm); color: var(--gray-600);">Select All</label>
-                </div>
+<div class="section">
+    <div class="section-label admin-section-label">
+      <span class="section-label-line"></span>
+      <span class="section-label-text">All Leads</span>
+      <span class="section-label-line"></span>
+    </div>
+    
+    <div x-show="loading" class="text-center p-12">
+        <div class="loading-spinner mx-auto"></div>
+        <p class="text-gray-500 mt-4">Loading leads...</p>
+    </div>
+    
+    <div x-show="!loading" class="leads-grid">
+        <template x-for="lead in filteredLeads" :key="lead.id">
+            <div class="lead-card" :class="getScoreClass(lead.behavioral_score)">
+                <div class="lead-score-indicator" :class="getScoreClass(lead.behavioral_score)"></div>
+                <input type="checkbox" class="lead-checkbox" :checked="selectedLeads.includes(lead.id)" @change="toggleLead(lead.id)">
                 
-                <input type="search" class="search-input" placeholder="Search leads by name, email, or phone...">
-                
-                <select class="filter-select">
-                    <option value="all">All Leads</option>
-                    <option value="hot">Hot (≥70)</option>
-                    <option value="warm">Warm (40-69)</option>
-                    <option value="cold">Cold (<40)</option>
-                </select>
-                
-                <select class="filter-select">
-                    <option value="all">All Time</option>
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
-                </select>
-                
-                <button class="btn btn-primary">
-                    + Add Lead
-                </button>
-            </div>
-        </div>
-
-        <!-- Lead Cards Grid -->
-        <div class="section">
-            <div class="section-label admin-section-label">
-              <span class="section-label-line"></span>
-              <span class="section-label-text">All Leads</span>
-              <span class="section-label-line"></span>
-            </div>
-            
-            <div x-show="loading" class="text-center" style="padding: var(--space-12);">
-                <div class="loading-spinner" style="margin: 0 auto;"></div>
-                <p style="color: var(--gray-500); margin-top: var(--space-4);">Loading leads...</p>
-            </div>
-            
-            <div x-show="!loading" class="leads-grid">
-                <template x-for="lead in leads" :key="lead.id">
-                    <div class="lead-card" :class="getScoreClass(lead.behavioral_score)">
-                        <div class="lead-score-indicator" :class="getScoreClass(lead.behavioral_score)"></div>
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-3);">
-                            <div>
-                                <div class="lead-name" x-text="lead.name"></div>
-                                <div class="lead-contact" x-text="lead.email"></div>
-                                <div class="lead-contact" x-text="lead.phone || 'No phone'"></div>
-                            </div>
-                            <div class="lead-score-badge" :class="getScoreClass(lead.behavioral_score)">
-                                <span class="score-value" x-text="Math.round(lead.behavioral_score || 0)"></span>
-                                <span class="score-label" x-text="getScoreLabel(lead.behavioral_score)"></span>
-                            </div>
-                        </div>
-                        
-                        <div style="padding-top: var(--space-3); border-top: 1px solid var(--gray-100);">
-                            <div class="ai-suggestion" x-show="lead.behavioral_score >= 70" style="background: #fef2f2; padding: var(--space-2); border-radius: 8px; margin-bottom: var(--space-3); font-size: var(--font-size-sm); color: #dc2626;">
-                                🔥 <strong>High Priority:</strong> Contact within 24 hours
-                            </div>
-                            <div class="ai-suggestion" x-show="lead.behavioral_score >= 40 && lead.behavioral_score < 70" style="background: #fffbeb; padding: var(--space-2); border-radius: 8px; margin-bottom: var(--space-3); font-size: var(--font-size-sm); color: #d97706;">
-                                💡 <strong>Good Potential:</strong> Follow up this week
-                            </div>
-                            
-                            <div style="display: flex; gap: var(--space-2);">
-                                <button class="btn btn-primary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);" @click="viewLeadDetails(lead.id)">
-                                    View Details
-                                </button>
-                                <button class="btn btn-secondary" style="flex: 1; font-size: var(--font-size-sm); padding: var(--space-2) var(--space-3);" @click="contactLead(lead)">
-                                    Contact
-                                </button>
-                            </div>
-                        </div>
+                <div class="flex justify-between align-start mb-3">
+                    <div>
+                        <div class="lead-name" x-text="lead.name"></div>
+                        <div class="lead-contact" x-text="lead.email"></div>
+                        <div class="lead-contact" x-text="lead.phone || 'No phone'"></div>
                     </div>
-                </template>
-
-                <!-- Empty state message -->
-                <div x-show="leads.length === 0 && !loading" style="grid-column: 1 / -1; text-align: center; padding: var(--space-12) var(--space-6);">
-                    <div style="font-size: var(--font-size-xl); color: var(--gray-400); margin-bottom: var(--space-3);">
-                        📊
+                    <div class="lead-score-badge" :class="getScoreClass(lead.behavioral_score)">
+                        <span class="score-value" x-text="Math.round(lead.behavioral_score || 0)"></span>
+                        <span class="score-label" x-text="getScoreLabel(lead.behavioral_score)"></span>
                     </div>
-                    <div style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); color: var(--gray-700); margin-bottom: var(--space-2);">
-                        No leads yet
+                </div>
+                
+                <div class="pt-3 border-t border-gray-100">
+                    <div class="ai-suggestion hot-lead" x-show="lead.behavioral_score >= 70">
+                        <svg width="14" height="14" class="inline mr-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.66 11.2c-.23-.3-.51-.56-.77-.82-.67-.6-1.43-1.03-2.07-1.66C13.33 7.26 13 4.85 13.95 3c-.95.23-1.78.75-2.49 1.32-2.59 2.08-3.61 5.75-2.39 8.9.04.1.08.2.08.33 0 .22-.15.42-.35.5-.23.1-.47.04-.66-.12a.58.58 0 01-.14-.17c-1.13-1.43-1.31-3.48-.55-5.12C5.78 10 4.87 12.3 5 14.47c.06.5.12 1 .29 1.5.14.6.41 1.2.71 1.73 1.08 1.73 2.95 2.97 4.96 3.22 2.14.27 4.43-.12 6.07-1.6 1.83-1.66 2.47-4.32 1.53-6.6l-.13-.26c-.21-.46-.77-1.26-.77-1.26m-3.16 6.3c-.28.24-.74.5-1.1.6-1.12.4-2.24-.16-2.9-.82 1.19-.28 1.9-1.16 2.11-2.05.17-.8-.15-1.46-.28-2.23-.12-.74-.1-1.37.17-2.06.19.38.39.76.63 1.06.77 1 1.98 1.44 2.24 2.8.04.14.06.28.06.43.03.82-.33 1.72-.93 2.27z"></path>
+                        </svg>
+                        <strong>High Priority:</strong> Contact within 24 hours
                     </div>
-                    <div style="font-size: var(--font-size-sm); color: var(--gray-500);">
-                        Your leads will appear here as they engage with your properties
+                    <div class="ai-suggestion warm-lead" x-show="lead.behavioral_score >= 40 && lead.behavioral_score < 70">
+                        <svg width="14" height="14" class="inline mr-1" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                        </svg>
+                        <strong>Good Potential:</strong> Follow up this week
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button class="btn btn-primary flex-1 text-sm" @click="viewLeadDetails(lead.id)">
+                            View Details
+                        </button>
+                        <button class="btn btn-secondary flex-1 text-sm" @click="contactLead(lead)">
+                            Contact
+                        </button>
                     </div>
                 </div>
             </div>
-        </div>
+        </template>
 
-        <!-- Bulk Email Modal -->
-        <div class="bulk-modal-overlay" x-show="showEmailModal" @click="closeEmailModal()" x-transition style="display: none;">
-            <div class="bulk-modal" @click.stop>
-                <h3>Send Email to <span x-text="selectedLeads.length"></span> Leads</h3>
-                <div class="form-group">
-                    <label>Template</label>
-                    <select x-model="emailTemplate" @change="loadEmailTemplate()">
-                        <option value="">Custom Message</option>
-                        <option value="follow_up">Follow Up</option>
-                        <option value="new_listing">New Listing Alert</option>
-                        <option value="price_drop">Price Reduction</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Subject</label>
-                    <input type="text" x-model="emailSubject" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label>Message</label>
-                    <textarea x-model="emailBody" rows="6" class="form-textarea"></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn btn-secondary" @click="closeEmailModal()">Cancel</button>
-                    <button class="btn btn-primary" @click="sendBulkEmail()">Send to <span x-text="selectedLeads.length"></span> Leads</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bulk Assign Modal -->
-        <div class="bulk-modal-overlay" x-show="showAssignModal" @click="closeAssignModal()" x-transition style="display: none;">
-            <div class="bulk-modal" @click.stop>
-                <h3>Assign <span x-text="selectedLeads.length"></span> Leads to Agent</h3>
-                <div class="form-group">
-                    <label>Select Agent</label>
-                    <select x-model="selectedAgent" class="form-input">
-                        <option value="">Choose an agent...</option>
-                        <option value="agent1">Agent 1</option>
-                        <option value="agent2">Agent 2</option>
-                        <option value="agent3">Agent 3</option>
-                    </select>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn btn-secondary" @click="closeAssignModal()">Cancel</button>
-                    <button class="btn btn-primary" @click="bulkAssign()">Assign Leads</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bulk Status Modal -->
-        <div class="bulk-modal-overlay" x-show="showStatusModal" @click="closeStatusModal()" x-transition style="display: none;">
-            <div class="bulk-modal" @click.stop>
-                <h3>Update Status for <span x-text="selectedLeads.length"></span> Leads</h3>
-                <div class="form-group">
-                    <label>New Status</label>
-                    <select x-model="selectedStatus" class="form-input">
-                        <option value="">Choose status...</option>
-                        <option value="new">New</option>
-                        <option value="contacted">Contacted</option>
-                        <option value="qualified">Qualified</option>
-                        <option value="negotiating">Negotiating</option>
-                        <option value="closed">Closed</option>
-                        <option value="lost">Lost</option>
-                    </select>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn btn-secondary" @click="closeStatusModal()">Cancel</button>
-                    <button class="btn btn-primary" @click="bulkUpdateStatus()">Update Status</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bulk Tag Modal -->
-        <div class="bulk-modal-overlay" x-show="showTagModal" @click="closeTagModal()" x-transition style="display: none;">
-            <div class="bulk-modal" @click.stop>
-                <h3>Add Tags to <span x-text="selectedLeads.length"></span> Leads</h3>
-                <div class="form-group">
-                    <label>Tags (comma-separated)</label>
-                    <input type="text" x-model="newTags" placeholder="e.g., VIP, Houston, Buyer" class="form-input">
-                </div>
-                <div class="modal-actions">
-                    <button class="btn btn-secondary" @click="closeTagModal()">Cancel</button>
-                    <button class="btn btn-primary" @click="bulkTag()">Add Tags</button>
-                </div>
-            </div>
+        <div x-show="filteredLeads.length === 0 && !loading" class="text-center p-12" style="grid-column: 1 / -1;">
+            <svg width="48" height="48" class="mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"></path>
+            </svg>
+            <div class="text-lg font-semibold text-gray-700 mb-2">No leads yet</div>
+            <div class="text-sm text-gray-500">Your leads will appear here as they engage with your properties</div>
         </div>
     </div>
-</main>
-<script>
-function leadManagementData() {
-return {
-leads: [],
-stats: { total: 0, hot: 0, warm: 0, cold: 0 },
-loading: true,
-selectedLeads: [],
-allSelected: false,
-showEmailModal: false,
-showAssignModal: false,
-showStatusModal: false,
-showTagModal: false,
-emailTemplate: '',
-emailSubject: '',
-emailBody: '',
-selectedAgent: '',
-selectedStatus: '',
-newTags: '',
-async init() {
-await this.fetchLeads();
-},
-async fetchLeads() {
-try {
-const response = await fetch('/api/leads');
-const data = await response.json();
-this.leads = data.leads || [];
-this.stats = data.stats || { total: 0, hot: 0, warm: 0, cold: 0 };
-} catch (error) {
-console.error('Failed to fetch leads:', error);
-} finally {
-this.loading = false;
-}
-},
-getScoreClass(score) {
-if (!score || score < 40) return 'lead-cold';
-if (score >= 70) return 'lead-hot';
-return 'lead-warm';
-},
-getScoreLabel(score) {
-if (!score || score < 40) return 'Cold';
-if (score >= 70) return 'Hot';
-return 'Warm';
-},
-viewLeadDetails(leadId) {
-window.location.href = `/admin/leads/${leadId}`;
-},
-contactLead(lead) {
-window.location.href = `/admin/communication?lead=${lead.id}`;
-},
-toggleLead(leadId) {
-const index = this.selectedLeads.indexOf(leadId);
-if (index > -1) {
-this.selectedLeads.splice(index, 1);
-} else {
-this.selectedLeads.push(leadId);
-}
-this.allSelected = this.selectedLeads.length === this.leads.length;
-},
-toggleAll() {
-if (this.allSelected) {
-this.selectedLeads = [];
-this.allSelected = false;
-} else {
-this.selectedLeads = this.leads.map(l => l.id);
-this.allSelected = true;
-}
-},
-clearSelection() {
-this.selectedLeads = [];
-this.allSelected = false;
-},
-showBulkEmailModal() {
-this.showEmailModal = true;
-},
-closeEmailModal() {
-this.showEmailModal = false;
-},
-showBulkAssignModal() {
-this.showAssignModal = true;
-},
-closeAssignModal() {
-this.showAssignModal = false;
-},
-showBulkStatusModal() {
-this.showStatusModal = true;
-},
-closeStatusModal() {
-this.showStatusModal = false;
-},
-showBulkTagModal() {
-this.showTagModal = true;
-},
-closeTagModal() {
-this.showTagModal = false;
-},
-closeBulkModal() {
-this.showEmailModal = false;
-this.showAssignModal = false;
-this.showStatusModal = false;
-this.showTagModal = false;
-},
-loadEmailTemplate() {
-const templates = {
-follow_up: {
-subject: 'Following up on your property inquiry',
-body: 'Hi there,\n\nI wanted to follow up on your recent inquiry about our properties. Are you still interested in viewing some listings?\n\nBest regards,\nPropertyHub Team'
-},
-new_listing: {
-subject: 'New listings that match your criteria',
-body: 'Hi there,\n\nWe have some exciting new properties that match what you\'re looking for. Would you like to schedule a viewing?\n\nBest regards,\nPropertyHub Team'
-},
-price_drop: {
-subject: 'Price reduction on properties you viewed',
-body: 'Hi there,\n\nGood news! Some properties you viewed recently have had price reductions. This might be a great opportunity.\n\nBest regards,\nPropertyHub Team'
-}
-};
-if (this.emailTemplate && templates[this.emailTemplate]) {
-this.emailSubject = templates[this.emailTemplate].subject;
-this.emailBody = templates[this.emailTemplate].body;
-}
-},
-async sendBulkEmail() {
-if (!this.emailSubject || !this.emailBody) {
-alert('Please fill in subject and message');
-return;
-}
-try {
-const response = await fetch('/api/leads/bulk/email', {
-method: 'POST',
-headers: {'Content-Type': 'application/json'},
-body: JSON.stringify({
-ids: this.selectedLeads,
-template: this.emailTemplate,
-subject: this.emailSubject,
-body: this.emailBody
-})
-});
-const data = await response.json();
-if (data.success) {
-alert(data.message);
-this.closeEmailModal();
-this.clearSelection();
-} else {
-alert('Failed to send emails: ' + (data.error || 'Unknown error'));
-}
-} catch (error) {
-alert('Failed to send emails: ' + error.message);
-}
-},
-async bulkAssign() {
-if (!this.selectedAgent) {
-alert('Please select an agent');
-return;
-}
-try {
-const response = await fetch('/api/leads/bulk/assign', {
-method: 'POST',
-headers: {'Content-Type': 'application/json'},
-body: JSON.stringify({
-ids: this.selectedLeads,
-agent_id: this.selectedAgent
-})
-});
-const data = await response.json();
-if (data.success) {
-alert(data.message);
-this.closeAssignModal();
-this.clearSelection();
-await this.fetchLeads();
-} else {
-alert('Failed to assign leads: ' + (data.error || 'Unknown error'));
-}
-} catch (error) {
-alert('Failed to assign leads: ' + error.message);
-}
-},
-async bulkUpdateStatus() {
-if (!this.selectedStatus) {
-alert('Please select a status');
-return;
-}
-try {
-const response = await fetch('/api/leads/bulk/status', {
-method: 'POST',
-headers: {'Content-Type': 'application/json'},
-body: JSON.stringify({
-ids: this.selectedLeads,
-status: this.selectedStatus
-})
-});
-const data = await response.json();
-if (data.success) {
-alert(data.message);
-this.closeStatusModal();
-this.clearSelection();
-await this.fetchLeads();
-} else {
-alert('Failed to update status: ' + (data.error || 'Unknown error'));
-}
-} catch (error) {
-alert('Failed to update status: ' + error.message);
-}
-},
-async bulkTag() {
-if (!this.newTags) {
-alert('Please enter tags');
-return;
-}
-const tags = this.newTags.split(',').map(t => t.trim()).filter(t => t);
-try {
-const response = await fetch('/api/leads/bulk/tag', {
-method: 'POST',
-headers: {'Content-Type': 'application/json'},
-body: JSON.stringify({
-ids: this.selectedLeads,
-tags: tags
-})
-});
-const data = await response.json();
-if (data.success) {
-alert(data.message);
-this.closeTagModal();
-this.clearSelection();
-await this.fetchLeads();
-} else {
-alert('Failed to add tags: ' + (data.error || 'Unknown error'));
-}
-} catch (error) {
-alert('Failed to add tags: ' + error.message);
-}
-},
-async bulkArchive() {
-if (!confirm(`Are you sure you want to archive ${this.selectedLeads.length} leads?`)) {
-return;
-}
-try {
-const response = await fetch('/api/leads/bulk/archive', {
-method: 'POST',
-headers: {'Content-Type': 'application/json'},
-body: JSON.stringify({
-ids: this.selectedLeads
-})
-});
-const data = await response.json();
-if (data.success) {
-alert(data.message);
-this.clearSelection();
-await this.fetchLeads();
-} else {
-alert('Failed to archive leads: ' + (data.error || 'Unknown error'));
-}
-} catch (error) {
-alert('Failed to archive leads: ' + error.message);
-}
-}
-}
-}
-</script>
-<style>
-.lead-card {
-position: relative;
-overflow: hidden;
-}
-.lead-score-indicator {
-position: absolute;
-left: 0;
-top: 0;
-bottom: 0;
-width: 4px;
-}
-.lead-score-indicator.lead-hot { background: #ef4444; }
-.lead-score-indicator.lead-warm { background: #f59e0b; }
-.lead-score-indicator.lead-cold { background: #6b7280; }
-.lead-score-badge {
-display: flex;
-flex-direction: column;
-align-items: center;
-padding: 8px 12px;
-border-radius: 8px;
-min-width: 60px;
-}
-.lead-score-badge.lead-hot {
-background: #fef2f2;
-color: #dc2626;
-border: 2px solid #ef4444;
-}
-.lead-score-badge.lead-warm {
-background: #fffbeb;
-color: #d97706;
-border: 2px solid #f59e0b;
-}
-.lead-score-badge.lead-cold {
-background: #f3f4f6;
-color: #4b5563;
-border: 2px solid #6b7280;
-}
-.lead-score-badge .score-value {
-font-size: 24px;
-font-weight: bold;
-line-height: 1;
-}
-.lead-score-badge .score-label {
-font-size: 11px;
-font-weight: 600;
-text-transform: uppercase;
-letter-spacing: 0.5px;
-margin-top: 4px;
-}
-.loading-spinner {
-width: 40px;
-height: 40px;
-border: 4px solid var(--gray-200);
-border-top-color: var(--navy-primary);
-border-radius: 50%;
-animation: spin 1s linear infinite;
-}
-@keyframes spin {
-to { transform: rotate(360deg); }
-}
-</style>
-</body>
-</html>
+</div>
+
+<div class="bulk-modal-overlay" x-show="showEmailModal" @click="closeEmailModal()" x-transition style="display: none;">
+    <div class="bulk-modal" @click.stop>
+        <h3>Send Email to <span x-text="selectedLeads.length"></span> Leads</h3>
+        <div class="form-group">
+            <label>Template</label>
+            <select x-model="emailTemplate" @change="loadEmailTemplate()" class="form-input">
+                <option value="">Custom Message</option>
+                <option value="follow_up">Follow Up</option>
+                <option value="new_listing">New Listing Alert</option>
+                <option value="price_drop">Price Reduction</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Subject</label>
+            <input type="text" x-model="emailSubject" class="form-input">
+        </div>
+        <div class="form-group">
+            <label>Message</label>
+            <textarea x-model="emailBody" rows="6" class="form-input"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" @click="closeEmailModal()">Cancel</button>
+            <button class="btn btn-primary" @click="sendBulkEmail()">Send to <span x-text="selectedLeads.length"></span> Leads</button>
+        </div>
+    </div>
+</div>
+
+<div class="bulk-modal-overlay" x-show="showAssignModal" @click="closeAssignModal()" x-transition style="display: none;">
+    <div class="bulk-modal" @click.stop>
+        <h3>Assign <span x-text="selectedLeads.length"></span> Leads to Agent</h3>
+        <div class="form-group">
+            <label>Select Agent</label>
+            <select x-model="selectedAgent" class="form-input">
+                <option value="">Choose an agent...</option>
+                <option value="agent1">Agent 1</option>
+                <option value="agent2">Agent 2</option>
+                <option value="agent3">Agent 3</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" @click="closeAssignModal()">Cancel</button>
+            <button class="btn btn-primary" @click="bulkAssign()">Assign Leads</button>
+        </div>
+    </div>
+</div>
+
+<div class="bulk-modal-overlay" x-show="showStatusModal" @click="closeStatusModal()" x-transition style="display: none;">
+    <div class="bulk-modal" @click.stop>
+        <h3>Update Status for <span x-text="selectedLeads.length"></span> Leads</h3>
+        <div class="form-group">
+            <label>New Status</label>
+            <select x-model="selectedStatus" class="form-input">
+                <option value="">Choose status...</option>
+                <option value="new">New</option>
+                <option value="contacted">Contacted</option>
+                <option value="qualified">Qualified</option>
+                <option value="negotiating">Negotiating</option>
+                <option value="closed">Closed</option>
+                <option value="lost">Lost</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" @click="closeStatusModal()">Cancel</button>
+            <button class="btn btn-primary" @click="bulkUpdateStatus()">Update Status</button>
+        </div>
+    </div>
+</div>
+
+<div class="bulk-modal-overlay" x-show="showTagModal" @click="closeTagModal()" x-transition style="display: none;">
+    <div class="bulk-modal" @click.stop>
+        <h3>Add Tags to <span x-text="selectedLeads.length"></span> Leads</h3>
+        <div class="form-group">
+            <label>Tags (comma-separated)</label>
+            <input type="text" x-model="newTags" placeholder="e.g., VIP, Houston, Buyer" class="form-input">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" @click="closeTagModal()">Cancel</button>
+            <button class="btn btn-primary" @click="bulkAddTags()">Add Tags</button>
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/lead-management.js"></script>
+{{end}}
+
+{{end}}
