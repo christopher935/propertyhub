@@ -9,8 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
-	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+	sestypes "github.com/aws/aws-sdk-go-v2/service/ses/types"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	snstypes "github.com/aws/aws-sdk-go-v2/service/sns/types"
 )
 
 // AWSCommunicationService handles email (SES) and SMS (SNS) via AWS
@@ -59,33 +60,33 @@ func (svc *AWSCommunicationService) SendEmail(to, subject, bodyHTML, bodyText st
 	}
 
 	input := &ses.SendEmailInput{
-		Destination: &types.Destination{
+		Destination: &sestypes.Destination{
 			ToAddresses: []string{to},
 		},
-		Message: &types.Message{
-			Subject: &types.Content{
+		Message: &sestypes.Message{
+			Subject: &sestypes.Content{
 				Data: aws.String(subject),
 			},
-			Body: &types.Body{},
+			Body: &sestypes.Body{},
 		},
 		Source: aws.String(svc.fromEmail),
 	}
 
 	// Add HTML body if provided
 	if bodyHTML != "" {
-		input.Message.Body.Html = &types.Content{
+		input.Message.Body.Html = &sestypes.Content{
 			Data: aws.String(bodyHTML),
 		}
 	}
 
 	// Add text body (required fallback)
 	if bodyText != "" {
-		input.Message.Body.Text = &types.Content{
+		input.Message.Body.Text = &sestypes.Content{
 			Data: aws.String(bodyText),
 		}
 	} else {
 		// Strip HTML tags for text version (basic fallback)
-		input.Message.Body.Text = &types.Content{
+		input.Message.Body.Text = &sestypes.Content{
 			Data: aws.String(stripHTMLBasic(bodyHTML)),
 		}
 	}
@@ -140,7 +141,7 @@ func (svc *AWSCommunicationService) SendSMS(to, message string) error {
 	input := &sns.PublishInput{
 		Message:     aws.String(message),
 		PhoneNumber: aws.String(to),
-		MessageAttributes: map[string]types.MessageAttributeValue{
+		MessageAttributes: map[string]snstypes.MessageAttributeValue{
 			"AWS.SNS.SMS.SenderID": {
 				DataType:    aws.String("String"),
 				StringValue: aws.String(svc.senderID),

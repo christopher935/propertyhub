@@ -616,3 +616,134 @@ function liveSessionsPanel() {
         }
     };
 }
+
+function liveActivityFeed() {
+    return {
+        ws: null,
+        events: [],
+        activeCount: 0,
+        reconnectAttempts: 0,
+        maxReconnects: 5,
+        reconnectDelay: 1000,
+        
+        init() {
+            this.connect();
+        },
+        
+        connect() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/api/ws/admin/activity`;
+            
+            try {
+                this.ws = new WebSocket(wsUrl);
+                
+                this.ws.onopen = () => {
+                    console.log('✅ Live activity WebSocket connected');
+                    this.reconnectAttempts = 0;
+                };
+                
+                this.ws.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        this.handleMessage(message);
+                    } catch (e) {
+                        console.error('Error parsing WebSocket message:', e);
+                    }
+                };
+                
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+                
+                this.ws.onclose = () => {
+                    console.log('WebSocket disconnected');
+                    this.reconnect();
+                };
+            } catch (e) {
+                console.error('Error creating WebSocket:', e);
+                this.reconnect();
+            }
+        },
+        
+        handleMessage(message) {
+            if (message.type === 'activity_event') {
+                this.handleActivityEvent(message.data.event);
+            } else if (message.type === 'active_count') {
+                this.activeCount = message.data.count || 0;
+            }
+        },
+        
+        handleActivityEvent(event) {
+            this.events.unshift(event);
+            
+            if (this.events.length > 50) {
+                this.events = this.events.slice(0, 50);
+            }
+            
+            if (event.score >= 70) {
+                this.showHighValueNotification(event);
+            }
+        },
+        
+        showHighValueNotification(event) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('High-Value Lead Activity!', {
+                    body: event.details,
+                    icon: '/static/images/logo.png',
+                    tag: 'high-value-lead'
+                });
+            }
+            
+            const toastManager = Alpine.$data(document.querySelector('[x-data*="toastManager"]'));
+            if (toastManager) {
+                toastManager.add(`🔥 ${event.details}`, 'warning', 10000);
+            }
+        },
+        
+        reconnect() {
+            if (this.reconnectAttempts >= this.maxReconnects) {
+                console.error('Max reconnection attempts reached');
+                return;
+            }
+            
+            this.reconnectAttempts++;
+            const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+            
+            console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnects})`);
+            
+            setTimeout(() => {
+                this.connect();
+            }, delay);
+        },
+        
+        getActivityIcon(type) {
+            const icons = {
+                'property_view': '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>',
+                'property_save': '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>',
+                'inquiry': '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>',
+                'search': '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>',
+                'application': '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>'
+            };
+            return icons[type] || icons['property_view'];
+        },
+        
+        formatTimeAgo(timestamp) {
+            const now = new Date();
+            const past = new Date(timestamp);
+            const diffInSeconds = Math.floor((now - past) / 1000);
+            
+            if (diffInSeconds < 5) return 'Just now';
+            if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        },
+        
+        destroy() {
+            if (this.ws) {
+                this.ws.close();
+                this.ws = null;
+            }
+        }
+    };
+}
