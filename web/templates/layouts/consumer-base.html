@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <title>{% if PageTitle %}{{ PageTitle }} - {% endif %}PropertyHub | Premium Property Rentals</title>
+    
+    <link rel="stylesheet" href="/static/css/design-tokens.css">
+    <link rel="stylesheet" href="/static/css/scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components.css">
+    
+    {% block additional_css %}{% endblock %}
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% include "partials/consumer-header.html" %}
+    
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% include "partials/consumer-footer.html" %}
+    {% include "partials/cookie-consent.html" %}
+    
+    <script src="/static/js/main.js"></script>
+    <script src="/static/js/cookie-consent.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

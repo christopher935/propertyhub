@@ -1,16 +1,18 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "additional-css"}}
+{% block additional_css %}
 <link rel="stylesheet" href="/static/css/dashboard-interactions.css">
-{{end}}
+{% endblock %}
 
-{{define "head"}}
+{% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-{{end}}
+{% endblock %}
 
-{{define "layout-data"}}x-data="propertyListData()" x-init="init()" @keydown.escape="closeBulkModal()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="tab-nav">
     <button class="tab-button" :class="{ 'active': activeTab === 'all' }" @click="switchTab('all')">
         All Properties
@@ -163,9 +165,9 @@
     <p class="text-gray-500 mb-6">AI-powered property valuations and market analysis</p>
     <a href="/admin/valuations" class="btn btn-primary">View Valuations</a>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script src="/static/js/property-crud.js"></script>
 <script>
     function propertyListData() {
@@ -234,4 +236,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

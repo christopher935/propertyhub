@@ -1,8 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "layout-data"}}x-data="bookingDetailData()" x-init="init()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="mb-2">
     <a href="/admin/bookings" class="text-gray-500 text-sm">← Back to Bookings</a>
 </div>
@@ -145,9 +147,9 @@
         </div>
     </div>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     function bookingDetailData() {
         return {
@@ -262,4 +264,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

@@ -1,8 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "layout-data"}}x-data="leadManagementData()" x-init="init()" @keydown.escape="closeBulkModal()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="section">
     <div class="stats-grid stats-grid-4">
         <div class="stat-card">
@@ -218,8 +220,8 @@
         </div>
     </div>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script src="/static/js/lead-management.js"></script>
-{{end}}
+{% endblock %}

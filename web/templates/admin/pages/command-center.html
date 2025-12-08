@@ -1,8 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "layout-data"}}x-data="commandCenter()" x-init="init()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="section">
     <div class="section-label admin-section-label">
       <span class="section-label-line"></span>
@@ -48,9 +50,9 @@
         </template>
     </div>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     function commandCenter() {
         return {
@@ -116,4 +118,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

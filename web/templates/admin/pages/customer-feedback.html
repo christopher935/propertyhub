@@ -1,8 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "layout-data"}}x-data="feedbackData()" x-init="init()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="card p-6 mb-6">
     <div class="stats-grid-4">
         <div class="text-center">
@@ -89,9 +91,9 @@
         </div>
     </div>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     function feedbackData() {
         return {
@@ -168,4 +170,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

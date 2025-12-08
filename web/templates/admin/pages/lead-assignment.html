@@ -1,8 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "layout-data"}}x-data="leadAssignmentData()" x-init="init()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="d-grid gap-6" style="grid-template-columns: 1fr 1fr;">
     <div>
         <div class="card p-6">
@@ -102,9 +104,9 @@
         </div>
     </div>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     function leadAssignmentData() {
         return {
@@ -196,4 +198,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

@@ -1,11 +1,11 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "additional-css"}}
+{% block additional_css %}
 <link rel="stylesheet" href="/static/css/settings-page.css">
 <link rel="stylesheet" href="/static/css/password-strength.css">
-{{end}}
+{% endblock %}
 
-{{define "content"}}
+{% block content %}
 <div id="alert-container"></div>
 
 <div class="settings-tabs">
@@ -55,7 +55,7 @@
         </div>
         <div class="settings-card-body">
             <form id="profile-form">
-                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <input type="hidden" name="csrf_token" value="{{ CSRFToken }}">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="first-name">First Name</label>
@@ -151,7 +151,7 @@
         </div>
         <div class="settings-card-body">
             <form id="password-form">
-                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <input type="hidden" name="csrf_token" value="{{ CSRFToken }}">
                 <div class="form-group">
                     <label for="current-password">Current Password</label>
                     <input type="password" id="current-password" name="current_password" required>
@@ -208,7 +208,7 @@
         </div>
         <div class="settings-card-body">
             <form id="notifications-form">
-                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <input type="hidden" name="csrf_token" value="{{ CSRFToken }}">
                 <div class="checkbox-group">
                     <label class="checkbox-label">
                         <input type="checkbox" name="email_notifications" checked>
@@ -238,9 +238,9 @@
         </div>
     </div>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script src="/static/js/password-strength.js"></script>
 <script src="/static/js/mfa-prompt.js"></script>
 <script>
@@ -358,4 +358,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

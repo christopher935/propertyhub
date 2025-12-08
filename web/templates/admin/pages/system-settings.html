@@ -1,6 +1,6 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "content"}}
+{% block content %}
 <div class="section">
     <div class="section-label admin-section-label">
       <span class="section-label-line"></span>
@@ -84,9 +84,9 @@
         </div>
     </div>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     document.getElementById('general-settings-form')?.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -110,4 +110,4 @@
         }
     });
 </script>
-{{end}}
+{% endblock %}

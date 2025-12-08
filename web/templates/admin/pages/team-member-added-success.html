@@ -1,8 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "layout-data"}}x-data="successData()" x-init="init()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="max-w-2xl mx-auto text-center">
     <div class="card p-8">
         <div class="success-icon-circle mb-6 mx-auto">
@@ -41,9 +43,9 @@
         </div>
     </div>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     function successData() {
         return {
@@ -65,4 +67,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

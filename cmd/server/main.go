@@ -3,12 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,6 +18,7 @@ import (
 	"chrisgross-ctrl-project/internal/scraper"
 	"chrisgross-ctrl-project/internal/security"
 	"chrisgross-ctrl-project/internal/services"
+	"chrisgross-ctrl-project/internal/templates"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -505,101 +503,11 @@ _ = leadSafetyFilter
         gin.SetMode(gin.ReleaseMode)
         r := gin.Default()
 
-        // Enterprise template functions
-        r.SetFuncMap(template.FuncMap{
-                "safeHTML": func(html string) template.HTML { return template.HTML(html) },
-                "safeCSS": func(css string) template.CSS { return template.CSS(css) },
-                "safeURL": func(rawURL string) template.URL {
-                        if u, err := url.Parse(rawURL); err == nil {
-                                return template.URL(u.String())
-                        }
-                        return template.URL("")
-                },
-                "formatPrice": func(price interface{}) string {
-                        switch v := price.(type) {
-                        case int:
-                                return fmt.Sprintf("$%,d", v)
-                        case int64:
-                                return fmt.Sprintf("$%,d", v)
-                        case float64:
-                                return fmt.Sprintf("$%,.2f", v)
-                        case float32:
-                                return fmt.Sprintf("$%,.2f", v)
-                        case string:
-                                if f, err := strconv.ParseFloat(v, 64); err == nil {
-                                        return fmt.Sprintf("$%,.2f", f)
-                                }
-                                return v
-                        default:
-                                return fmt.Sprintf("%v", v)
-                        }
-                },
-                "formatDate": func(t interface{}) string {
-                        switch v := t.(type) {
-                        case time.Time:
-                                return v.Format("January 2, 2006")
-                        case *time.Time:
-                                if v != nil {
-                                        return v.Format("January 2, 2006")
-                                }
-                                return ""
-                        default:
-                                return fmt.Sprintf("%v", v)
-                        }
-                },
-                "currentYear": func() int {
-                        return time.Now().Year()
-                },
-                "formatNumber": func(num interface{}) string {
-                        switch v := num.(type) {
-                        case int:
-                                return fmt.Sprintf("%,d", v)
-                        case int64:
-                                return fmt.Sprintf("%,d", v)
-                        case float64:
-                                return fmt.Sprintf("%,.0f", v)
-                        case float32:
-                                return fmt.Sprintf("%,.0f", v)
-                        default:
-                                return fmt.Sprintf("%v", v)
-                        }
-                },
-                "upper": func(s string) string {
-                        return strings.ToUpper(s)
-                },
-                "lower": func(s string) string {
-                        return strings.ToLower(s)
-                },
-                "title": func(s string) string {
-                        return strings.Title(s)
-                },
-                "urlEncode": func(s string) string {
-                        return url.QueryEscape(s)
-                },
-        })
-
-        // Load all templates at uniform 3-level depth: web/templates/category/pages/*.html
-        r.LoadHTMLGlob("web/templates/*/*/*.html")
+        // Configure Pongo2 template engine with Django-style inheritance
+        templates.RegisterPongo2Filters()
+        r.HTMLRender = templates.NewPongo2Render(templates.GetTemplateDir())
         r.Static("/static", "./web/static")
-
-        // Validate critical templates exist after loading
-        criticalTemplates := []string{
-                "errors/pages/500.html",
-                "errors/pages/404.html",
-                "errors/pages/403.html",
-                "errors/pages/503.html",
-                "consumer/pages/index.html",
-                "admin/pages/admin-dashboard.html",
-                "auth/pages/admin-login.html",
-        }
-
-        for _, tmpl := range criticalTemplates {
-                if r.HTMLRender == nil {
-                        log.Fatalf("FATAL: Template engine not initialized")
-                }
-                log.Printf("Validating critical template: %s", tmpl)
-        }
-        log.Println("All critical templates validated successfully")
+        log.Println("🎨 Pongo2 template engine configured with custom filters")
 
         // Initialize enhanced security middleware
         securityMiddleware := middleware.NewSecurityMiddleware(gormDB)

@@ -1,8 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "layout-data"}}x-data="propertyDetailData()" x-init="init()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="mb-2">
     <a href="/admin/properties" class="text-gray-500 text-sm">← Back to Properties</a>
 </div>
@@ -137,9 +139,9 @@
         </div>
     </div>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     function propertyDetailData() {
         return {
@@ -226,4 +228,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

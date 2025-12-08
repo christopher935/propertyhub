@@ -1,8 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "layout-data"}}x-data="feedbackDetailData()" x-init="init()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="mb-2">
     <a href="/admin/customer-feedback" class="text-gray-500 text-sm">← Back to Feedback</a>
 </div>
@@ -95,9 +97,9 @@
         </div>
     </div>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     function feedbackDetailData() {
         return {
@@ -196,4 +198,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

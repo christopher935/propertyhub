@@ -1,10 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "head"}}
+{% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-{{end}}
+{% endblock %}
 
-{{define "content"}}
+{% block content %}
 <div class="tab-nav">
     <button class="tab-button active" data-tab="tab1">Team Overview</button>
     <button class="tab-button" data-tab="tab2">Agent Performance</button>
@@ -157,9 +157,9 @@
     <p class="text-gray-500 mb-6">Track and manage team commissions</p>
     <a href="/admin/commissions" class="btn btn-primary">View Commissions</a>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', function() {
@@ -211,4 +211,4 @@
         });
     }
 </script>
-{{end}}
+{% endblock %}

@@ -1,8 +1,10 @@
-{{template "admin-base" .}}
+{% extends "layouts/admin-base.html" %}
 
-{{define "layout-data"}}x-data="propertyEditData()" x-init="init()"{{end}}
+{% block layout_data %}
 
-{{define "content"}}
+{% endblock %}
+
+{% block content %}
 <div class="mb-2">
     <a :href="'/admin/property-detail/' + propertyId" class="text-gray-500 text-sm">← Back to Property Details</a>
 </div>
@@ -95,9 +97,9 @@
         </div>
     </form>
 </div>
-{{end}}
+{% endblock %}
 
-{{define "scripts"}}
+{% block scripts %}
 <script>
     function propertyEditData() {
         return {
@@ -176,4 +178,4 @@
         };
     }
 </script>
-{{end}}
+{% endblock %}

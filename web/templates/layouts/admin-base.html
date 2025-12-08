@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <title>{% block title %}{{ PageTitle }}{% endblock %} - PropertyHub</title>
+    
+    <link rel="stylesheet" href="/static/css/admin-design-tokens.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-utilities.css">
+    <link rel="stylesheet" href="/static/css/admin-scout-layouts.css">
+    <link rel="stylesheet" href="/static/css/scout-components-admin.css">
+    <link rel="stylesheet" href="/static/css/admin-notifications.css">
+    
+    {% block additional_css %}{% endblock %}
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="admin-layout" {% block layout_data %}{% endblock %}>
+        
+        <button class="admin-sidebar-toggle" x-data="sidebarToggle()" @click="toggleSidebar">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+        
+        <div class="sidebar-backdrop" x-data="sidebarToggle()" @click="closeSidebar" :class="{ 'show': sidebarOpen }"></div>
+        
+        {% include "partials/admin-sidebar.html" %}
+        
+        <main class="admin-main">
+            <div class="admin-top-bar">
+                <div class="admin-page-header">
+                    <h1 class="admin-page-title">{{ PageTitle }}</h1>
+                </div>
+                {% include "partials/admin-topbar-right.html" %}
+            </div>
+            
+            <div class="admin-content">
+                {% block content %}
+                <div class="text-center text-gray-500 p-8">
+                    <p>No content defined.</p>
+                </div>
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+    
+    <script src="/static/js/admin-notifications.js"></script>
+    <script src="/static/js/admin-sidebar.js"></script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
