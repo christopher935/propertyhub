@@ -73,7 +73,7 @@ func main() {
         var propertyValuationService *services.PropertyValuationService
         if cfg.ScraperAPIKey != "" {
                 scraperService = scraper.NewScraperService(cfg)
-                propertyValuationService = services.NewPropertyValuationService(cfg, gormDB, scraperService, nil)
+                propertyValuationService = services.NewPropertyValuationService(cfg, gormDB, scraperService)
                 log.Println("🕷️ Enterprise scraper service initialized")
                 log.Println("💰 Enterprise property valuation initialized")
         }

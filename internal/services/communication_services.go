@@ -11,11 +11,11 @@ import (
 )
 
 type EmailService struct {
-	db            *gorm.DB
-	awsService    *AWSCommunicationService
-	fromEmail     string
-	fromName      string
-	isConfigured  bool
+	db           *gorm.DB
+	awsService   *AWSCommunicationService
+	fromEmail    string
+	fromName     string
+	isConfigured bool
 }
 
 type SMSService struct {
@@ -41,7 +41,7 @@ type BehavioralLeadScoringService struct {
 }
 
 func NewEmailService(cfg *config.Config, db *gorm.DB) *EmailService {
-	awsService, err := NewAWSCommunicationService()
+	awsService, err := NewAWSCommunicationService(cfg.EmailFromAddress, cfg.EmailFromName)
 	if err != nil || !awsService.enabled {
 		log.Printf("⚠️  WARNING: AWS SES not configured - email sending will be disabled")
 		return &EmailService{
@@ -60,7 +60,7 @@ func NewEmailService(cfg *config.Config, db *gorm.DB) *EmailService {
 }
 
 func NewSMSService(cfg *config.Config, db *gorm.DB) *SMSService {
-	awsService, err := NewAWSCommunicationService()
+	awsService, err := NewAWSCommunicationService(cfg.EmailFromAddress, cfg.EmailFromName)
 	if err != nil || !awsService.enabled {
 		log.Printf("⚠️  WARNING: AWS SNS not configured - SMS sending will be disabled")
 		return &SMSService{
