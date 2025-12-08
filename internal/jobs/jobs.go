@@ -105,7 +105,6 @@ const (
 // Job types
 const (
 	JobTypeFridayReport      = "friday_report"
-	JobTypeHARSync           = "har_sync"
 	JobTypeFUBSync           = "fub_sync"
 	JobTypeAnalyticsAggregation = "analytics_aggregation"
 	JobTypeEmailNotification = "email_notification"
@@ -152,17 +151,7 @@ func (jm *JobManager) registerDefaultJobs(harService, fubService, biService, not
 		RetryDelay:  5 * time.Minute,
 	})
 	
-	// HAR Sync Job
-		jm.RegisterJob(&Job{
-			ID:          "har_sync",
-			Name:        "HAR MLS Data Sync",
-			Type:        JobTypeHARSync,
-			Description: "Synchronize property data from HAR MLS (use API endpoint)",
-			Handler:     &HARSyncHandler{db: jm.db},
-			Timeout:     60 * time.Minute,
-			MaxRetries:  5,
-			RetryDelay:  10 * time.Minute,
-		})
+	// HAR Sync Job removed - HAR blocked access
 	
 	// FUB Sync Job
 	jm.RegisterJob(&Job{
@@ -306,18 +295,7 @@ func (jm *JobManager) ScheduleFridayReports() {
 	}
 }
 
-// StartHARSync schedules HAR MLS data synchronization
-func (jm *JobManager) StartHARSync() {
-	// Schedule HAR sync every 4 hours
-	err := jm.ScheduleJob("har_sync", "HAR MLS Data Sync", "0 */4 * * *", map[string]interface{}{
-		"incremental": true,
-		"limit":       1000,
-	})
-	
-	if err != nil {
-		log.Printf("Failed to schedule HAR sync: %v", err)
-	}
-}
+// StartHARSync removed - HAR blocked access
 
 // StartFUBSync schedules FUB contact synchronization
 func (jm *JobManager) StartFUBSync() {
@@ -637,30 +615,7 @@ func (h *FridayReportHandler) Execute(ctx context.Context, params map[string]int
 	}, nil
 }
 
-// HARSyncHandler handles HAR MLS data synchronization
-type HARSyncHandler struct {
-	db *gorm.DB
-}
-
-func (h *HARSyncHandler) Execute(ctx context.Context, params map[string]interface{}) (*JobResult, error) {
-	startTime := time.Now()
-	log.Println("🏠 Starting HAR property sync job...")
-	
-	// Note: Actual sync logic is in handlers/har_property_sync_handlers.go
-	// This job handler is a placeholder for scheduled jobs
-	// Use the API endpoint POST /api/v1/properties/sync/har to trigger sync
-	
-	log.Printf("✅ HAR property sync job completed in %s (use API endpoint for actual sync)", time.Since(startTime))
-	
-	return &JobResult{
-		Success: true,
-		Data: map[string]interface{}{
-			"message": "Use API endpoint POST /api/v1/properties/sync/har to trigger sync",
-			"note": "Job system integration pending",
-		},
-		Duration: time.Since(startTime),
-	}, nil
-}
+// HARSyncHandler removed - HAR blocked access
 
 // FUBSyncHandler handles Follow Up Boss synchronization
 type FUBSyncHandler struct {

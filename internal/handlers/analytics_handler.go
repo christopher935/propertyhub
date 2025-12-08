@@ -41,12 +41,7 @@ type AnalyticsData struct {
 	SafetyFlags      int64
 	AuditLogCount    int64
 
-	// HAR Data
-	HARTotalProperties int64
-	HARSyncedToday     int64
-	HARConflicts       int64
-	HARDataQuality     int
-	HARLastSync        string
+	// HAR Data removed - HAR blocked access
 
 	// Chart Data
 	RevenueLabels      string // JSON array
@@ -100,12 +95,7 @@ func (h *AnalyticsHandler) getAnalyticsData() AnalyticsData {
 	data.SafetyFlags = h.getSafetyFlags()
 	data.AuditLogCount = h.getAuditLogCount()
 
-	// HAR Data
-	data.HARTotalProperties = h.getHARTotalProperties()
-	data.HARSyncedToday = h.getHARSyncedToday()
-	data.HARConflicts = h.getHARConflicts()
-	data.HARDataQuality = 96
-	data.HARLastSync = h.getHARLastSync()
+	// HAR Data removed - HAR blocked access
 
 	// Chart Data
 	data.RevenueLabels, data.RevenueData = h.getRevenueChartData()
@@ -244,50 +234,7 @@ func (h *AnalyticsHandler) getAuditLogCount() int64 {
 	return count
 }
 
-// HAR Data Queries
-func (h *AnalyticsHandler) getHARTotalProperties() int64 {
-	var count int64
-	h.DB.Table("properties").
-		Where("source = ?", "HAR").
-		Count(&count)
-	return count
-}
-
-func (h *AnalyticsHandler) getHARSyncedToday() int64 {
-	var count int64
-	h.DB.Table("har_scrape_logs").
-		Where("created_at >= ?", time.Now().Truncate(24*time.Hour)).
-		Count(&count)
-	return count
-}
-
-func (h *AnalyticsHandler) getHARConflicts() int64 {
-	var count int64
-	h.DB.Table("property_conflicts").
-		Where("status = ?", "pending").
-		Count(&count)
-	return count
-}
-
-func (h *AnalyticsHandler) getHARLastSync() string {
-	var lastSync time.Time
-	h.DB.Table("har_scrape_logs").
-		Select("MAX(created_at)").
-		Scan(&lastSync)
-	
-	if lastSync.IsZero() {
-		return "Never"
-	}
-	
-	duration := time.Since(lastSync)
-	if duration.Minutes() < 60 {
-		return fmt.Sprintf("%d minutes ago", int(duration.Minutes()))
-	}
-	if duration.Hours() < 24 {
-		return fmt.Sprintf("%d hours ago", int(duration.Hours()))
-	}
-	return fmt.Sprintf("%d days ago", int(duration.Hours()/24))
-}
+// HAR Data Queries removed - HAR blocked access
 
 // Chart Data
 func (h *AnalyticsHandler) getRevenueChartData() (string, string) {

@@ -164,16 +164,7 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 		api.GET("/email/analytics/performance", emailAutomationHandler.GetPerformanceAnalytics)
 	}
 
-	// HAR Market API
-	api.GET("/har/market-summary", h.HARMarket.GetMarketSummary)
-	api.GET("/har/market-report/:id", h.HARMarket.GetMarketReport)
-	api.GET("/har/latest-reports", h.HARMarket.GetLatestReports)
-	api.GET("/har/reports-by-type/:type", h.HARMarket.GetReportsByType)
-	api.GET("/har/search", h.HARMarket.SearchReports)
-	api.GET("/har/scraping-stats", h.HARMarket.GetScrapingStats)
-	api.GET("/har/scraping-logs", h.HARMarket.GetScrapingLogs)
-	api.POST("/har/trigger-scraping", h.HARMarket.TriggerScraping)
-	api.POST("/har/schedule-weekly", h.HARMarket.ScheduleWeeklyScraping)
+	// HAR Market API removed - HAR blocked access
 
 	// Lead Reengagement API
 	api.GET("/leads/list", h.LeadReengagement.GetLeads)

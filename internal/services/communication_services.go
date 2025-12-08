@@ -8,15 +8,11 @@ import (
 	"strconv"
 	"chrisgross-ctrl-project/internal/config"
 	"chrisgross-ctrl-project/internal/safety"
-	"github.com/sendgrid/sendgrid-go"
-	"github.com/sendgrid/sendgrid-go/helpers/mail"
-	"github.com/twilio/twilio-go"
-	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
 
 type EmailService struct {
 	db            *gorm.DB
-	sendgrid      *sendgrid.Client
+	awsService    *AWSCommunicationService
 	fromEmail     string
 	fromName      string
 	isConfigured  bool
@@ -24,7 +20,7 @@ type EmailService struct {
 
 type SMSService struct {
 	db           *gorm.DB
-	client       *twilio.RestClient
+	awsService   *AWSCommunicationService
 	from         string
 	isConfigured bool
 }
@@ -45,8 +41,9 @@ type BehavioralLeadScoringService struct {
 }
 
 func NewEmailService(cfg *config.Config, db *gorm.DB) *EmailService {
-	if cfg.SendGridAPIKey == "" {
-		log.Printf("⚠️  WARNING: SENDGRID_API_KEY not configured - email sending will be disabled")
+	awsService, err := NewAWSCommunicationService()
+	if err != nil || !awsService.enabled {
+		log.Printf("⚠️  WARNING: AWS SES not configured - email sending will be disabled")
 		return &EmailService{
 			db:           db,
 			isConfigured: false,
@@ -55,7 +52,7 @@ func NewEmailService(cfg *config.Config, db *gorm.DB) *EmailService {
 
 	return &EmailService{
 		db:           db,
-		sendgrid:     sendgrid.NewSendClient(cfg.SendGridAPIKey),
+		awsService:   awsService,
 		fromEmail:    cfg.EmailFromAddress,
 		fromName:     cfg.EmailFromName,
 		isConfigured: true,
@@ -63,23 +60,18 @@ func NewEmailService(cfg *config.Config, db *gorm.DB) *EmailService {
 }
 
 func NewSMSService(cfg *config.Config, db *gorm.DB) *SMSService {
-	if cfg.TwilioAccountSID == "" || cfg.TwilioAuthToken == "" {
-		log.Printf("⚠️  WARNING: Twilio credentials not configured - SMS sending will be disabled")
+	awsService, err := NewAWSCommunicationService()
+	if err != nil || !awsService.enabled {
+		log.Printf("⚠️  WARNING: AWS SNS not configured - SMS sending will be disabled")
 		return &SMSService{
 			db:           db,
 			isConfigured: false,
 		}
 	}
 
-	client := twilio.NewRestClientWithParams(twilio.ClientParams{
-		Username: cfg.TwilioAccountSID,
-		Password: cfg.TwilioAuthToken,
-	})
-
 	return &SMSService{
 		db:           db,
-		client:       client,
-		from:         cfg.TwilioPhoneNumber,
+		awsService:   awsService,
 		isConfigured: true,
 	}
 }
@@ -110,27 +102,17 @@ func (es *EmailService) SendEmail(to, subject, content string, metadata map[stri
 		return fmt.Errorf("email sending is disabled by safety controls")
 	}
 
-	if !es.isConfigured {
+	if !es.isConfigured || es.awsService == nil {
 		log.Printf("⚠️  Email not configured - would have sent: To=%s, Subject=%s", to, subject)
 		return fmt.Errorf("email service not configured")
 	}
 
-	from := mail.NewEmail(es.fromName, es.fromEmail)
-	toEmail := mail.NewEmail("", to)
-	message := mail.NewSingleEmail(from, subject, toEmail, content, content)
-
-	response, err := es.sendgrid.Send(message)
+	// Send via AWS SES (content is HTML)
+	err := es.awsService.SendEmail(to, subject, content, "")
 	if err != nil {
-		log.Printf("❌ Email send failed: %v", err)
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 
-	if response.StatusCode >= 400 {
-		log.Printf("❌ Email send failed with status %d: %s", response.StatusCode, response.Body)
-		return fmt.Errorf("email send failed with status %d", response.StatusCode)
-	}
-
-	log.Printf("📧 Email sent to %s, status: %d", to, response.StatusCode)
 	return nil
 }
 
@@ -152,23 +134,17 @@ func (ss *SMSService) SendSMS(to, content string, metadata map[string]interface{
 		return fmt.Errorf("SMS sending is disabled by safety controls")
 	}
 
-	if !ss.isConfigured {
+	if !ss.isConfigured || ss.awsService == nil {
 		log.Printf("⚠️  SMS not configured - would have sent: To=%s, Content=%s", to, content)
 		return fmt.Errorf("SMS service not configured")
 	}
 
-	params := &twilioApi.CreateMessageParams{}
-	params.SetTo(to)
-	params.SetFrom(ss.from)
-	params.SetBody(content)
-
-	resp, err := ss.client.Api.CreateMessage(params)
+	// Send via AWS SNS
+	err := ss.awsService.SendSMS(to, content)
 	if err != nil {
-		log.Printf("❌ SMS send failed: %v", err)
 		return fmt.Errorf("failed to send SMS: %w", err)
 	}
 
-	log.Printf("📱 SMS sent to %s, SID: %s", to, *resp.Sid)
 	return nil
 }
 
