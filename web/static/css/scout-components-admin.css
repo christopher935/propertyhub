@@ -8011,3 +8011,32 @@ opacity: 0.7;
   height: 100%;
   object-fit: cover;
 }
+
+/* Small Stat Cards - For modals and compact displays */
+.stat-card-sm {
+  padding: var(--space-4);
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.stat-label-sm {
+  font-size: var(--font-size-xs);
+  color: var(--gray-600);
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value-sm {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--navy-primary);
+}
+
+/* Stats Grid 3 columns */
+.stats-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
