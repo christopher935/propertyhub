@@ -37,17 +37,17 @@
 </div>
 <!-- MFA Setup Form -->
 <form action="/admin/mfa-setup" class="auth-form login-form" method="POST" id="mfaForm">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <input type="hidden" name="csrf_token" value="{{ CSRFToken }}">
 <!-- Step 1: Scan QR Code -->
 <div class="form-group">
 <label class="form-label">Step 1: Scan QR Code</label>
 <div class="form-help-text" style="margin-bottom: 1rem;">Use an authenticator app like Google Authenticator or Authy to scan this QR code</div>
 <div class="qr-code-container">
-<img src="{{ .QRCodeURL }}" alt="QR Code" style="width: 200px; height: 200px; margin: 0 auto;"/>
+<img src="{{ QRCodeURL }}" alt="QR Code" style="width: 200px; height: 200px; margin: 0 auto;"/>
 </div>
 <div style="background: var(--gray-50); padding: var(--space-4); border-radius: var(--radius-lg); text-align: center;">
 <div class="form-help-text" style="margin-bottom: var(--space-2);">Can't scan? Enter this code manually:</div>
-<div class="secret-key">{{ .SecretKey }}</div>
+<div class="secret-key">{{ SecretKey }}</div>
 </div>
 </div>
 <!-- Step 2: Enter Verification Code -->

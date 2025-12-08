@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>{{.Title}} - Landlords of Texas</title>
+<title>{{ Title }} - Landlords of Texas</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
@@ -90,12 +90,12 @@
 <!-- Property Details -->
 <div class="confirmation-card">
 <div class="confirmation-header">
-<h2 class="text-heading-2">{{.PropertyName}}</h2>
+<h2 class="text-heading-2">{{ PropertyName }}</h2>
 <p class="text-body text-gray-600">
 <svg class="icon-inline" height="16" width="16"><use href="#icon-map-pin"></use></svg>
-                    {{.PropertyAddress}}
+                    {{ PropertyAddress }}
                 </p>
-<p class="text-heading-4 text-gold">{{.PropertyPrice}}/month</p>
+<p class="text-heading-4 text-gold">{{ PropertyPrice }}/month</p>
 </div>
 <div class="confirmation-divider"></div>
 <!-- Tour Details -->
@@ -105,7 +105,7 @@
 <svg class="icon-inline" height="16" width="16"><use href="#icon-calendar"></use></svg>
                         Date &amp; Time
                     </span>
-<span class="detail-value">{{.TourDate}} at {{.TourTime}}</span>
+<span class="detail-value">{{ TourDate }} at {{ TourTime }}</span>
 </div>
 <div class="detail-row">
 <span class="detail-label">
@@ -119,11 +119,11 @@
 <svg class="icon-inline" height="16" width="16"><use href="#icon-user"></use></svg>
                         Your Agent
                     </span>
-<span class="detail-value">{{.AgentName}}</span>
+<span class="detail-value">{{ AgentName }}</span>
 </div>
 <div class="detail-row">
 <span class="detail-label">Confirmation ID</span>
-<span class="detail-value">{{.ConfirmationID}}</span>
+<span class="detail-value">{{ ConfirmationID }}</span>
 </div>
 </div>
 <div class="confirmation-divider"></div>
@@ -142,7 +142,7 @@
 <!-- Help Section -->
 <div class="confirmation-help">
 <p class="text-body confirmation-help-text">
-                Need to make changes? <a class="text-gold confirmation-help-link" href="/manage-booking?id={{.ConfirmationID}}">Manage your booking</a>
+                Need to make changes? <a class="text-gold confirmation-help-link" href="/manage-booking?id={{ ConfirmationID }}">Manage your booking</a>
 </p>
 <p class="text-body text-gray-600 confirmation-help-text">
                 Questions? Call us at <a class="text-gold confirmation-help-link" href="tel:+12819257222">(281) 925-7222</a>
