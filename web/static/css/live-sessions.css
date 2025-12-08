@@ -563,3 +563,173 @@
 .session-card.updating {
   animation: updatePulse 0.5s ease;
 }
+
+/* ============================================
+   MOBILE RESPONSIVE - LIVE SESSIONS
+   ============================================ */
+
+@media (max-width: 768px) {
+  .live-sessions-panel {
+    margin-left: -var(--space-3);
+    margin-right: -var(--space-3);
+    border-radius: 0;
+  }
+  
+  .live-sessions-header {
+    padding: var(--space-4) var(--space-3);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  
+  .live-sessions-title {
+    font-size: var(--font-size-lg);
+  }
+  
+  .sessions-list {
+    padding: var(--space-3);
+    max-height: none;
+  }
+  
+  /* Session Cards Mobile */
+  .session-card {
+    padding: var(--space-3);
+  }
+  
+  .session-header {
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+  
+  .session-identity {
+    width: 100%;
+  }
+  
+  .session-score {
+    align-self: flex-start;
+    font-size: var(--font-size-xs);
+    padding: var(--space-1) var(--space-2);
+  }
+  
+  .session-email {
+    font-size: var(--font-size-sm);
+  }
+  
+  .session-location {
+    font-size: var(--font-size-xs);
+  }
+  
+  /* Simplify metrics on mobile */
+  .session-metrics {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+  
+  .session-metric {
+    font-size: var(--font-size-xs);
+  }
+  
+  .session-metric-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* Hide device type on very small screens */
+  .session-metric:last-child {
+    display: none;
+  }
+  
+  /* Action buttons full width */
+  .session-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .session-action-btn {
+    width: 100%;
+    justify-content: center;
+    padding: var(--space-2-5) var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+  
+  /* Journey Modal Mobile */
+  .session-journey-modal {
+    padding: var(--space-3);
+  }
+  
+  .session-journey-content {
+    max-height: 95vh;
+  }
+  
+  .session-journey-header {
+    padding: var(--space-4);
+  }
+  
+  .session-journey-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .session-journey-body {
+    padding: var(--space-4);
+  }
+  
+  .session-timeline {
+    padding-left: var(--space-4);
+  }
+  
+  .timeline-item {
+    padding-left: var(--space-3);
+  }
+}
+
+@media (max-width: 640px) {
+  .live-sessions-header {
+    padding: var(--space-3);
+  }
+  
+  .live-sessions-title {
+    font-size: var(--font-size-base);
+  }
+  
+  .live-sessions-count {
+    font-size: var(--font-size-xs);
+    padding: var(--space-1) var(--space-2);
+  }
+  
+  .view-all-link {
+    font-size: var(--font-size-xs);
+  }
+  
+  .session-card {
+    padding: var(--space-2-5);
+  }
+  
+  /* Show only essential metrics */
+  .session-metric:nth-child(2),
+  .session-metric:nth-child(3) {
+    display: none;
+  }
+  
+  .session-metric:first-child {
+    display: flex;
+  }
+  
+  /* Compact session activity */
+  .session-current-activity {
+    font-size: var(--font-size-xs);
+  }
+  
+  .session-property-address {
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Swipe gesture hint */
+@media (max-width: 768px) {
+  .session-card {
+    touch-action: pan-y;
+  }
+}
