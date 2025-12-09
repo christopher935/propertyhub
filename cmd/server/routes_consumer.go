@@ -14,7 +14,7 @@ import (
 func decryptPropertyAddresses(properties []models.Property, em *security.EncryptionManager) []gin.H {
 	result := make([]gin.H, len(properties))
 	for i, p := range properties {
-		addr := p.Address
+		addr := string(p.Address)
 		if em != nil {
 			if decrypted, err := em.Decrypt(p.Address); err == nil {
 				addr = decrypted
@@ -84,7 +84,7 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 			return
 		}
 
-		decryptedAddress := property.Address
+		decryptedAddress := string(property.Address)
 		if h.EncryptionManager != nil {
 			if addr, err := h.EncryptionManager.Decrypt(property.Address); err == nil {
 				decryptedAddress = addr
