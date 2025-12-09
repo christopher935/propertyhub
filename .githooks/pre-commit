@@ -1,0 +1,27 @@
+#!/bin/bash
+
+echo "🔍 Running pre-commit checks..."
+
+ROUTE_FILES=$(git diff --cached --name-only | grep -E "routes.*\.go$")
+
+if [ -n "$ROUTE_FILES" ]; then
+    echo "📋 Route files modified: $ROUTE_FILES"
+    echo "🔨 Building and validating routes..."
+    
+    if ! go build -o /tmp/propertyhub-check ./cmd/server 2>&1; then
+        echo "❌ Build failed! Fix compilation errors before committing."
+        exit 1
+    fi
+    
+    if ! /tmp/propertyhub-check --dry-run 2>&1; then
+        echo "❌ Route validation failed! Fix duplicate routes before committing."
+        rm -f /tmp/propertyhub-check
+        exit 1
+    fi
+    
+    rm -f /tmp/propertyhub-check
+    echo "✅ Route validation passed"
+fi
+
+echo "✅ Pre-commit checks passed"
+exit 0

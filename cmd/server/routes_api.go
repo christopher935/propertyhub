@@ -137,15 +137,6 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	// Behavioral Analytics API
 	handlers.RegisterBehavioralAnalyticsRoutes(api, h.DB)
 
-	// Booking API - stricter rate limiting for booking creation
-	api.POST("/v1/bookings", middleware.BookingRateLimiter.RateLimit(), h.Booking.CreateBooking)
-	api.GET("/v1/bookings/:id", h.Booking.GetBooking)
-	api.POST("/v1/bookings/:id/cancel", h.Booking.CancelBooking)
-	api.GET("/v1/bookings", h.Booking.ListBookings)
-	api.POST("/bookings/:id/complete", h.Booking.MarkCompleted)
-	api.POST("/bookings/:id/no-show", h.Booking.MarkNoShow)
-	api.PUT("/bookings/:id/reschedule", h.Booking.RescheduleBooking)
-
 	// Calendar Management API
 	api.GET("/calendar/stats", h.Calendar.GetCalendarStats)
 	api.GET("/calendar/today", h.Calendar.GetTodayEvents)
@@ -280,6 +271,9 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 		v1.GET("/bookings/:id", h.Booking.GetBooking)
 		v1.POST("/bookings/:id/cancel", h.Booking.CancelBooking)
 		v1.GET("/bookings", h.Booking.ListBookings)
+		v1.POST("/bookings/:id/complete", h.Booking.MarkCompleted)
+		v1.POST("/bookings/:id/no-show", h.Booking.MarkNoShow)
+		v1.PUT("/bookings/:id/reschedule", h.Booking.RescheduleBooking)
 	}
 	
 	// Live Activity API (Admin Real-Time)

@@ -27,6 +27,14 @@ import (
 )
 
 func main() {
+        dryRun := false
+        for _, arg := range os.Args[1:] {
+                if arg == "--dry-run" {
+                        dryRun = true
+                        break
+                }
+        }
+
         log.Println("🚀 Starting PropertyHub Enterprise System v2.0...")
 
         // Load enterprise configuration
@@ -704,6 +712,20 @@ var leadSafetyFilter *services.LeadSafetyFilter
         }())
 
 
+	// Validate routes for conflicts
+	log.Println("🔍 Validating routes for conflicts...")
+	if err := ValidateGinRoutes(r); err != nil {
+		log.Fatalf("❌ Route validation failed:\n%v", err)
+	}
+
+	if dryRun {
+		log.Println("✅ Dry run validation passed")
+		os.Exit(0)
+	}
+
 	// Start server
-	r.Run(":" + port)
+	log.Printf("🚀 Starting server on port %s", port)
+	if err := r.Run(":" + port); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
