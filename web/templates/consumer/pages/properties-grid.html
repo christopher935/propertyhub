@@ -72,33 +72,7 @@
 </div>
 </div>
 </section>
-<!-- Search Journey Progress -->
-<div class="container">
-<div class="search-journey" x-data="searchJourney()" x-show="hasActivity">
-    <div class="journey-progress">
-        <div class="journey-step" :class="{ 'completed': viewedProperties > 0 }">
-            <span class="step-icon">👀</span>
-            <span class="step-label">Browsing</span>
-        </div>
-        <div class="journey-connector"></div>
-        <div class="journey-step" :class="{ 'completed': savedProperties > 0 }">
-            <span class="step-icon">❤️</span>
-            <span class="step-label">Saved <span x-text="savedProperties"></span></span>
-        </div>
-        <div class="journey-connector"></div>
-        <div class="journey-step" :class="{ 'active': savedProperties > 0 && !hasBooked }">
-            <span class="step-icon">📅</span>
-            <span class="step-label">Schedule Tour</span>
-        </div>
-        <div class="journey-connector"></div>
-        <div class="journey-step">
-            <span class="step-icon">🏠</span>
-            <span class="step-label">Find Home</span>
-        </div>
-    </div>
-    <p class="journey-encouragement" x-text="getEncouragement()"></p>
-</div>
-</div>
+
 
 <!-- Filters Section -->
 <section class="features properties-filters-section">

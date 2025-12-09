@@ -11147,19 +11147,20 @@ html {
 
 /* Values grid */
 .values-section {
+  background: var(--navy-primary);
   padding: var(--space-16) 0;
 }
 
 .values-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-8);
+  gap: 2rem;
   max-width: 1000px;
   margin: 0 auto;
 }
 
 .value-card {
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.95);
   padding: var(--space-8);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-sm);
@@ -11199,11 +11200,23 @@ html {
 .team-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-8);
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .team-card {
+  background: var(--white);
+  padding: var(--space-8);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
   text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
 .team-photo {

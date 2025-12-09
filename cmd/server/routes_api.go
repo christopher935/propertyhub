@@ -1,9 +1,12 @@
 package main
 
 import (
+	"time"
+
 	"chrisgross-ctrl-project/internal/handlers"
 	"chrisgross-ctrl-project/internal/middleware"
 	"chrisgross-ctrl-project/internal/models"
+	"chrisgross-ctrl-project/internal/security"
 
 	"github.com/gin-gonic/gin"
 )
@@ -370,6 +373,76 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 		c.JSON(200, gin.H{
 			"success": true,
 			"message": "Lead added successfully",
+		})
+	})
+
+	// ============================================================================
+	// CONTACT FORM API
+	// ============================================================================
+	api.POST("/contact", func(c *gin.Context) {
+		var req struct {
+			Name           string `json:"name" binding:"required"`
+			Email          string `json:"email" binding:"required,email"`
+			Phone          string `json:"phone"`
+			Subject        string `json:"subject" binding:"required"`
+			Message        string `json:"message" binding:"required"`
+			RecaptchaToken string `json:"recaptcha_token"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(400, gin.H{
+				"success": false,
+				"message": "Invalid request data",
+			})
+			return
+		}
+
+		var encryptedName, encryptedEmail, encryptedPhone security.EncryptedString
+		if h.EncryptionManager != nil {
+			var err error
+			encryptedName, err = h.EncryptionManager.Encrypt(req.Name)
+			if err != nil {
+				c.JSON(500, gin.H{"success": false, "message": "Encryption error"})
+				return
+			}
+			encryptedEmail, err = h.EncryptionManager.Encrypt(req.Email)
+			if err != nil {
+				c.JSON(500, gin.H{"success": false, "message": "Encryption error"})
+				return
+			}
+			encryptedPhone, err = h.EncryptionManager.Encrypt(req.Phone)
+			if err != nil {
+				c.JSON(500, gin.H{"success": false, "message": "Encryption error"})
+				return
+			}
+		} else {
+			encryptedName = security.EncryptedString(req.Name)
+			encryptedEmail = security.EncryptedString(req.Email)
+			encryptedPhone = security.EncryptedString(req.Phone)
+		}
+
+		contact := models.Contact{
+			Name:      encryptedName,
+			Email:     encryptedEmail,
+			Phone:     encryptedPhone,
+			Message:   req.Subject + "\n\n" + req.Message,
+			Status:    "new",
+			Source:    "contact_form",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+
+		if err := h.DB.Create(&contact).Error; err != nil {
+			c.JSON(500, gin.H{
+				"success": false,
+				"message": "Failed to save contact request",
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"success": true,
+			"message": "Thank you! We'll get back to you soon.",
 		})
 	})
 
