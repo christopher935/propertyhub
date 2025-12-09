@@ -22,6 +22,18 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 
 	// Admin login POST endpoint
 	r.POST("/admin/login", func(c *gin.Context) {
+		clientIP := c.ClientIP()
+
+		// Check if already rate limited
+		if blocked, remaining := middleware.AdminLoginRateLimiter.CheckOnly(clientIP); blocked {
+			timeMsg := middleware.FormatRetryTime(remaining)
+			c.HTML(http.StatusTooManyRequests, "auth/pages/admin-login.html", gin.H{
+				"Title": "Admin Login",
+				"Error": "Too many login attempts. Please wait " + timeMsg + ".",
+			})
+			return
+		}
+
 		email := c.PostForm("email")
 		password := c.PostForm("password")
 		rememberMe := c.PostForm("remember") == "1"
@@ -37,6 +49,15 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 		// Authenticate user
 		loginResp, err := authManager.AuthenticateUser(email, password)
 		if err != nil || !loginResp.Success {
+			// Record failed attempt for rate limiting
+			if blocked, remaining := middleware.AdminLoginRateLimiter.RecordRequest(clientIP); blocked {
+				timeMsg := middleware.FormatRetryTime(remaining)
+				c.HTML(http.StatusTooManyRequests, "auth/pages/admin-login.html", gin.H{
+					"Title": "Admin Login",
+					"Error": "Too many login attempts. Please wait " + timeMsg + ".",
+				})
+				return
+			}
 			c.HTML(http.StatusUnauthorized, "auth/pages/admin-login.html", gin.H{
 				"Title": "Admin Login",
 				"Error": "Invalid email or password",

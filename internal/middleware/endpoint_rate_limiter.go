@@ -153,6 +153,51 @@ func (erl *EndpointRateLimiter) cleanup() {
 	}
 }
 
+// CheckOnly checks rate limit status without recording a new request
+func (erl *EndpointRateLimiter) CheckOnly(clientIP string) (blocked bool, retryAfter int64) {
+	erl.mutex.RLock()
+	defer erl.mutex.RUnlock()
+
+	now := time.Now()
+	client, exists := erl.clients[clientIP]
+	if !exists {
+		return false, 0
+	}
+
+	if client.blocked && now.Before(client.blockUntil) {
+		return true, client.blockUntil.Unix() - now.Unix()
+	}
+
+	return false, 0
+}
+
+// RecordRequest records a request for rate limiting purposes
+func (erl *EndpointRateLimiter) RecordRequest(clientIP string) (blocked bool, retryAfter int64) {
+	return erl.checkRateLimit(clientIP)
+}
+
+// FormatRetryTime returns a human-readable string for the retry duration
+func FormatRetryTime(seconds int64) string {
+	if seconds >= 3600 {
+		hours := seconds / 3600
+		if hours == 1 {
+			return "1 hour"
+		}
+		return fmt.Sprintf("%d hours", hours)
+	}
+	if seconds >= 60 {
+		minutes := seconds / 60
+		if minutes == 1 {
+			return "1 minute"
+		}
+		return fmt.Sprintf("%d minutes", minutes)
+	}
+	if seconds == 1 {
+		return "1 second"
+	}
+	return fmt.Sprintf("%d seconds", seconds)
+}
+
 // Predefined rate limiters for common use cases
 var (
 	// For booking and contact form submissions
