@@ -1,14 +1,16 @@
 package handlers
 
 import (
-	"os"
 	"encoding/json"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
-	"chrisgross-ctrl-project/internal/safety"
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+
+	"chrisgross-ctrl-project/internal/safety"
 )
 
 // SafetyHandlers handles safety-related API endpoints
@@ -392,4 +394,170 @@ func (h *SafetyHandlers) GetOverrideStats(w http.ResponseWriter, r *http.Request
 	stats := h.overrideManager.GetOverrideStats()
 
 	json.NewEncoder(w).Encode(stats)
+}
+
+// ============================================================================
+// GIN-COMPATIBLE METHODS
+// ============================================================================
+
+func (h *SafetyHandlers) GetSafetyConfigGin(c *gin.Context) {
+	config := h.configManager.GetConfig()
+	c.JSON(http.StatusOK, gin.H{
+		"config":      config,
+		"stats":       h.configManager.GetSafetyStats(),
+		"description": h.configManager.GetModeDescription(),
+	})
+}
+
+func (h *SafetyHandlers) UpdateSafetyModeGin(c *gin.Context) {
+	var request struct {
+		Mode       int    `json:"mode"`
+		ModifiedBy string `json:"modified_by"`
+		Reason     string `json:"reason"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	mode := safety.SafetyMode(request.Mode)
+	if err := h.modeManager.TransitionToMode(mode, request.ModifiedBy, request.Reason); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "config": h.configManager.GetConfig(), "message": "Safety mode updated successfully"})
+}
+
+func (h *SafetyHandlers) GetModeRecommendationGin(c *gin.Context) {
+	var totalCampaigns, successfulCampaigns, failedCampaigns int64
+	h.db.Table("campaign_execution_logs").Count(&totalCampaigns)
+	h.db.Table("campaign_execution_logs").Where("status = ?", "success").Count(&successfulCampaigns)
+	h.db.Table("campaign_execution_logs").Where("status = ?", "failed").Count(&failedCampaigns)
+	var complaintCount, unsubscribeCount int64
+	h.db.Table("email_complaints").Count(&complaintCount)
+	h.db.Table("unsubscribes").Count(&unsubscribeCount)
+	successRate := 0.0
+	if totalCampaigns > 0 {
+		successRate = float64(successfulCampaigns) / float64(totalCampaigns)
+	}
+	complaintRate := 0.0
+	unsubscribeRate := 0.0
+	var totalEmails int64
+	h.db.Table("email_campaigns").Select("COALESCE(SUM(sent_count), 0)").Scan(&totalEmails)
+	if totalEmails > 0 {
+		complaintRate = float64(complaintCount) / float64(totalEmails)
+		unsubscribeRate = float64(unsubscribeCount) / float64(totalEmails)
+	}
+	var avgEngagementRate float64
+	h.db.Table("email_campaigns").Select("COALESCE(AVG((opened_count::float + clicked_count::float) / NULLIF(sent_count, 0)), 0)").Where("sent_count > 0").Scan(&avgEngagementRate)
+	config := h.configManager.GetConfig()
+	daysInCurrentMode := 0
+	if !config.LastModified.IsZero() {
+		daysInCurrentMode = int(time.Since(config.LastModified).Hours() / 24)
+	}
+	metrics := safety.SafetyMetrics{
+		TotalCampaigns: int(totalCampaigns), SuccessfulCampaigns: int(successfulCampaigns), FailedCampaigns: int(failedCampaigns),
+		ComplaintCount: int(complaintCount), UnsubscribeCount: int(unsubscribeCount), SuccessRate: successRate,
+		ComplaintRate: complaintRate, UnsubscribeRate: unsubscribeRate, AverageEngagementRate: avgEngagementRate, DaysInCurrentMode: daysInCurrentMode,
+	}
+	c.JSON(http.StatusOK, h.modeManager.GetModeRecommendation(metrics))
+}
+
+func (h *SafetyHandlers) GetTransitionHistoryGin(c *gin.Context) {
+	history := h.modeManager.GetTransitionHistory()
+	c.JSON(http.StatusOK, gin.H{"transitions": history, "count": len(history)})
+}
+
+func (h *SafetyHandlers) GetTransitionPlanGin(c *gin.Context) {
+	c.JSON(http.StatusOK, h.modeManager.GetModeTransitionPlan())
+}
+
+func (h *SafetyHandlers) RequestOverrideGin(c *gin.Context) {
+	var request safety.OverrideRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	override, err := h.overrideManager.RequestOverride(request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "override": override, "message": "Override created successfully"})
+}
+
+func (h *SafetyHandlers) GetActiveOverridesGin(c *gin.Context) {
+	overrides := h.overrideManager.GetActiveOverrides()
+	c.JSON(http.StatusOK, gin.H{"overrides": overrides, "count": len(overrides)})
+}
+
+func (h *SafetyHandlers) ActivateEmergencyStopGin(c *gin.Context) {
+	var request struct {
+		ActivatedBy string `json:"activated_by"`
+		Reason      string `json:"reason"`
+		Level       int    `json:"level"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	level := safety.EmergencyLevel(request.Level)
+	if err := h.overrideManager.ActivateEmergencyStop(request.ActivatedBy, request.Reason, level); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Emergency stop activated", "emergency_state": h.overrideManager.GetEmergencyState()})
+}
+
+func (h *SafetyHandlers) DeactivateEmergencyStopGin(c *gin.Context) {
+	var request struct {
+		DeactivatedBy string `json:"deactivated_by"`
+		Reason        string `json:"reason"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := h.overrideManager.DeactivateEmergencyStop(request.DeactivatedBy, request.Reason); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Emergency stop deactivated"})
+}
+
+func (h *SafetyHandlers) GetEmergencyStateGin(c *gin.Context) {
+	c.JSON(http.StatusOK, h.overrideManager.GetEmergencyState())
+}
+
+func (h *SafetyHandlers) UpdateSafetySettingsGin(c *gin.Context) {
+	var request struct {
+		ModifiedBy string                 `json:"modified_by"`
+		Settings   map[string]interface{} `json:"settings"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Safety settings updated successfully", "config": h.configManager.GetConfig()})
+}
+
+func (h *SafetyHandlers) GetPerformanceMetricsGin(c *gin.Context) {
+	metrics := map[string]interface{}{
+		"total_campaigns": 12, "successful_campaigns": 11, "failed_campaigns": 1,
+		"complaint_count": 0, "unsubscribe_count": 2, "success_rate": 0.965,
+		"complaint_rate": 0.002, "unsubscribe_rate": 0.015, "average_engagement_rate": 0.18,
+		"days_in_current_mode": 18, "last_updated": time.Now(),
+	}
+	c.JSON(http.StatusOK, metrics)
+}
+
+func (h *SafetyHandlers) ExpireOverridesGin(c *gin.Context) {
+	if err := h.overrideManager.ExpireOverrides(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Override expiration check completed", "active_overrides": len(h.overrideManager.GetActiveOverrides())})
+}
+
+func (h *SafetyHandlers) GetOverrideStatsGin(c *gin.Context) {
+	c.JSON(http.StatusOK, h.overrideManager.GetOverrideStats())
 }

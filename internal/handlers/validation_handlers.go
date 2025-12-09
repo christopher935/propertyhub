@@ -1,16 +1,15 @@
 package handlers
 
 import (
-	"log"
-)
-
-import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // ValidationHandler handles form validation operations
@@ -315,18 +314,131 @@ func (h *ValidationHandler) validatePhoneNumber(phone string) ValidationResponse
 }
 
 // RegisterValidationRoutes registers all validation routes
+// Deprecated: Use Gin routes instead
 func RegisterValidationRoutes(mux *http.ServeMux) {
 	h := NewValidationHandler()
 
-	// Public validation routes (no auth required)
 	mux.HandleFunc("/api/v1/validation/email", h.ValidateEmail)
 	mux.HandleFunc("/api/v1/validation/phone", h.ValidatePhone)
 	mux.HandleFunc("/api/v1/validation/booking-form", h.ValidateBookingForm)
 	mux.HandleFunc("/api/v1/validation/contact-form", h.ValidateContactForm)
 
-	log.Println("✅ Validation routes registered:")
-	log.Println("   • POST /api/v1/validation/email - Validate email address")
-	log.Println("   • POST /api/v1/validation/phone - Validate phone number")
-	log.Println("   • POST /api/v1/validation/booking-form - Validate booking form")
-	log.Println("   • POST /api/v1/validation/contact-form - Validate contact form")
+	log.Println("✅ Validation routes registered")
+}
+
+// ============================================================================
+// GIN-COMPATIBLE METHODS
+// ============================================================================
+
+func (h *ValidationHandler) ValidateEmailGin(c *gin.Context) {
+	var request struct {
+		Email string `json:"email"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+	response := h.validateEmailAddress(request.Email)
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *ValidationHandler) ValidatePhoneGin(c *gin.Context) {
+	var request struct {
+		Phone string `json:"phone"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+	response := h.validatePhoneNumber(request.Phone)
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *ValidationHandler) ValidateBookingFormGin(c *gin.Context) {
+	var request struct {
+		FirstName     string `json:"firstName"`
+		LastName      string `json:"lastName"`
+		Email         string `json:"email"`
+		Phone         string `json:"phone"`
+		ShowingDate   string `json:"showingDate"`
+		ShowingTime   string `json:"showingTime"`
+		AttendeeCount string `json:"attendeeCount"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+	errors := []string{}
+	if strings.TrimSpace(request.FirstName) == "" {
+		errors = append(errors, "First name is required")
+	}
+	if strings.TrimSpace(request.LastName) == "" {
+		errors = append(errors, "Last name is required")
+	}
+	if ev := h.validateEmailAddress(request.Email); !ev.Valid {
+		errors = append(errors, ev.Errors...)
+	}
+	if pv := h.validatePhoneNumber(request.Phone); !pv.Valid {
+		errors = append(errors, pv.Errors...)
+	}
+	if request.ShowingDate == "" {
+		errors = append(errors, "Showing date is required")
+	} else if sd, err := time.Parse("2006-01-02", request.ShowingDate); err != nil {
+		errors = append(errors, "Invalid showing date format")
+	} else if sd.Before(time.Now().Truncate(24 * time.Hour)) {
+		errors = append(errors, "Showing date must be in the future")
+	}
+	if request.ShowingTime == "" {
+		errors = append(errors, "Showing time is required")
+	} else if _, err := time.Parse("15:04", request.ShowingTime); err != nil {
+		errors = append(errors, "Invalid showing time format")
+	}
+	if request.AttendeeCount == "" {
+		errors = append(errors, "Attendee count is required")
+	} else if count, err := strconv.Atoi(request.AttendeeCount); err != nil {
+		errors = append(errors, "Invalid attendee count")
+	} else if count < 1 || count > 10 {
+		errors = append(errors, "Attendee count must be between 1 and 10")
+	}
+	valid := len(errors) == 0
+	message := "Form validation successful"
+	if !valid {
+		message = "Form validation failed"
+	}
+	c.JSON(http.StatusOK, ValidationResponse{Valid: valid, Errors: errors, Message: message})
+}
+
+func (h *ValidationHandler) ValidateContactFormGin(c *gin.Context) {
+	var request struct {
+		Name    string `json:"name"`
+		Email   string `json:"email"`
+		Phone   string `json:"phone"`
+		Subject string `json:"subject"`
+		Message string `json:"message"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+	errors := []string{}
+	if strings.TrimSpace(request.Name) == "" {
+		errors = append(errors, "Name is required")
+	}
+	if strings.TrimSpace(request.Message) == "" {
+		errors = append(errors, "Message is required")
+	}
+	if ev := h.validateEmailAddress(request.Email); !ev.Valid {
+		errors = append(errors, ev.Errors...)
+	}
+	if request.Phone != "" {
+		if pv := h.validatePhoneNumber(request.Phone); !pv.Valid {
+			errors = append(errors, pv.Errors...)
+		}
+	}
+	valid := len(errors) == 0
+	message := "Contact form validation successful"
+	if !valid {
+		message = "Contact form validation failed"
+	}
+	c.JSON(http.StatusOK, ValidationResponse{Valid: valid, Errors: errors, Message: message})
 }

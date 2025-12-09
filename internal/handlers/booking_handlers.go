@@ -27,6 +27,8 @@ type BookingHandler struct {
 	fubBatchService     *services.FUBBatchService
 	availabilityService *services.AvailabilityService
 	notificationHub     *services.AdminNotificationHub
+	calendarService     *services.CalendarIntegrationService
+	automationService   *services.SMSEmailAutomationService
 }
 
 func NewBookingHandler(db *gorm.DB, repos *repositories.Repositories, em *security.EncryptionManager) *BookingHandler {
@@ -36,6 +38,8 @@ func NewBookingHandler(db *gorm.DB, repos *repositories.Repositories, em *securi
 		encryptionManager:   em,
 		fubBatchService:     nil,
 		availabilityService: services.NewAvailabilityService(db),
+		calendarService:     services.NewCalendarIntegrationService(db),
+		automationService:   services.NewSMSEmailAutomationService(db),
 	}
 }
 
@@ -168,6 +172,52 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 				decryptedName, _ = h.encryptionManager.Decrypt(booking.Name)
 			}
 			h.notificationHub.SendBookingAlert(decryptedAddress, decryptedName, booking.ID)
+		}
+	}
+
+	if h.calendarService != nil {
+		var property models.Property
+		if err := h.repos.Property.FindByID(ctx, uint(propertyID), &property); err == nil {
+			decryptedAddress := string(property.Address)
+			if h.encryptionManager != nil {
+				decryptedAddress, _ = h.encryptionManager.Decrypt(property.Address)
+			}
+			bookingData := services.BookingCalendarData{
+				PropertyAddress: decryptedAddress,
+				ContactName:     req.FirstName + " " + req.LastName,
+				ContactEmail:    req.Email,
+				ContactPhone:    req.Phone,
+				ShowingTime:     booking.ShowingDate,
+			}
+			if _, err := h.calendarService.CreateShowingEvent(bookingData); err != nil {
+				log.Printf("Warning: Calendar event creation failed: %v", err)
+			}
+		}
+	}
+
+	if h.automationService != nil {
+		var property models.Property
+		if err := h.repos.Property.FindByID(ctx, uint(propertyID), &property); err == nil {
+			decryptedAddress := string(property.Address)
+			if h.encryptionManager != nil {
+				decryptedAddress, _ = h.encryptionManager.Decrypt(property.Address)
+			}
+			automationData := map[string]interface{}{
+				"booking_id":       booking.ID,
+				"reference_number": booking.ReferenceNumber,
+				"first_name":       req.FirstName,
+				"last_name":        req.LastName,
+				"name":             req.FirstName + " " + req.LastName,
+				"email":            req.Email,
+				"phone":            req.Phone,
+				"property_address": decryptedAddress,
+				"showing_date":     booking.ShowingDate.Format("Monday, January 2, 2006"),
+				"showing_time":     booking.ShowingDate.Format("3:04 PM"),
+				"showing_type":     req.ShowingType,
+			}
+			if err := h.automationService.TriggerAutomation("booking_created", automationData); err != nil {
+				log.Printf("Warning: Booking automation failed: %v", err)
+			}
 		}
 	}
 

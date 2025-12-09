@@ -1,12 +1,14 @@
 package handlers
 
 import (
-	"log"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+
 	"chrisgross-ctrl-project/internal/auth"
 	"chrisgross-ctrl-project/internal/security"
 )
@@ -176,14 +178,115 @@ func (h *MFAHandler) DisableMFA(w http.ResponseWriter, r *http.Request) {
 }
 
 // RegisterMFARoutes registers all MFA routes
+// Deprecated: Use Gin routes instead
 func RegisterMFARoutes(mux *http.ServeMux, db *gorm.DB, authManager auth.AuthenticationManager) {
 	handler := NewMFAHandler(db, authManager)
 
-	// MFA management routes
 	mux.Handle("/api/v1/mfa/setup", authManager.RequireAuth(http.HandlerFunc(handler.SetupMFA)))
 	mux.Handle("/api/v1/mfa/verify", authManager.RequireAuth(http.HandlerFunc(handler.VerifyMFA)))
 	mux.Handle("/api/v1/mfa/status", authManager.RequireAuth(http.HandlerFunc(handler.GetMFAStatus)))
 	mux.Handle("/api/v1/mfa/disable", authManager.RequireAuth(http.HandlerFunc(handler.DisableMFA)))
 
 	log.Println("🔐 Enterprise MFA routes registered")
+}
+
+// ============================================================================
+// GIN-COMPATIBLE METHODS
+// ============================================================================
+
+func (h *MFAHandler) SetupMFAGin(c *gin.Context) {
+	userIDStr := c.GetHeader("X-User-ID")
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID required"})
+		return
+	}
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	if h.totpManager.IsMFAEnabled(uint(userID)) {
+		c.JSON(http.StatusConflict, gin.H{"error": "MFA already enabled"})
+		return
+	}
+	user, err := h.authManager.GetUserByID(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+	key, backupCodes, err := h.totpManager.GenerateSecret(uint(userID), user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate MFA secret"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "secret": key.Secret(), "backup_codes": backupCodes, "qr_url": key.URL()})
+}
+
+func (h *MFAHandler) VerifyMFAGin(c *gin.Context) {
+	userIDStr := c.GetHeader("X-User-ID")
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID required"})
+		return
+	}
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	var request struct {
+		Code string `json:"code"`
+	}
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+	ipAddress := c.ClientIP()
+	userAgent := c.GetHeader("User-Agent")
+	valid, err := h.totpManager.VerifyTOTP(uint(userID), request.Code, ipAddress, userAgent)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Verification failed"})
+		return
+	}
+	if !valid {
+		validBackup, err := h.totpManager.VerifyBackupCode(uint(userID), request.Code, ipAddress, userAgent)
+		if err != nil || !validBackup {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid code"})
+			return
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "MFA verification successful"})
+}
+
+func (h *MFAHandler) GetMFAStatusGin(c *gin.Context) {
+	userIDStr := c.GetHeader("X-User-ID")
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID required"})
+		return
+	}
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	status := h.totpManager.GetMFAStatus(uint(userID))
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": status})
+}
+
+func (h *MFAHandler) DisableMFAGin(c *gin.Context) {
+	userIDStr := c.GetHeader("X-User-ID")
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID required"})
+		return
+	}
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	err = h.totpManager.DisableMFA(uint(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to disable MFA"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "MFA disabled successfully"})
 }

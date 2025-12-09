@@ -447,6 +447,124 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	})
 
 	// ============================================================================
+	// AVAILABILITY API - Consolidated from ServeMux
+	// ============================================================================
+	v1.GET("/availability/check", h.Availability.CheckAvailabilityGin)
+	v1.GET("/availability/blackouts", h.Availability.GetBlackoutDatesGin)
+	v1.POST("/availability/blackouts", h.Availability.CreateBlackoutDateGin)
+	v1.DELETE("/availability/blackouts/:id", h.Availability.RemoveBlackoutDateGin)
+	v1.GET("/availability/blackouts/upcoming", h.Availability.GetUpcomingBlackoutsGin)
+	v1.GET("/availability/stats", h.Availability.GetAvailabilityStatsGin)
+	v1.POST("/availability/validate", h.Availability.ValidateBookingGin)
+	v1.POST("/availability/cleanup", h.Availability.CleanupExpiredBlackoutsGin)
+
+	// Also add without v1 prefix for JS compatibility
+	api.GET("/availability/check", h.Availability.CheckAvailabilityGin)
+
+	// ============================================================================
+	// SAFETY API - Consolidated from ServeMux
+	// ============================================================================
+	v1.GET("/safety/config", h.Safety.GetSafetyConfigGin)
+	v1.POST("/safety/config/update", h.Safety.UpdateSafetySettingsGin)
+	v1.POST("/safety/mode", h.Safety.UpdateSafetyModeGin)
+	v1.GET("/safety/mode/recommendation", h.Safety.GetModeRecommendationGin)
+	v1.GET("/safety/mode/history", h.Safety.GetTransitionHistoryGin)
+	v1.GET("/safety/mode/plan", h.Safety.GetTransitionPlanGin)
+	v1.GET("/safety/overrides", h.Safety.GetActiveOverridesGin)
+	v1.POST("/safety/overrides/request", h.Safety.RequestOverrideGin)
+	v1.POST("/safety/overrides/expire", h.Safety.ExpireOverridesGin)
+	v1.GET("/safety/overrides/stats", h.Safety.GetOverrideStatsGin)
+	v1.GET("/safety/emergency", h.Safety.GetEmergencyStateGin)
+	v1.POST("/safety/emergency/activate", h.Safety.ActivateEmergencyStopGin)
+	v1.POST("/safety/emergency/deactivate", h.Safety.DeactivateEmergencyStopGin)
+	v1.GET("/safety/metrics", h.Safety.GetPerformanceMetricsGin)
+
+	// ============================================================================
+	// MFA API - Consolidated from ServeMux
+	// ============================================================================
+	v1.POST("/mfa/setup", h.MFA.SetupMFAGin)
+	v1.POST("/mfa/verify", h.MFA.VerifyMFAGin)
+	v1.GET("/mfa/status", h.MFA.GetMFAStatusGin)
+	v1.POST("/mfa/disable", h.MFA.DisableMFAGin)
+
+	// ============================================================================
+	// VALIDATION API - Consolidated from ServeMux
+	// ============================================================================
+	v1.POST("/validation/email", h.Validation.ValidateEmailGin)
+	v1.POST("/validation/phone", h.Validation.ValidatePhoneGin)
+	v1.POST("/validation/booking-form", h.Validation.ValidateBookingFormGin)
+	v1.POST("/validation/contact-form", h.Validation.ValidateContactFormGin)
+
+	// ============================================================================
+	// CENTRAL PROPERTY API - Consolidated from ServeMux
+	// ============================================================================
+	v1.GET("/central-properties", h.CentralProperty.GetAllPublicPropertiesGin)
+	v1.POST("/central-properties", h.CentralProperty.CreateOrUpdatePropertyGin)
+	v1.PUT("/central-properties", h.CentralProperty.CreateOrUpdatePropertyGin)
+	v1.GET("/central-properties/stats", h.CentralProperty.GetSystemStatsGin)
+	v1.GET("/central-properties/test", h.CentralProperty.TestCentralStateGin)
+	v1.GET("/central-properties/:id", h.CentralProperty.GetPropertyGin)
+	v1.PATCH("/central-properties/:id/status", h.CentralProperty.UpdatePropertyStatusGin)
+
+	// ============================================================================
+	// AVAILABILITY API - Consolidated from ServeMux
+	// ============================================================================
+	v1.GET("/availability/check", h.Availability.CheckAvailabilityGin)
+	v1.GET("/availability/blackouts", h.Availability.GetBlackoutDatesGin)
+	v1.POST("/availability/blackouts", h.Availability.CreateBlackoutDateGin)
+	v1.DELETE("/availability/blackouts/:id", h.Availability.RemoveBlackoutDateGin)
+	v1.GET("/availability/blackouts/upcoming", h.Availability.GetUpcomingBlackoutsGin)
+	v1.GET("/availability/stats", h.Availability.GetAvailabilityStatsGin)
+	v1.POST("/availability/validate", h.Availability.ValidateBookingGin)
+	v1.POST("/availability/cleanup", h.Availability.CleanupExpiredBlackoutsGin)
+	api.GET("/availability/check", h.Availability.CheckAvailabilityGin)
+
+	// ============================================================================
+	// SAFETY API - Consolidated from ServeMux
+	// ============================================================================
+	v1.GET("/safety/config", h.Safety.GetSafetyConfigGin)
+	v1.POST("/safety/config/update", h.Safety.UpdateSafetySettingsGin)
+	v1.POST("/safety/mode", h.Safety.UpdateSafetyModeGin)
+	v1.GET("/safety/mode/recommendation", h.Safety.GetModeRecommendationGin)
+	v1.GET("/safety/mode/history", h.Safety.GetTransitionHistoryGin)
+	v1.GET("/safety/mode/plan", h.Safety.GetTransitionPlanGin)
+	v1.GET("/safety/overrides", h.Safety.GetActiveOverridesGin)
+	v1.POST("/safety/overrides/request", h.Safety.RequestOverrideGin)
+	v1.POST("/safety/overrides/expire", h.Safety.ExpireOverridesGin)
+	v1.GET("/safety/overrides/stats", h.Safety.GetOverrideStatsGin)
+	v1.GET("/safety/emergency", h.Safety.GetEmergencyStateGin)
+	v1.POST("/safety/emergency/activate", h.Safety.ActivateEmergencyStopGin)
+	v1.POST("/safety/emergency/deactivate", h.Safety.DeactivateEmergencyStopGin)
+	v1.GET("/safety/metrics", h.Safety.GetPerformanceMetricsGin)
+
+	// ============================================================================
+	// MFA API - Consolidated from ServeMux
+	// ============================================================================
+	v1.POST("/mfa/setup", h.MFA.SetupMFAGin)
+	v1.POST("/mfa/verify", h.MFA.VerifyMFAGin)
+	v1.GET("/mfa/status", h.MFA.GetMFAStatusGin)
+	v1.POST("/mfa/disable", h.MFA.DisableMFAGin)
+
+	// ============================================================================
+	// VALIDATION API - Consolidated from ServeMux
+	// ============================================================================
+	v1.POST("/validation/email", h.Validation.ValidateEmailGin)
+	v1.POST("/validation/phone", h.Validation.ValidatePhoneGin)
+	v1.POST("/validation/booking-form", h.Validation.ValidateBookingFormGin)
+	v1.POST("/validation/contact-form", h.Validation.ValidateContactFormGin)
+
+	// ============================================================================
+	// CENTRAL PROPERTY API - Consolidated from ServeMux
+	// ============================================================================
+	v1.GET("/central-properties", h.CentralProperty.GetAllPublicPropertiesGin)
+	v1.POST("/central-properties", h.CentralProperty.CreateOrUpdatePropertyGin)
+	v1.PUT("/central-properties", h.CentralProperty.CreateOrUpdatePropertyGin)
+	v1.GET("/central-properties/stats", h.CentralProperty.GetSystemStatsGin)
+	v1.GET("/central-properties/test", h.CentralProperty.TestCentralStateGin)
+	v1.GET("/central-properties/:id", h.CentralProperty.GetPropertyGin)
+	v1.PATCH("/central-properties/:id/status", h.CentralProperty.UpdatePropertyStatusGin)
+
+	// ============================================================================
 	// COOKIE CONSENT API - GDPR/CCPA Compliance
 	// ============================================================================
 	api.POST("/cookie-consent", middleware.CookieConsentHandler)

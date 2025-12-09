@@ -1,13 +1,15 @@
 package handlers
 
 import (
-	"os"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+
 	"chrisgross-ctrl-project/internal/models"
 	"chrisgross-ctrl-project/internal/security"
 	"chrisgross-ctrl-project/internal/services"
@@ -396,11 +398,11 @@ func (cph *CentralPropertyHandler) sendErrorResponse(w http.ResponseWriter, stat
 }
 
 // RegisterCentralPropertyRoutes registers all central property routes
+// Deprecated: Use Gin routes instead
 func RegisterCentralPropertyRoutes(mux *http.ServeMux, db *gorm.DB, encryptionManager *security.EncryptionManager) {
 	handler := NewCentralPropertyHandler(db, encryptionManager)
 	
-	// Central property management endpoints
-	mux.HandleFunc("/api/v1/central-properties", func(w http.ResponseWriter, r *http.Request ) {
+	mux.HandleFunc("/api/v1/central-properties", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			handler.GetAllPublicProperties(w, r)
 		} else {
@@ -409,18 +411,128 @@ func RegisterCentralPropertyRoutes(mux *http.ServeMux, db *gorm.DB, encryptionMa
 	})
 	mux.HandleFunc("/api/v1/central-properties/", func(w http.ResponseWriter, r *http.Request) {
 		if len(r.URL.Path) > len("/api/v1/central-properties/") {
-			// Extract ID from path for GET /api/v1/central-properties/{id}
 			handler.GetProperty(w, r)
 		} else {
-			// Handle query parameters for status filtering
 			handler.GetPropertiesByStatus(w, r)
 		}
 	})
 	mux.HandleFunc("/api/v1/central-properties/stats", handler.GetSystemStats)
 	mux.HandleFunc("/api/v1/central-properties/test", handler.TestCentralState)
-	
-	// Property status update endpoint (PATCH method)
 	mux.HandleFunc("/api/v1/central-properties/status/", handler.UpdatePropertyStatus)
 	
 	log.Println("✅ Central Property routes registered successfully")
+}
+
+// ============================================================================
+// GIN-COMPATIBLE METHODS
+// ============================================================================
+
+func (cph *CentralPropertyHandler) GetAllPublicPropertiesGin(c *gin.Context) {
+	properties, err := cph.stateManager.GetPublicProperties()
+	if err != nil {
+		log.Printf("Error retrieving public properties: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error_code": "RETRIEVAL_ERROR", "message": fmt.Sprintf("Failed to retrieve properties: %v", err)})
+		return
+	}
+	log.Printf("✅ Returning %d public properties", len(properties))
+	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(properties), "properties": properties})
+}
+
+func (cph *CentralPropertyHandler) CreateOrUpdatePropertyGin(c *gin.Context) {
+	var updateReq models.PropertyUpdateRequest
+	if err := c.ShouldBindJSON(&updateReq); err != nil {
+		log.Printf("Error parsing property update request: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error_code": "INVALID_JSON", "message": "Invalid JSON in request body"})
+		return
+	}
+	if updateReq.Address == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error_code": "MISSING_ADDRESS", "message": "Property address is required"})
+		return
+	}
+	if updateReq.Source == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error_code": "MISSING_SOURCE", "message": "Source system is required"})
+		return
+	}
+	property, err := cph.stateManager.CreateOrUpdateProperty(updateReq)
+	if err != nil {
+		log.Printf("Error creating/updating property: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error_code": "PROPERTY_ERROR", "message": fmt.Sprintf("Failed to process property: %v", err)})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Property processed successfully", "property": property})
+	log.Printf("✅ Central Property API: Property %s processed from %s", property.Address, updateReq.Source)
+}
+
+func (cph *CentralPropertyHandler) GetPropertyGin(c *gin.Context) {
+	identifier := c.Param("id")
+	if identifier == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error_code": "MISSING_IDENTIFIER", "message": "Property identifier is required"})
+		return
+	}
+	property, err := cph.stateManager.GetPropertyState(identifier)
+	if err != nil {
+		log.Printf("Error retrieving property %s: %v", identifier, err)
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "error_code": "PROPERTY_NOT_FOUND", "message": fmt.Sprintf("Property not found: %s", identifier)})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "property": property})
+}
+
+func (cph *CentralPropertyHandler) UpdatePropertyStatusGin(c *gin.Context) {
+	mlsID := c.Param("id")
+	if mlsID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error_code": "MISSING_MLS_ID", "message": "MLS ID is required"})
+		return
+	}
+	var statusReq struct {
+		Status string `json:"status"`
+		Source string `json:"source"`
+	}
+	if err := c.ShouldBindJSON(&statusReq); err != nil {
+		log.Printf("Error parsing status update request: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error_code": "INVALID_JSON", "message": "Invalid JSON in request body"})
+		return
+	}
+	if statusReq.Status == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error_code": "MISSING_STATUS", "message": "Status is required"})
+		return
+	}
+	if statusReq.Source == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error_code": "MISSING_SOURCE", "message": "Source system is required"})
+		return
+	}
+	if err := cph.stateManager.UpdatePropertyStatus(mlsID, statusReq.Status, statusReq.Source); err != nil {
+		log.Printf("Error updating property status: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error_code": "STATUS_UPDATE_ERROR", "message": fmt.Sprintf("Failed to update status: %v", err)})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": fmt.Sprintf("Status updated to %s for property %s", statusReq.Status, mlsID)})
+	log.Printf("✅ Central Property API: Status updated for %s to %s (Source: %s)", mlsID, statusReq.Status, statusReq.Source)
+}
+
+func (cph *CentralPropertyHandler) GetSystemStatsGin(c *gin.Context) {
+	stats, err := cph.stateManager.GetSystemStats()
+	if err != nil {
+		log.Printf("Error retrieving system stats: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error_code": "STATS_ERROR", "message": fmt.Sprintf("Failed to retrieve stats: %v", err)})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "stats": stats})
+}
+
+func (cph *CentralPropertyHandler) TestCentralStateGin(c *gin.Context) {
+	testProperty := models.PropertyUpdateRequest{
+		MLSId: "TEST_MLS_12345", Address: "123 Test Street, Houston, TX 77001",
+		Price: &[]float64{350000}[0], Bedrooms: &[]int{3}[0], Bathrooms: &[]float32{2.5}[0],
+		SquareFeet: &[]int{1800}[0], PropertyType: "Single Family", Status: "active", Source: "test",
+		Data: models.JSONB{"test_mode": true, "created_by": "central_property_test"},
+	}
+	property, err := cph.stateManager.CreateOrUpdateProperty(testProperty)
+	if err != nil {
+		log.Printf("Error creating test property: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error_code": "TEST_ERROR", "message": fmt.Sprintf("Failed to create test property: %v", err)})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Central Property State Manager test successful", "test_property": property})
+	log.Printf("✅ Central Property API: Test property created successfully")
 }
