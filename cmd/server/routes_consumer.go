@@ -6,9 +6,31 @@ import (
 
 	"chrisgross-ctrl-project/internal/config"
 	"chrisgross-ctrl-project/internal/models"
+	"chrisgross-ctrl-project/internal/security"
 
 	"github.com/gin-gonic/gin"
 )
+
+func decryptPropertyAddresses(properties []models.Property, em *security.EncryptionManager) []gin.H {
+	result := make([]gin.H, len(properties))
+	for i, p := range properties {
+		addr := p.Address
+		if em != nil {
+			if decrypted, err := em.Decrypt(p.Address); err == nil {
+				addr = decrypted
+			}
+		}
+		result[i] = gin.H{
+			"ID": p.ID, "Address": addr, "City": p.City, "State": p.State,
+			"ZipCode": p.ZipCode, "Price": p.Price, "Bedrooms": p.Bedrooms,
+			"Bathrooms": p.Bathrooms, "SquareFeet": p.SquareFeet,
+			"FeaturedImage": p.FeaturedImage, "Status": p.Status,
+			"PropertyType": p.PropertyType, "Description": p.Description,
+			"MLSId": p.MLSId, "YearBuilt": p.YearBuilt, "CreatedAt": p.CreatedAt,
+		}
+	}
+	return result
+}
 
 // RegisterConsumerRoutes registers all consumer-facing routes
 func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
@@ -17,25 +39,28 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 	r.GET("/", func(c *gin.Context) {
 		var properties []models.Property
 		h.DB.Where("status = ?", "available").Order("created_at DESC").Limit(2).Find(&properties)
+		decryptedProperties := decryptPropertyAddresses(properties, h.EncryptionManager)
 		c.HTML(http.StatusOK, "consumer/pages/index.html", gin.H{
 			"Title":      "PropertyHub",
-			"Properties": properties,
+			"Properties": decryptedProperties,
 		})
 	})
 	r.GET("/home", func(c *gin.Context) {
 		var properties []models.Property
 		h.DB.Where("status = ?", "available").Order("created_at DESC").Limit(2).Find(&properties)
+		decryptedProperties := decryptPropertyAddresses(properties, h.EncryptionManager)
 		c.HTML(http.StatusOK, "consumer/pages/index.html", gin.H{
 			"Title":      "Home",
-			"Properties": properties,
+			"Properties": decryptedProperties,
 		})
 	})
 	r.GET("/properties", func(c *gin.Context) {
 		var properties []models.Property
 		h.DB.Where("status = ?", "available").Order("created_at DESC").Limit(50).Find(&properties)
+		decryptedProperties := decryptPropertyAddresses(properties, h.EncryptionManager)
 		c.HTML(http.StatusOK, "consumer/pages/properties-grid.html", gin.H{
 			"Title":      "Properties",
-			"Properties": properties,
+			"Properties": decryptedProperties,
 			"CSRFToken":  c.GetString("csrf_token"),
 		})
 	})
@@ -59,10 +84,15 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 			return
 		}
 
-		// Calculate days on market
+		decryptedAddress := property.Address
+		if h.EncryptionManager != nil {
+			if addr, err := h.EncryptionManager.Decrypt(property.Address); err == nil {
+				decryptedAddress = addr
+			}
+		}
+
 		daysOnMarket := int(time.Since(property.CreatedAt).Hours() / 24)
 
-		// Get similar properties (same city, similar price range)
 		var similarProperties []models.Property
 		h.DB.Where("city = ? AND id != ? AND price BETWEEN ? AND ?",
 			property.City,
@@ -73,6 +103,7 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 
 		c.HTML(http.StatusOK, "consumer/pages/property-detail.html", gin.H{
 			"Property":          property,
+			"PropertyAddress":   decryptedAddress,
 			"DaysOnMarket":      daysOnMarket,
 			"SimilarProperties": similarProperties,
 			"ContactPhone":      "(281) 925-7222",
@@ -112,13 +143,13 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 		})
 	})
 
-	// Booking routes
 	r.GET("/booking", func(c *gin.Context) {
 		var properties []models.Property
 		h.DB.Where("status = ?", "available").Order("created_at DESC").Find(&properties)
+		decryptedProperties := decryptPropertyAddresses(properties, h.EncryptionManager)
 		c.HTML(http.StatusOK, "consumer/pages/booking.html", gin.H{
 			"Title":      "Booking",
-			"Properties": properties,
+			"Properties": decryptedProperties,
 			"CSRFToken":  c.GetString("csrf_token"),
 		})
 	})
