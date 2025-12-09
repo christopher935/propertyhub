@@ -86,14 +86,37 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 		})
 	})
 	r.GET("/book-showing", func(c *gin.Context) {
+		propertyID := c.Query("property_id")
 		recaptchaSiteKey := ""
 		if cfg != nil && cfg.RecaptchaSiteKey != "" {
 			recaptchaSiteKey = cfg.RecaptchaSiteKey
 		}
+
+		var properties []models.Property
+		h.DB.Where("status = ?", "available").Order("created_at DESC").Find(&properties)
+
+		var decryptedProperties []gin.H
+		for _, p := range properties {
+			addr := string(p.Address)
+			if h.EncryptionManager != nil {
+				if decrypted, err := h.EncryptionManager.Decrypt(p.Address); err == nil {
+					addr = decrypted
+				}
+			}
+			decryptedProperties = append(decryptedProperties, gin.H{
+				"ID":      p.ID,
+				"Address": addr,
+				"City":    p.City,
+				"MLSID":   p.MLSId,
+			})
+		}
+
 		c.HTML(http.StatusOK, "consumer/pages/book-showing.html", gin.H{
-			"Title":           "Book Showing",
+			"Title":            "Book Showing",
+			"Properties":       decryptedProperties,
+			"SelectedProperty": propertyID,
 			"RecaptchaSiteKey": recaptchaSiteKey,
-			"CSRFToken":       c.GetString("csrf_token"),
+			"CSRFToken":        c.GetString("csrf_token"),
 		})
 	})
 	r.GET("/booking-confirmation", func(c *gin.Context) {

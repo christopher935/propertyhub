@@ -254,6 +254,24 @@ These requirements help us match you with the right property. Final approval is 
 <div class="wizard-step" :class="{ 'active': step === 2 }" id="step-2" x-show="step === 2">
 <div class="step-content">
 <h1 class="text-heading-1 font-serif text-navy text-center mb-6">Select Date &amp; Time</h1>
+<!-- Property Selector -->
+<div class="card p-4 mb-6 max-w-3xl mx-auto">
+<div class="form-group mb-0">
+<label class="form-label" for="propertySelect">
+<svg class="inline-icon-sm mr-2" height="16" width="16"><use href="#icon-home"></use></svg>
+Property
+</label>
+<select name="property_id" id="propertySelect" x-model="form.propertyId" class="form-input" required>
+<option value="">Select a property...</option>
+{% for p in Properties %}
+<option value="{{ p.ID }}" {% if p.ID|string == SelectedProperty %}selected{% endif %}>
+{{ p.Address }}, {{ p.City }}
+</option>
+{% endfor %}
+</select>
+<span x-show="errors.propertyId" class="text-error text-sm" x-text="errors.propertyId" style="display: none;"></span>
+</div>
+</div>
 <div class="datetime-selector">
 <!-- Calendar -->
 <div class="calendar-section">
