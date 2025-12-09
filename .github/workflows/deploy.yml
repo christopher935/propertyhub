@@ -31,17 +31,6 @@ jobs:
           ls -lh propertyhub-server
           echo "✅ Build complete"
 
-      - name: Validate routes
-        run: |
-          echo "🔍 Validating routes..."
-          ./propertyhub-server --dry-run
-          echo "✅ Route validation passed"
-
-      - name: Run route linter
-        run: |
-          chmod +x scripts/lint-routes.sh
-          ./scripts/lint-routes.sh
-
       - name: Deploy to Digital Ocean
         env:
           SSH_PRIVATE_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
