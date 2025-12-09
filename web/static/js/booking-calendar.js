@@ -19,7 +19,7 @@ function bookingCalendar() {
             this.loading = true;
             this.error = null;
             try {
-                const response = await fetch(`/api/availability/check?property_id=${this.propertyId}`);
+                const response = await fetch(`/api/v1/availability/check?property_id=${this.propertyId}`);
                 const data = await response.json();
                 if (data.success) {
                     this.availableSlots = data.data.available_slots || [];

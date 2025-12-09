@@ -450,4 +450,19 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	// COOKIE CONSENT API - GDPR/CCPA Compliance
 	// ============================================================================
 	api.POST("/cookie-consent", middleware.CookieConsentHandler)
+
+	// ============================================================================
+	// AVAILABILITY API - Consolidated from ServeMux
+	// ============================================================================
+	v1.GET("/availability/check", h.Availability.CheckAvailabilityGin)
+	v1.GET("/availability/blackouts", h.Availability.GetBlackoutDatesGin)
+	v1.POST("/availability/blackouts", h.Availability.CreateBlackoutDateGin)
+	v1.DELETE("/availability/blackouts/:id", h.Availability.RemoveBlackoutDateGin)
+	v1.GET("/availability/blackouts/upcoming", h.Availability.GetUpcomingBlackoutsGin)
+	v1.GET("/availability/stats", h.Availability.GetAvailabilityStatsGin)
+	v1.POST("/availability/validate", h.Availability.ValidateBookingGin)
+	v1.POST("/availability/cleanup", h.Availability.CleanupExpiredBlackoutsGin)
+
+	// Also add without v1 prefix for JS compatibility
+	api.GET("/availability/check", h.Availability.CheckAvailabilityGin)
 }
