@@ -38,7 +38,7 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 	// Homepage - show 2 featured properties
 	r.GET("/", func(c *gin.Context) {
 		var properties []models.Property
-		h.DB.Where("status = ?", "available").Order("created_at DESC").Limit(2).Find(&properties)
+		h.DB.Where("status IN ?", []string{"active", "pending_images", "available"}).Order("created_at DESC").Limit(2).Find(&properties)
 		decryptedProperties := decryptPropertyAddresses(properties, h.EncryptionManager)
 		c.HTML(http.StatusOK, "consumer/pages/index.html", gin.H{
 			"Title":      "PropertyHub",
@@ -47,7 +47,7 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 	})
 	r.GET("/home", func(c *gin.Context) {
 		var properties []models.Property
-		h.DB.Where("status = ?", "available").Order("created_at DESC").Limit(2).Find(&properties)
+		h.DB.Where("status IN ?", []string{"active", "pending_images", "available"}).Order("created_at DESC").Limit(2).Find(&properties)
 		decryptedProperties := decryptPropertyAddresses(properties, h.EncryptionManager)
 		c.HTML(http.StatusOK, "consumer/pages/index.html", gin.H{
 			"Title":      "Home",
@@ -56,7 +56,7 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 	})
 	r.GET("/properties", func(c *gin.Context) {
 		var properties []models.Property
-		h.DB.Where("status = ?", "available").Order("created_at DESC").Limit(50).Find(&properties)
+		h.DB.Where("status IN ?", []string{"active", "pending_images", "available"}).Order("created_at DESC").Limit(50).Find(&properties)
 		decryptedProperties := decryptPropertyAddresses(properties, h.EncryptionManager)
 		c.HTML(http.StatusOK, "consumer/pages/properties-grid.html", gin.H{
 			"Title":      "Properties",
@@ -124,7 +124,7 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 		}
 
 		var properties []models.Property
-		h.DB.Where("status = ?", "available").Order("created_at DESC").Find(&properties)
+		h.DB.Where("status IN ?", []string{"active", "pending_images", "available"}).Order("created_at DESC").Find(&properties)
 
 		var decryptedProperties []gin.H
 		for _, p := range properties {
@@ -168,7 +168,7 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 
 	r.GET("/booking", func(c *gin.Context) {
 		var properties []models.Property
-		h.DB.Where("status = ?", "available").Order("created_at DESC").Find(&properties)
+		h.DB.Where("status IN ?", []string{"active", "pending_images", "available"}).Order("created_at DESC").Find(&properties)
 		decryptedProperties := decryptPropertyAddresses(properties, h.EncryptionManager)
 		c.HTML(http.StatusOK, "consumer/pages/booking.html", gin.H{
 			"Title":      "Booking",
