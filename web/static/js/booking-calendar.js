@@ -94,6 +94,17 @@ function bookingForm() {
             marketingOptIn: false
         },
         
+        init() {
+            const urlPropertyId = new URLSearchParams(window.location.search).get('property_id');
+            if (urlPropertyId) {
+                this.form.propertyId = urlPropertyId;
+                const selectEl = document.getElementById('propertySelect');
+                if (selectEl) {
+                    selectEl.value = urlPropertyId;
+                }
+            }
+        },
+        
         errors: {},
         requirementsChecked: {
             income: false,
@@ -130,7 +141,7 @@ function bookingForm() {
         },
         
         get canProceedToStep3() {
-            return this.form.showingDate && this.form.showingTime;
+            return this.form.propertyId && this.form.showingDate && this.form.showingTime;
         },
         
         nextStep() {
@@ -159,6 +170,9 @@ function bookingForm() {
                     break;
                     
                 case 2:
+                    if (!this.form.propertyId) {
+                        this.errors.propertyId = 'Please select a property';
+                    }
                     if (!this.form.showingDate) {
                         this.errors.showingDate = 'Please select a date';
                     }
@@ -227,6 +241,27 @@ function bookingForm() {
                 });
                 
                 const data = await response.json();
+                
+                if (!response.ok) {
+                    if (response.status === 400) {
+                        this.error = data.message || data.error || 'Invalid booking data';
+                        if (data.errors) {
+                            this.errors = data.errors;
+                        }
+                    } else if (response.status === 404) {
+                        this.error = 'Property not found. Please select a valid property.';
+                    } else if (response.status === 409) {
+                        this.error = 'This time slot is no longer available. Please select another.';
+                        if (data.alternative_slots) {
+                            this.error += ' Alternative slots are available.';
+                        }
+                    } else if (response.status === 429) {
+                        this.error = 'Too many booking attempts. Please wait a few minutes.';
+                    } else {
+                        this.error = data.error || 'Failed to create booking. Please try again.';
+                    }
+                    return;
+                }
                 
                 if (data.success) {
                     this.success = true;
