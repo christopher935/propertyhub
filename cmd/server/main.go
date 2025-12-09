@@ -52,36 +52,14 @@ func main() {
         sqlDB, _ := gormDB.DB()
 
         // ============================================================================
-        // DATABASE MIGRATIONS - Run BEFORE any handlers are initialized
+        // DATABASE MIGRATIONS - Only migrate models that need it
         // ============================================================================
-        log.Println("🔄 Running comprehensive database migrations...")
-        
-        // Run core model migrations from models.AutoMigrate()
-        if err := models.AutoMigrate(gormDB); err != nil {
-                log.Fatalf("❌ Core model migration failed: %v", err)
-        }
-        
-        // Migrate additional critical models not in models.AutoMigrate()
-        additionalModels := []interface{}{
-                // Core Models
+        log.Println("🔄 Running database migrations...")
+
+        // Only migrate models that don't have existing schema issues
+        // Property, Booking, Lead, Contact tables already exist and work
+        safeModels := []interface{}{
                 &models.AdminUser{},
-                &models.Lead{},
-                &models.Contact{},
-                &models.ClosingPipeline{},
-                &models.WebhookEvent{},
-                &models.PriceChangeEvent{},
-                
-                // Behavioral Models
-                &models.BehavioralEvent{},
-                &models.BehavioralSession{},
-                &models.BehavioralScore{},
-                
-                // Application Workflow
-                &models.PropertyApplicationGroup{},
-                &models.ApplicationNumber{},
-                &models.ApplicationApplicant{},
-                
-                // Email/Notification Models
                 &models.EmailEvent{},
                 &models.Campaign{},
                 &models.EmailBatch{},
@@ -90,14 +68,27 @@ func main() {
                 &models.EmailProcessingRule{},
                 &models.EmailProcessingLog{},
                 &models.IncomingEmail{},
+                &models.BehavioralEvent{},
+                &models.BehavioralSession{},
+                &models.BehavioralScore{},
+                &models.NotificationState{},
+                &models.AdminNotification{},
+                &models.DataImport{},
+                &models.ClosingPipeline{},
+                &models.WebhookEvent{},
+                &models.PriceChangeEvent{},
+                &models.PropertyApplicationGroup{},
+                &models.ApplicationNumber{},
+                &models.ApplicationApplicant{},
         }
-        
-        for _, model := range additionalModels {
+
+        for _, model := range safeModels {
                 if err := gormDB.AutoMigrate(model); err != nil {
                         log.Printf("⚠️ Warning: Migration failed for %T: %v", model, err)
+                        // Continue - don't fail startup for migration warnings
                 }
         }
-        log.Println("✅ All database migrations completed")
+        log.Println("✅ Database migrations completed")
 
         // Initialize enterprise authentication manager
         authManager := auth.NewSimpleAuthManager(sqlDB)

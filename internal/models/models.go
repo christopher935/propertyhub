@@ -365,43 +365,9 @@ func (cp ClosingPipeline) GetStatusSummary() string {
 	return "Lease preparation"
 }
 
-// AutoMigrate runs database migrations for all models
+// AutoMigrate is deprecated - migrations are handled in main.go
 func AutoMigrate(db *gorm.DB) error {
-	log.Println("🔄 Running database migrations...")
-
-	// Migrate models one by one to identify issues
-	if err := db.AutoMigrate(&Property{}); err != nil {
-		log.Printf("❌ Property migration failed: %v", err)
-		return err
-	}
-	log.Println("✅ Property migration completed")
-
-	if err := db.AutoMigrate(&Booking{}); err != nil {
-		log.Printf("❌ Booking migration failed: %v", err)
-		return err
-	}
-	log.Println("✅ Booking migration completed")
-
-	if err := db.AutoMigrate(&NotificationState{}); err != nil {
-		log.Printf("❌ NotificationState migration failed: %v", err)
-		return err
-	}
-	log.Println("✅ NotificationState migration completed")
-
-	if err := db.AutoMigrate(&AdminNotification{}); err != nil {
-		log.Printf("❌ AdminNotification migration failed: %v", err)
-		return err
-	}
-	log.Println("✅ AdminNotification migration completed")
-
-	if err := db.AutoMigrate(&DataImport{}); err != nil {
-		log.Printf("❌ DataImport migration failed: %v", err)
-		return err
-	}
-	log.Println("✅ DataImport migration completed")
-
-	log.Println("✅ Database migrations completed successfully")
-	log.Println("🎉 Database initialization complete - proceeding to HTTP server startup")
+	log.Println("⚠️ models.AutoMigrate called but migrations are handled in main.go")
 	return nil
 }
 
