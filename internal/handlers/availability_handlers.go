@@ -1,292 +1,210 @@
 package handlers
 
 import (
-	"os"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/services"
-	"chrisgross-ctrl-project/internal/utils"
 )
 
 type AvailabilityHandler struct {
 	db                  *gorm.DB
 	availabilityService *services.AvailabilityService
-	response            *utils.ResponseHelper
 }
 
 func NewAvailabilityHandler(db *gorm.DB) *AvailabilityHandler {
 	return &AvailabilityHandler{
 		db:                  db,
 		availabilityService: services.NewAvailabilityService(db),
-		response:            utils.NewResponseHelper(),
 	}
 }
 
-// CheckAvailability checks if a property is available for booking
-func (h *AvailabilityHandler) CheckAvailability(w http.ResponseWriter, r *http.Request) {
-	// Set standard headers for GET requests
-	h.response.SetStandardHeaders(w, "GET", "OPTIONS")
-
-	mlsID := r.URL.Query().Get("mls_id")
-	dateStr := r.URL.Query().Get("date")
-
-	if mlsID == "" || dateStr == "" {
-		h.response.WriteBadRequestError(w, "mls_id and date parameters are required")
+// CheckAvailabilityGin checks if a property is available for booking (Gin handler)
+func (h *AvailabilityHandler) CheckAvailabilityGin(c *gin.Context) {
+	propertyID := c.Query("property_id")
+	mlsID := c.Query("mls_id")
+	dateStr := c.Query("date")
+	
+	if propertyID != "" && mlsID == "" {
+		var property struct {
+			MLSId string
+		}
+		if id, err := strconv.ParseUint(propertyID, 10, 32); err == nil {
+			if err := h.db.Table("properties").Select("mls_id").Where("id = ?", id).First(&property).Error; err == nil {
+				mlsID = property.MLSId
+			}
+		}
+	}
+	
+	if mlsID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "property_id or mls_id required"})
 		return
 	}
-
+	
+	if dateStr == "" {
+		dateStr = time.Now().Format("2006-01-02")
+	}
+	
 	requestedDate, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
-		h.response.WriteBadRequestError(w, "Invalid date format. Use YYYY-MM-DD")
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid date format. Use YYYY-MM-DD"})
 		return
 	}
-
+	
 	check, err := h.availabilityService.CheckAvailability(mlsID, requestedDate)
 	if err != nil {
-		h.response.WriteInternalServerError(w, fmt.Sprintf("Failed to check availability: %v", err))
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-
-	h.response.WriteSuccessResponse(w, "Availability check completed", check)
+	
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": check})
 }
 
-// CreateBlackoutDate creates a new blackout date
-func (h *AvailabilityHandler) CreateBlackoutDate(w http.ResponseWriter, r *http.Request) {
-	// Handle standard HTTP flow (OPTIONS, method validation, headers)
-	if !h.response.HandleStandardHTTPFlow(w, r, "POST") {
-		return
+func (h *AvailabilityHandler) GetBlackoutDatesGin(c *gin.Context) {
+	mlsID := c.Query("mls_id")
+	propertyID := c.Query("property_id")
+	
+	if propertyID != "" && mlsID == "" {
+		var property struct { MLSId string }
+		if id, err := strconv.ParseUint(propertyID, 10, 32); err == nil {
+			h.db.Table("properties").Select("mls_id").Where("id = ?", id).First(&property)
+			mlsID = property.MLSId
+		}
 	}
-
-	var request struct {
-		MLSId     string `json:"mls_id"`
-		StartDate string `json:"start_date"`
-		EndDate   string `json:"end_date"`
-		Reason    string `json:"reason"`
-		IsGlobal  bool   `json:"is_global"`
-		CreatedBy string `json:"created_by"`
-	}
-
-	if !h.response.ParseJSONBody(w, r, &request) {
-		return
-	}
-
-	startDate, err := time.Parse("2006-01-02", request.StartDate)
-	if err != nil {
-		h.response.WriteBadRequestError(w, "Invalid start_date format. Use YYYY-MM-DD")
-		return
-	}
-
-	endDate, err := time.Parse("2006-01-02", request.EndDate)
-	if err != nil {
-		h.response.WriteBadRequestError(w, "Invalid end_date format. Use YYYY-MM-DD")
-		return
-	}
-
-	if endDate.Before(startDate) {
-		h.response.WriteBadRequestError(w, "End date must be after start date")
-		return
-	}
-
-	if request.Reason == "" {
-		h.response.WriteBadRequestError(w, "Reason is required")
-		return
-	}
-
-	if request.CreatedBy == "" {
-		request.CreatedBy = "admin"
-	}
-
-	blackout, err := h.availabilityService.CreateBlackoutDate(
-		request.MLSId, startDate, endDate, request.Reason, request.CreatedBy, request.IsGlobal)
-	if err != nil {
-		h.response.WriteInternalServerError(w, fmt.Sprintf("Failed to create blackout date: %v", err))
-		return
-	}
-
-	h.response.WriteJSONResponse(w, http.StatusCreated, utils.StandardResponse{
-		Success: true,
-		Message: "Blackout date created successfully",
-		Data:    blackout,
-	})
-}
-
-// GetBlackoutDates retrieves blackout dates
-func (h *AvailabilityHandler) GetBlackoutDates(w http.ResponseWriter, r *http.Request) {
-	// Set standard headers
-	h.response.SetStandardHeaders(w, "GET", "OPTIONS")
-
-	mlsID := r.URL.Query().Get("mls_id")
-
+	
 	blackouts, err := h.availabilityService.GetBlackoutDates(mlsID)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to get blackout dates: %v", err), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    blackouts,
-		"count":   len(blackouts),
-	})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": blackouts, "count": len(blackouts)})
 }
 
-// RemoveBlackoutDate removes a blackout date
-func (h *AvailabilityHandler) RemoveBlackoutDate(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "DELETE" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+func (h *AvailabilityHandler) CreateBlackoutDateGin(c *gin.Context) {
+	var req struct {
+		MLSID       string `json:"mls_id"`
+		PropertyID  string `json:"property_id"`
+		StartDate   string `json:"start_date"`
+		EndDate     string `json:"end_date"`
+		Reason      string `json:"reason"`
+		IsGlobal    bool   `json:"is_global"`
+		CreatedBy   string `json:"created_by"`
+	}
+	
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
-
-	// Extract blackout ID from URL path
-	pathParts := strings.Split(r.URL.Path, "/")
-	if len(pathParts) < 6 {
-		http.Error(w, "Invalid URL format", http.StatusBadRequest)
-		return
-	}
-
-	blackoutID, err := strconv.ParseUint(pathParts[5], 10, 32)
-	if err != nil {
-		http.Error(w, "Invalid blackout ID", http.StatusBadRequest)
-		return
-	}
-
-	err = h.availabilityService.RemoveBlackoutDate(uint(blackoutID))
-	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			http.Error(w, "Blackout date not found", http.StatusNotFound)
-			return
+	
+	mlsID := req.MLSID
+	if req.PropertyID != "" && mlsID == "" {
+		var property struct { MLSId string }
+		if id, err := strconv.ParseUint(req.PropertyID, 10, 32); err == nil {
+			h.db.Table("properties").Select("mls_id").Where("id = ?", id).First(&property)
+			mlsID = property.MLSId
 		}
-		http.Error(w, fmt.Sprintf("Failed to remove blackout date: %v", err), http.StatusInternalServerError)
+	}
+	
+	startDate, err := time.Parse("2006-01-02", req.StartDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid start_date format. Use YYYY-MM-DD"})
 		return
 	}
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"message": "Blackout date removed successfully",
-	})
+	
+	endDate, err := time.Parse("2006-01-02", req.EndDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid end_date format. Use YYYY-MM-DD"})
+		return
+	}
+	
+	if req.CreatedBy == "" {
+		req.CreatedBy = "admin"
+	}
+	
+	blackout, err := h.availabilityService.CreateBlackoutDate(mlsID, startDate, endDate, req.Reason, req.CreatedBy, req.IsGlobal)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+	
+	c.JSON(http.StatusCreated, gin.H{"success": true, "message": "Blackout date created", "data": blackout})
 }
 
-// GetUpcomingBlackouts returns upcoming blackout dates
-func (h *AvailabilityHandler) GetUpcomingBlackouts(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
+func (h *AvailabilityHandler) RemoveBlackoutDateGin(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid ID"})
+		return
+	}
+	
+	if err := h.availabilityService.RemoveBlackoutDate(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Blackout date removed"})
+}
 
+func (h *AvailabilityHandler) GetUpcomingBlackoutsGin(c *gin.Context) {
 	blackouts, err := h.availabilityService.GetUpcomingBlackouts()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to get upcoming blackouts: %v", err), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    blackouts,
-		"count":   len(blackouts),
-	})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": blackouts, "count": len(blackouts)})
 }
 
-// GetAvailabilityStats returns availability statistics
-func (h *AvailabilityHandler) GetAvailabilityStats(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
-
+func (h *AvailabilityHandler) GetAvailabilityStatsGin(c *gin.Context) {
 	stats, err := h.availabilityService.GetAvailabilityStats()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to get availability stats: %v", err), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"data":    stats,
-	})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": stats})
 }
 
-// ValidateBooking validates a booking request against availability rules
-func (h *AvailabilityHandler) ValidateBooking(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+func (h *AvailabilityHandler) ValidateBookingGin(c *gin.Context) {
+	var req struct {
+		MLSID      string `json:"mls_id"`
+		PropertyID string `json:"property_id"`
+		Date       string `json:"date"`
+	}
+	
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
-
-	var request struct {
-		MLSId string `json:"mls_id"`
-		Date  string `json:"date"`
+	
+	mlsID := req.MLSID
+	if req.PropertyID != "" && mlsID == "" {
+		var property struct { MLSId string }
+		if id, err := strconv.ParseUint(req.PropertyID, 10, 32); err == nil {
+			h.db.Table("properties").Select("mls_id").Where("id = ?", id).First(&property)
+			mlsID = property.MLSId
+		}
 	}
-
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-
-	requestedDate, err := time.Parse("2006-01-02", request.Date)
+	
+	date, err := time.Parse("2006-01-02", req.Date)
 	if err != nil {
-		http.Error(w, "Invalid date format. Use YYYY-MM-DD", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "Invalid date format. Use YYYY-MM-DD"})
 		return
 	}
-
-	err = h.availabilityService.ValidateBookingDate(request.MLSId, requestedDate)
+	
+	err = h.availabilityService.ValidateBookingDate(mlsID, date)
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"success":  true,
-			"valid":    false,
-			"message":  err.Error(),
-			"can_book": false,
-		})
+		c.JSON(http.StatusOK, gin.H{"success": true, "valid": false, "message": err.Error(), "can_book": false})
 		return
 	}
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success":  true,
-		"valid":    true,
-		"message":  "Booking date is available",
-		"can_book": true,
-	})
+	c.JSON(http.StatusOK, gin.H{"success": true, "valid": true, "message": "Booking date is available", "can_book": true})
 }
 
-// CleanupExpiredBlackouts removes expired blackout dates
-func (h *AvailabilityHandler) CleanupExpiredBlackouts(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+func (h *AvailabilityHandler) CleanupExpiredBlackoutsGin(c *gin.Context) {
+	if err := h.availabilityService.CleanupExpiredBlackouts(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	origin := os.Getenv("CORS_ALLOWED_ORIGIN"); if origin == "" { origin = "http://localhost:8080" }; w.Header().Set("Access-Control-Allow-Origin", origin)
-
-	err := h.availabilityService.CleanupExpiredBlackouts()
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to cleanup expired blackouts: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"success": true,
-		"message": "Expired blackout dates cleaned up successfully",
-	})
-}
-
-// RegisterAvailabilityRoutes registers all availability-related routes
-func RegisterAvailabilityRoutes(mux *http.ServeMux, db *gorm.DB) {
-	handler := NewAvailabilityHandler(db)
-
-	mux.HandleFunc("/api/v1/availability/check", handler.CheckAvailability)
-	mux.HandleFunc("/api/v1/availability/blackouts", handler.GetBlackoutDates)
-	mux.HandleFunc("/api/v1/availability/blackouts/create", handler.CreateBlackoutDate)
-	mux.HandleFunc("/api/v1/availability/blackouts/", handler.RemoveBlackoutDate)
-	mux.HandleFunc("/api/v1/availability/blackouts/upcoming", handler.GetUpcomingBlackouts)
-	mux.HandleFunc("/api/v1/availability/stats", handler.GetAvailabilityStats)
-	mux.HandleFunc("/api/v1/availability/validate", handler.ValidateBooking)
-	mux.HandleFunc("/api/v1/availability/cleanup", handler.CleanupExpiredBlackouts)
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "Expired blackouts cleaned up"})
 }
