@@ -1,0 +1,25 @@
+{
+  "name": "propertyhub-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for PropertyHub application",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:chrome": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:safari": "playwright test --project=webkit",
+    "test:mobile": "playwright test --project='Mobile Chrome' --project='Mobile Safari'",
+    "test:ci": "playwright test --reporter=github",
+    "report": "playwright show-report",
+    "install": "playwright install"
+  },
+  "keywords": ["testing", "e2e", "playwright", "propertyhub"],
+  "author": "PropertyHub Team",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0"
+  }
+}
