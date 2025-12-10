@@ -301,6 +301,7 @@ Property
 <p>• Tours available Monday - Saturday</p>
 <p>• Sundays are not available for tours</p>
 </div>
+<span x-show="errors.showingDate" class="text-error text-sm" x-text="errors.showingDate" style="display: none;"></span>
 </div>
 <!-- Time Slots -->
 <div class="time-section">
@@ -342,6 +343,7 @@ Property
 </button>
 </div>
 <p class="time-note">Tours typically last 15-30 minutes</p>
+<span x-show="errors.showingTime" class="text-error text-sm" x-text="errors.showingTime" style="display: none;"></span>
 </div>
 </div>
 <div class="step-actions">
@@ -483,6 +485,9 @@ Property
 
             // Add days of month
             const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const maxDate = new Date();
+            maxDate.setMonth(maxDate.getMonth() + 3);
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateCell = document.createElement('button');
                 dateCell.type = 'button';
@@ -491,8 +496,8 @@ Property
                 
                 const cellDate = new Date(year, month, day);
                 
-                // Disable past dates
-                if (cellDate < today.setHours(0, 0, 0, 0)) {
+                // Disable past dates and dates more than 3 months in future
+                if (cellDate < today || cellDate > maxDate) {
                     dateCell.disabled = true;
                     dateCell.classList.add('disabled');
                 } else {

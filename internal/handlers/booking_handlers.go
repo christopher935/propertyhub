@@ -99,6 +99,18 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 		return
 	}
 
+	today := time.Now().Truncate(24 * time.Hour)
+	if parsedDate.Before(today) {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Cannot book showings for past dates. Please select today or a future date.", nil)
+		return
+	}
+
+	maxDate := today.AddDate(0, 3, 0)
+	if parsedDate.After(maxDate) {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Cannot book showings more than 3 months in advance.", nil)
+		return
+	}
+
 	availCheck, err := h.availabilityService.CheckAvailability(mlsID, parsedDate)
 	if err != nil {
 		log.Printf("Warning: Availability check failed: %v", err)

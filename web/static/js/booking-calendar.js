@@ -94,7 +94,13 @@ function bookingForm() {
             marketingOptIn: false
         },
         
+        minDate: new Date().toISOString().split('T')[0],
+        maxDate: null,
+        
         init() {
+            const maxDate = new Date();
+            maxDate.setMonth(maxDate.getMonth() + 3);
+            this.maxDate = maxDate.toISOString().split('T')[0];
             const urlPropertyId = new URLSearchParams(window.location.search).get('property_id');
             if (urlPropertyId) {
                 this.form.propertyId = urlPropertyId;
@@ -175,6 +181,21 @@ function bookingForm() {
                     }
                     if (!this.form.showingDate) {
                         this.errors.showingDate = 'Please select a date';
+                    } else {
+                        const dateParts = this.form.showingDate.split('/');
+                        const selectedDate = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        
+                        if (selectedDate < today) {
+                            this.errors.showingDate = 'Please select today or a future date';
+                        } else {
+                            const maxDate = new Date();
+                            maxDate.setMonth(maxDate.getMonth() + 3);
+                            if (selectedDate > maxDate) {
+                                this.errors.showingDate = 'Cannot book more than 3 months in advance';
+                            }
+                        }
                     }
                     if (!this.form.showingTime) {
                         this.errors.showingTime = 'Please select a time';
