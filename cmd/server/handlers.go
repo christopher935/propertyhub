@@ -35,6 +35,9 @@ type AllHandlers struct {
 	// Dashboard
 	Dashboard             *handlers.DashboardHandlers
 
+	// Chart
+	Chart                 *handlers.ChartHandlers
+
 	// Data Migration
 	DataMigration         *handlers.DataMigrationHandlers
 
