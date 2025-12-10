@@ -66,7 +66,14 @@ type Config struct {
 
         // reCAPTCHA (from database)
         RecaptchaSiteKey   string
-        RecaptchaSecretKey string}
+        RecaptchaSecretKey string
+
+        // AppFolio configuration (from database)
+        AppFolioAPIKey       string
+        AppFolioClientID     string
+        AppFolioClientSecret string
+        AppFolioBaseURL      string
+        AppFolioTimeout      time.Duration}
 
 var AppConfig *Config
 
@@ -153,6 +160,13 @@ func LoadConfig() *Config {
                 // reCAPTCHA
                 RecaptchaSiteKey:   dbSettings["RECAPTCHA_SITE_KEY"],
                 RecaptchaSecretKey: dbSettings["RECAPTCHA_SECRET_KEY"],
+
+                // AppFolio
+                AppFolioAPIKey:       dbSettings["APPFOLIO_API_KEY"],
+                AppFolioClientID:     dbSettings["APPFOLIO_CLIENT_ID"],
+                AppFolioClientSecret: dbSettings["APPFOLIO_CLIENT_SECRET"],
+                AppFolioBaseURL:      getDbSetting(dbSettings, "APPFOLIO_BASE_URL", "https://api.appfolio.com/v1"),
+                AppFolioTimeout:      time.Duration(getDbSettingInt(dbSettings, "APPFOLIO_TIMEOUT_SECONDS", 30)) * time.Second,
         }
 
         if len(config.JWTSecret) > 10 {
@@ -247,6 +261,17 @@ func (c *Config) IsProduction() bool {
 
 func (c *Config) HasJWTSecret() bool {
 	return c.JWTSecret != ""
+}
+
+func (c *Config) HasAppFolioConfig() bool {
+	return c.AppFolioAPIKey != "" || (c.AppFolioClientID != "" && c.AppFolioClientSecret != "")
+}
+
+func (c *Config) GetAppFolioTimeout() time.Duration {
+	if c.AppFolioTimeout > 0 {
+		return c.AppFolioTimeout
+	}
+	return 30 * time.Second
 }
 
 // Bootstrap helpers (only for DATABASE_URL, PORT, ENVIRONMENT)
