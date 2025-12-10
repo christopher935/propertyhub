@@ -85,6 +85,9 @@ type AllHandlers struct {
 	CentralProperty       *handlers.CentralPropertyHandler
 	CentralPropertySync   *handlers.CentralPropertySyncHandlers
 
+	// AppFolio Integration
+	AppFolioSync          *handlers.AppFolioSyncHandlers
+
 	// Daily Schedule
 	DailySchedule         *handlers.DailyScheduleHandlers
 
