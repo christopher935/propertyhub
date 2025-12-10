@@ -3,12 +3,25 @@ package services
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 	"gorm.io/gorm"
 	"strconv"
 	"chrisgross-ctrl-project/internal/config"
 	"chrisgross-ctrl-project/internal/safety"
 )
+
+type UnsubscribeRecord struct {
+	ID              uint       `gorm:"primaryKey"`
+	Email           string     `gorm:"index"`
+	UnsubscribeType string
+	IsActive        bool       `gorm:"default:true"`
+	ResubscribeDate *time.Time
+}
+
+func (UnsubscribeRecord) TableName() string {
+	return "unsubscribe_records"
+}
 
 type EmailService struct {
 	db           *gorm.DB
@@ -102,6 +115,11 @@ func (es *EmailService) SendEmail(to, subject, content string, metadata map[stri
 		return fmt.Errorf("email sending is disabled by safety controls")
 	}
 
+	if es.isUnsubscribed(to, "marketing") {
+		log.Printf("📧 Email blocked - recipient unsubscribed: %s", to)
+		return fmt.Errorf("recipient has unsubscribed from marketing emails")
+	}
+
 	if !es.isConfigured || es.awsService == nil {
 		log.Printf("⚠️  Email not configured - would have sent: To=%s, Subject=%s", to, subject)
 		return fmt.Errorf("email service not configured")
@@ -114,6 +132,23 @@ func (es *EmailService) SendEmail(to, subject, content string, metadata map[stri
 	}
 
 	return nil
+}
+
+func (es *EmailService) isUnsubscribed(email string, category string) bool {
+	if es.db == nil {
+		return false
+	}
+	email = strings.ToLower(strings.TrimSpace(email))
+	var count int64
+	es.db.Model(&UnsubscribeRecord{}).
+		Where("LOWER(email) = ? AND (unsubscribe_type = ? OR unsubscribe_type = 'all') AND is_active = ? AND resubscribe_date IS NULL",
+			email, category, true).
+		Count(&count)
+	return count > 0
+}
+
+func (es *EmailService) IsUnsubscribed(email string, category string) bool {
+	return es.isUnsubscribed(email, category)
 }
 
 func (es *EmailService) SendTemplateEmail(to, subject, template string, data map[string]interface{}) error {
@@ -134,6 +169,11 @@ func (ss *SMSService) SendSMS(to, content string, metadata map[string]interface{
 		return fmt.Errorf("SMS sending is disabled by safety controls")
 	}
 
+	if ss.isPhoneUnsubscribed(to) {
+		log.Printf("📱 SMS blocked - recipient unsubscribed: %s", to)
+		return fmt.Errorf("recipient has unsubscribed from SMS")
+	}
+
 	if !ss.isConfigured || ss.awsService == nil {
 		log.Printf("⚠️  SMS not configured - would have sent: To=%s, Content=%s", to, content)
 		return fmt.Errorf("SMS service not configured")
@@ -146,6 +186,33 @@ func (ss *SMSService) SendSMS(to, content string, metadata map[string]interface{
 	}
 
 	return nil
+}
+
+func (ss *SMSService) isPhoneUnsubscribed(phone string) bool {
+	if ss.db == nil {
+		return false
+	}
+	normalizedPhone := normalizePhoneNumber(phone)
+	var count int64
+	ss.db.Model(&UnsubscribeRecord{}).
+		Where("email = ? AND (unsubscribe_type = 'sms' OR unsubscribe_type = 'all') AND is_active = ? AND resubscribe_date IS NULL",
+			normalizedPhone, true).
+		Count(&count)
+	return count > 0
+}
+
+func (ss *SMSService) IsPhoneUnsubscribed(phone string) bool {
+	return ss.isPhoneUnsubscribed(phone)
+}
+
+func normalizePhoneNumber(phone string) string {
+	var normalized strings.Builder
+	for _, r := range phone {
+		if r >= '0' && r <= '9' {
+			normalized.WriteRune(r)
+		}
+	}
+	return normalized.String()
 }
 
 func (ss *SMSService) SendSMSSimple(to, content string) error {
