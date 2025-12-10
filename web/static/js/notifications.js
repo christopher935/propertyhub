@@ -345,24 +345,25 @@ class PropertyHubNotifications {
     renderNotificationItem(notification) {
         const timeAgo = this.formatTimeAgo(notification.timestamp);
         const isUnread = !notification.read;
+        const safe = Sanitizer.sanitizeObject(notification);
         
         return `
-            <div class="notification-item ${isUnread ? 'unread' : ''} ${notification.priority}" 
-                 data-notification-id="${notification.id}"
-                 data-type="${notification.type}">
+            <div class="notification-item ${isUnread ? 'unread' : ''} ${safe.priority}" 
+                 data-notification-id="${safe.id}"
+                 data-type="${safe.type}">
                 
                 <div class="notification-icon">
                     <i class="${this.getNotificationIcon(notification.type)}"></i>
                 </div>
                 
                 <div class="notification-content">
-                    <div class="notification-title">${notification.title}</div>
-                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-title">${safe.title}</div>
+                    <div class="notification-message">${safe.message}</div>
                     
                     ${notification.actionUrl ? `
                         <div class="notification-actions">
-                            <a href="${notification.actionUrl}" class="btn btn-sm btn-primary notification-action">
-                                ${notification.actionText || 'View'}
+                            <a href="${safe.actionUrl}" class="btn btn-sm btn-primary notification-action">
+                                ${safe.actionText || 'View'}
                             </a>
                         </div>
                     ` : ''}
@@ -372,11 +373,11 @@ class PropertyHubNotifications {
                     <span class="notification-time">${timeAgo}</span>
                     <div class="notification-controls">
                         ${isUnread ? `
-                            <button class="btn btn-xs btn-outline" onclick="PropertyHubNotifications.markAsRead('${notification.id}')">
+                            <button class="btn btn-xs btn-outline" onclick="PropertyHubNotifications.markAsRead('${safe.id}')">
                                 <i class="fas fa-check"></i>
                             </button>
                         ` : ''}
-                        <button class="btn btn-xs btn-outline" onclick="PropertyHubNotifications.dismissNotification('${notification.id}')">
+                        <button class="btn btn-xs btn-outline" onclick="PropertyHubNotifications.dismissNotification('${safe.id}')">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -515,30 +516,33 @@ class PropertyHubNotifications {
 
     // Modal Notifications
     showModalNotification(notification) {
+        const safe = Sanitizer.sanitizeObject(notification);
         const modal = document.createElement('div');
         modal.className = 'notification-modal-overlay';
         modal.innerHTML = `
-            <div class="notification-modal ${notification.priority}">
+            <div class="notification-modal ${safe.priority}">
                 <div class="notification-modal-header">
                     <div class="notification-modal-icon">
                         <i class="${this.getNotificationIcon(notification.type)}"></i>
                     </div>
-                    <h3>${notification.title}</h3>
+                    <h3>${safe.title}</h3>
                     <button class="notification-modal-close" onclick="this.closest('.notification-modal-overlay').remove(); document.body.style.overflow = '';">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 
                 <div class="notification-modal-content">
-                    <p>${notification.message}</p>
+                    <p>${safe.message}</p>
                     
                     ${notification.data && notification.data.details ? `
                         <div class="notification-details">
                             <h4>Details:</h4>
                             <ul>
-                                ${Object.entries(notification.data.details).map(([key, value]) => 
-                                    `<li><strong>${key}:</strong> ${value}</li>`
-                                ).join('')}
+                                ${Object.entries(notification.data.details).map(([key, value]) => {
+                                    const safeKey = Sanitizer.escapeHtml(key);
+                                    const safeValue = Sanitizer.escapeHtml(value);
+                                    return `<li><strong>${safeKey}:</strong> ${safeValue}</li>`;
+                                }).join('')}
                             </ul>
                         </div>
                     ` : ''}
@@ -546,8 +550,8 @@ class PropertyHubNotifications {
                 
                 <div class="notification-modal-actions">
                     ${notification.actionUrl ? `
-                        <a href="${notification.actionUrl}" class="btn btn-primary">
-                            ${notification.actionText || 'View Details'}
+                        <a href="${safe.actionUrl}" class="btn btn-primary">
+                            ${safe.actionText || 'View Details'}
                         </a>
                     ` : ''}
                     <button class="btn btn-secondary" onclick="this.closest('.notification-modal-overlay').remove(); document.body.style.overflow = '';">
@@ -637,14 +641,15 @@ class PropertyHubNotifications {
     }
 
     showToastNotification(toast) {
+        const safe = Sanitizer.sanitizeObject(toast);
         const toastElement = document.createElement('div');
-        toastElement.className = `notification-toast ${toast.type}`;
+        toastElement.className = `notification-toast ${safe.type}`;
         toastElement.innerHTML = `
             <div class="toast-content">
-                <h4>${toast.title}</h4>
-                <p>${toast.message}</p>
+                <h4>${safe.title}</h4>
+                <p>${safe.message}</p>
                 ${toast.action ? `
-                    <a href="${toast.action.url}" class="toast-action">${toast.action.text}</a>
+                    <a href="${safe.action.url}" class="toast-action">${safe.action.text}</a>
                 ` : ''}
             </div>
             <button class="toast-close" onclick="this.parentElement.remove()">

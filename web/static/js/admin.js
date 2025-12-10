@@ -170,38 +170,39 @@ class PropertyHubAdmin {
     }
 
     renderUserRow(user) {
+        const safe = Sanitizer.sanitizeObject(user);
         return `
-            <tr data-user-id="${user.id}">
+            <tr data-user-id="${safe.id}">
                 <td>
                     <div class="user-info">
-                        <img src="${user.avatar || '/static/images/default-avatar.png'}" alt="${user.name}" class="user-avatar">
+                        <img src="${safe.avatar || '/static/images/default-avatar.png'}" alt="${safe.name}" class="user-avatar">
                         <div>
-                            <strong>${user.name}</strong>
-                            <br><small>ID: ${user.id}</small>
+                            <strong>${safe.name}</strong>
+                            <br><small>ID: ${safe.id}</small>
                         </div>
                     </div>
                 </td>
-                <td>${user.email}</td>
+                <td>${safe.email}</td>
                 <td>
-                    <span class="role-badge ${user.role}">${user.role}</span>
+                    <span class="role-badge ${safe.role}">${safe.role}</span>
                 </td>
                 <td>
-                    <span class="status-indicator ${user.status}">${user.status}</span>
+                    <span class="status-indicator ${safe.status}">${safe.status}</span>
                 </td>
                 <td>${user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never'}</td>
                 <td>${user.propertyCount || 0}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn btn-sm btn-outline" onclick="PropertyHubAdmin.viewUser('${user.id}')">
+                        <button class="btn btn-sm btn-outline" onclick="PropertyHubAdmin.viewUser('${safe.id}')">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline" onclick="PropertyHubAdmin.editUser('${user.id}')">
+                        <button class="btn btn-sm btn-outline" onclick="PropertyHubAdmin.editUser('${safe.id}')">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline" onclick="PropertyHubAdmin.toggleUserStatus('${user.id}', '${user.status}')">
+                        <button class="btn btn-sm btn-outline" onclick="PropertyHubAdmin.toggleUserStatus('${safe.id}', '${safe.status}')">
                             <i class="fas fa-${user.status === 'active' ? 'pause' : 'play'}"></i>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="PropertyHubAdmin.deleteUser('${user.id}')">
+                        <button class="btn btn-sm btn-danger" onclick="PropertyHubAdmin.deleteUser('${safe.id}')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -321,26 +322,31 @@ class PropertyHubAdmin {
 
                     <div class="monitor-card">
                         <h3>External Integrations</h3>
-                        ${Object.entries(data.integrations).map(([name, status]) => `
+                        ${Object.entries(data.integrations).map(([name, status]) => {
+                            const safeName = Sanitizer.escapeHtml(name);
+                            const safeStatus = Sanitizer.sanitizeObject(status);
+                            return `
                             <div class="status-item">
-                                <label>${name}:</label>
-                                <span class="status-indicator ${status.status}">${status.status}</span>
+                                <label>${safeName}:</label>
+                                <span class="status-indicator ${safeStatus.status}">${safeStatus.status}</span>
                                 <small>${status.lastCheck ? new Date(status.lastCheck).toLocaleString() : 'Never'}</small>
                             </div>
-                        `).join('')}
+                        `;}).join('')}
                     </div>
                 </div>
 
                 <div class="system-logs">
                     <h3>Recent System Logs</h3>
                     <div class="log-container">
-                        ${data.recentLogs.map(log => `
-                            <div class="log-entry ${log.level}">
+                        ${data.recentLogs.map(log => {
+                            const safeLog = Sanitizer.sanitizeObject(log);
+                            return `
+                            <div class="log-entry ${safeLog.level}">
                                 <span class="log-time">${new Date(log.timestamp).toLocaleString()}</span>
-                                <span class="log-level">${log.level}</span>
-                                <span class="log-message">${log.message}</span>
+                                <span class="log-level">${safeLog.level}</span>
+                                <span class="log-message">${safeLog.message}</span>
                             </div>
-                        `).join('')}
+                        `;}).join('')}
                     </div>
                 </div>
             </div>
@@ -593,7 +599,10 @@ class PropertyHubAdmin {
                     </select>
                     <select id="audit-user-filter" class="form-control">
                         <option value="">All Users</option>
-                        ${data.users.map(user => `<option value="${user.id}">${user.name}</option>`).join('')}
+                        ${data.users.map(user => {
+                            const safeUser = Sanitizer.sanitizeObject(user);
+                            return `<option value="${safeUser.id}">${safeUser.name}</option>`;
+                        }).join('')}
                     </select>
                     <button class="btn btn-primary" onclick="PropertyHubAdmin.filterAuditLog()">Filter</button>
                 </div>
@@ -612,25 +621,27 @@ class PropertyHubAdmin {
                             </tr>
                         </thead>
                         <tbody>
-                            ${data.auditEntries.map(entry => `
+                            ${data.auditEntries.map(entry => {
+                                const safeEntry = Sanitizer.sanitizeObject(entry);
+                                return `
                                 <tr>
                                     <td>${new Date(entry.timestamp).toLocaleString()}</td>
-                                    <td>${entry.userName}</td>
+                                    <td>${safeEntry.userName}</td>
                                     <td>
-                                        <span class="action-badge ${entry.action}">${entry.action}</span>
+                                        <span class="action-badge ${safeEntry.action}">${safeEntry.action}</span>
                                     </td>
-                                    <td>${entry.resource}</td>
+                                    <td>${safeEntry.resource}</td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline" onclick="PropertyHubAdmin.showAuditDetails('${entry.id}')">
+                                        <button class="btn btn-sm btn-outline" onclick="PropertyHubAdmin.showAuditDetails('${safeEntry.id}')">
                                             View Details
                                         </button>
                                     </td>
-                                    <td>${entry.ipAddress}</td>
+                                    <td>${safeEntry.ipAddress}</td>
                                     <td>
-                                        <span class="status-indicator ${entry.status}">${entry.status}</span>
+                                        <span class="status-indicator ${safeEntry.status}">${safeEntry.status}</span>
                                     </td>
                                 </tr>
-                            `).join('')}
+                            `;}).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -830,11 +841,12 @@ class PropertyHubAdmin {
 
     showAccessDenied(feature) {
         const container = document.getElementById('admin-content');
+        const safeFeature = Sanitizer.escapeHtml(feature);
         container.innerHTML = `
             <div class="access-denied">
                 <i class="fas fa-lock fa-4x"></i>
                 <h2>Access Denied</h2>
-                <p>You don't have permission to access ${feature}.</p>
+                <p>You don't have permission to access ${safeFeature}.</p>
                 <p>Contact your system administrator to request access.</p>
             </div>
         `;
@@ -843,24 +855,26 @@ class PropertyHubAdmin {
     showError(message, error) {
         console.error(message, error);
         const container = document.getElementById('admin-content');
+        const safeMessage = Sanitizer.escapeHtml(message);
+        const safeErrorMessage = Sanitizer.escapeHtml(error?.message || 'An unexpected error occurred.');
         container.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-triangle fa-2x"></i>
-                <h3>${message}</h3>
-                <p>${error?.message || 'An unexpected error occurred.'}</p>
+                <h3>${safeMessage}</h3>
+                <p>${safeErrorMessage}</p>
                 <button class="btn btn-primary" onclick="location.reload()">Retry</button>
             </div>
         `;
     }
 
     showSystemAlert(alert) {
-        // Create system alert notification
+        const safeAlert = Sanitizer.sanitizeObject(alert);
         const alertElement = document.createElement('div');
-        alertElement.className = `system-alert ${alert.severity}`;
+        alertElement.className = `system-alert ${safeAlert.severity}`;
         alertElement.innerHTML = `
             <div class="alert-content">
-                <h4>${alert.title}</h4>
-                <p>${alert.message}</p>
+                <h4>${safeAlert.title}</h4>
+                <p>${safeAlert.message}</p>
                 <span class="alert-time">${new Date(alert.timestamp).toLocaleString()}</span>
             </div>
             <button class="alert-dismiss" onclick="this.parentElement.remove()">×</button>

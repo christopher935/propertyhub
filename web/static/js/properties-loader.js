@@ -98,18 +98,19 @@
      * Create property card HTML
      */
     function createPropertyCard(property) {
-        const image = property.featured_image || property.images?.[0] || '/static/images/placeholder-property.jpg';
+        const safe = Sanitizer.sanitizeObject(property);
+        const image = safe.featured_image || safe.images?.[0] || '/static/images/placeholder-property.jpg';
         const price = formatPrice(property.price);
         const bedrooms = property.bedrooms || '—';
         const bathrooms = property.bathrooms || '—';
         const sqft = property.square_feet ? property.square_feet.toLocaleString() : '—';
-        const address = property.city ? `${property.city}, ${property.state || 'TX'}` : 'Houston, TX';
+        const address = safe.city ? `${safe.city}, ${safe.state || 'TX'}` : 'Houston, TX';
 
         return `
-            <div class="property-card" data-property-id="${property.id}">
+            <div class="property-card" data-property-id="${safe.id}">
                 <div class="property-image">
                     <img src="${image}" alt="Property" loading="lazy">
-                    <span class="property-badge">${property.listing_type || 'For Sale'}</span>
+                    <span class="property-badge">${safe.listing_type || 'For Sale'}</span>
                 </div>
                 <div class="property-details">
                     <div class="property-price">${price}</div>
@@ -120,8 +121,8 @@
                         <span><i class="icon-sqft"></i> ${sqft} sqft</span>
                     </div>
                     <div class="property-actions">
-                        <a href="/property/${property.id}" class="btn btn-primary">View Details</a>
-                        <a href="/book-showing?property_id=${property.id}" class="btn btn-secondary">Book Showing</a>
+                        <a href="/property/${safe.id}" class="btn btn-primary">View Details</a>
+                        <a href="/book-showing?property_id=${safe.id}" class="btn btn-secondary">Book Showing</a>
                     </div>
                 </div>
             </div>
