@@ -2,15 +2,17 @@ package services
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // EnhancedFUBIntegrationService provides additional FUB integration capabilities
@@ -631,25 +633,34 @@ func (efub *EnhancedFUBIntegrationService) createStandardFollowUpTask(leadID str
 }
 
 func (efub *EnhancedFUBIntegrationService) createFUBTask(taskData map[string]interface{}) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	jsonData, err := json.Marshal(taskData)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal task data: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", efub.baseURL+"/tasks", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return err
+	operation := func() (*http.Response, error) {
+		req, err := http.NewRequestWithContext(ctx, "POST", efub.baseURL+"/tasks", bytes.NewBuffer(jsonData))
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(efub.apiKey+":")))
+		return efub.client.Do(req)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	auth := base64.StdEncoding.EncodeToString([]byte(efub.apiKey + ":"))
-	req.Header.Set("Authorization", "Basic "+auth)
-
-	resp, err := efub.client.Do(req)
+	resp, err := WithRetry(ctx, DefaultRetryConfig, operation)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create FUB task: %w", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("FUB task creation failed: status %d, body: %s", resp.StatusCode, string(body))
+	}
 
 	return nil
 }

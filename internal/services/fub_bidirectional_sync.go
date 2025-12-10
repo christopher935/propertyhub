@@ -2,19 +2,23 @@ package services
 
 import (
 	"bytes"
+	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
 
-	"gorm.io/gorm"
 	"chrisgross-ctrl-project/internal/models"
+	"gorm.io/gorm"
 )
 
 // FUBBidirectionalSync handles two-way sync between PropertyHub and Follow Up Boss
 type FUBBidirectionalSync struct {
 	db                 *gorm.DB
+	client             *http.Client
 	fubAPIKey          string
 	fubBaseURL         string
 	behavioralService  *BehavioralEventService
@@ -25,6 +29,7 @@ type FUBBidirectionalSync struct {
 func NewFUBBidirectionalSync(db *gorm.DB, fubAPIKey string) *FUBBidirectionalSync {
 	return &FUBBidirectionalSync{
 		db:                db,
+		client:            &http.Client{Timeout: 30 * time.Second},
 		fubAPIKey:         fubAPIKey,
 		fubBaseURL:        "https://api.followupboss.com/v1",
 		behavioralService: NewBehavioralEventService(db),
@@ -377,32 +382,38 @@ func (s *FUBBidirectionalSync) getLeadIDFromFUBPerson(fubPersonID string) (int64
 	return int64(lead.ID), nil
 }
 
-// sendToFUB sends an API request to Follow Up Boss
+// sendToFUB sends an API request to Follow Up Boss with retry logic
 func (s *FUBBidirectionalSync) sendToFUB(method string, endpoint string, payload map[string]interface{}) error {
-	url := s.fubBaseURL + endpoint
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-	jsonData, err := json.Marshal(payload)
+	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+	operation := func() (*http.Response, error) {
+		req, err := http.NewRequestWithContext(ctx, method, s.fubBaseURL+endpoint, bytes.NewBuffer(jsonPayload))
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(s.fubAPIKey+":")))
+		req.Header.Set("X-System", "PropertyHub")
+
+		return s.client.Do(req)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Basic "+s.fubAPIKey)
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := WithRetry(ctx, DefaultRetryConfig, operation)
 	if err != nil {
-		return fmt.Errorf("failed to send request: %w", err)
+		return fmt.Errorf("FUB API request failed after retries: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("FUB API error: status %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("FUB API error: status %d, body: %s", resp.StatusCode, string(body))
 	}
 
 	return nil
