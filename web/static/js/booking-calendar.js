@@ -93,6 +93,8 @@ function bookingForm() {
             consentGiven: false,
             marketingOptIn: false
         },
+        isSubmitting: false,
+        submitError: null,
         
         init() {
             const urlPropertyId = new URLSearchParams(window.location.search).get('property_id');
@@ -209,22 +211,32 @@ function bookingForm() {
         },
         
         async submitBooking() {
+            if (this.isSubmitting) {
+                console.log('Submission already in progress');
+                return;
+            }
+            
             if (!this.validateCurrentStep()) {
                 return;
             }
             
+            this.isSubmitting = true;
+            this.submitError = null;
             this.loading = true;
             this.error = null;
             
             try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                                  document.querySelector('input[name="csrf_token"]')?.value;
+                
                 const response = await fetch('/api/v1/bookings', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'X-CSRF-Token': document.querySelector('input[name="csrf_token"]')?.value || ''
+                        'X-CSRF-Token': csrfToken
                     },
                     body: JSON.stringify({
-                        property_id: this.form.propertyId,
+                        property_id: parseInt(this.form.propertyId),
                         first_name: this.form.firstName,
                         last_name: this.form.lastName,
                         email: this.form.email,
@@ -234,47 +246,50 @@ function bookingForm() {
                         showing_type: this.form.showingType,
                         attendee_count: this.form.attendeeCount,
                         has_agent: this.form.hasAgent === 'yes',
-                        notes: this.form.notes,
+                        notes: this.form.notes || '',
                         consent_given: this.form.consentGiven,
                         marketing_opt_in: this.form.marketingOptIn
                     })
                 });
                 
-                const data = await response.json();
-                
                 if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
                     if (response.status === 400) {
-                        this.error = data.message || data.error || 'Invalid booking data';
-                        if (data.errors) {
-                            this.errors = data.errors;
+                        this.error = errorData.message || errorData.error || 'Invalid booking data';
+                        if (errorData.errors) {
+                            this.errors = errorData.errors;
                         }
                     } else if (response.status === 404) {
                         this.error = 'Property not found. Please select a valid property.';
                     } else if (response.status === 409) {
                         this.error = 'This time slot is no longer available. Please select another.';
-                        if (data.alternative_slots) {
+                        if (errorData.alternative_slots) {
                             this.error += ' Alternative slots are available.';
                         }
                     } else if (response.status === 429) {
                         this.error = 'Too many booking attempts. Please wait a few minutes.';
                     } else {
-                        this.error = data.error || 'Failed to create booking. Please try again.';
+                        this.error = errorData.message || errorData.error || `Server error: ${response.status}`;
                     }
+                    this.submitError = this.error;
+                    this.isSubmitting = false;
                     return;
                 }
                 
-                if (data.success) {
+                const data = await response.json();
+                
+                if (data.success && data.data?.reference_number) {
+                    localStorage.removeItem('incomplete_booking');
                     this.success = true;
                     window.location.href = `/booking-confirmed?ref=${data.data.reference_number}`;
                 } else {
-                    this.error = data.error || 'Failed to create booking';
-                    if (data.errors) {
-                        this.errors = data.errors;
-                    }
+                    throw new Error(data.error || data.message || 'Booking failed');
                 }
             } catch (err) {
                 console.error('Booking submission error:', err);
-                this.error = 'Network error. Please try again.';
+                this.error = err.message || 'Network error. Please try again.';
+                this.submitError = this.error;
+                this.isSubmitting = false;
             } finally {
                 this.loading = false;
             }
