@@ -238,6 +238,16 @@ func (h *BookingHandler) CreateBooking(c *gin.Context) {
 
 func (h *BookingHandler) GetBooking(c *gin.Context) {
 	idOrRef := c.Param("id")
+
+	if idOrRef == "" {
+		idOrRef = c.Query("reference")
+	}
+
+	if idOrRef == "" {
+		utils.ErrorResponse(c, http.StatusBadRequest, "Booking ID or reference required", nil)
+		return
+	}
+
 	ctx := context.Background()
 
 	var booking models.Booking
@@ -332,6 +342,11 @@ func (h *BookingHandler) CancelBooking(c *gin.Context) {
 }
 
 func (h *BookingHandler) ListBookings(c *gin.Context) {
+	if ref := c.Query("reference"); ref != "" {
+		h.GetBooking(c)
+		return
+	}
+
 	ctx := context.Background()
 
 	email := c.Query("email")
