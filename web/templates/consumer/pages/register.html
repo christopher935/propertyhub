@@ -15,7 +15,7 @@
 <link href="/static/css/scout-components.css" rel="stylesheet"/>
 <link href="/static/css/modals.css" rel="stylesheet"/>
 <script src="/static/js/modals.js" defer></script>
-<script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITE_KEY"></script>
+<script src="https://www.google.com/recaptcha/api.js?render={{ RecaptchaSiteKey }}"></script>
 </head>
 <body class="scout-consumer-layout page-booking">
 <svg class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
@@ -300,7 +300,7 @@ async function submitRegistration() {
     
     try {
         // Execute reCAPTCHA v3
-        const token = await grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY', { action: 'register' });
+        const token = await grecaptcha.execute('{{ RecaptchaSiteKey }}', { action: 'register' });
         formData.recaptcha_token = token;
         
         // Submit to backend
