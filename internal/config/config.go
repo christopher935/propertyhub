@@ -19,6 +19,7 @@ type Config struct {
         Port        string
         Environment string
         LogLevel    string
+        UseHTTPS    bool
 
         // Everything else from database
         JWTSecret          string
@@ -101,6 +102,7 @@ func LoadConfig() *Config {
                 Port:        getEnv("PORT", "8080"),
                 Environment: getEnv("ENVIRONMENT", "production"),
                 LogLevel:    getEnv("LOG_LEVEL", "info"),
+                UseHTTPS:    getEnv("USE_HTTPS", "false") == "true",
 
                 // Database connection settings
                 DatabaseMaxConns: getDbSettingInt(dbSettings, "DATABASE_MAX_CONNS", 25),
@@ -243,6 +245,10 @@ func (c *Config) IsDevelopment() bool {
 
 func (c *Config) IsProduction() bool {
 	return c.Environment == "production"
+}
+
+func (c *Config) IsSecureCookie() bool {
+	return c.IsProduction() || c.UseHTTPS
 }
 
 func (c *Config) HasJWTSecret() bool {
