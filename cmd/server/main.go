@@ -88,6 +88,7 @@ func main() {
                 &models.PropertyApplicationGroup{},
                 &models.ApplicationNumber{},
                 &models.ApplicationApplicant{},
+                &models.SyncStatus{},
         }
 
         for _, model := range safeModels {
@@ -510,6 +511,10 @@ var leadSafetyFilter *services.LeadSafetyFilter
 	centralPropertySyncHandler := handlers.NewCentralPropertySyncHandlers(gormDB)
 	log.Println("🔄 Central property sync handlers initialized")
 
+	// AppFolio Integration
+	appFolioSyncHandler := handlers.NewAppFolioSyncHandlers(gormDB)
+	log.Println("🏢 AppFolio sync handlers initialized")
+
 	// Daily Schedule
 	dailyScheduleHandler := handlers.NewDailyScheduleHandlers(gormDB)
 	log.Println("📆 Daily schedule handlers initialized")
@@ -567,6 +572,7 @@ var leadSafetyFilter *services.LeadSafetyFilter
 		Availability:          availabilityHandler,
 		CentralProperty:       centralPropertyHandler,
 		CentralPropertySync:   centralPropertySyncHandler,
+		AppFolioSync:          appFolioSyncHandler,
 		DailySchedule:         dailyScheduleHandler,
 		MFA:                   mfaHandler,
 		Settings:              settingsHandler,

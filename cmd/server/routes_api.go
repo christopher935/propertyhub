@@ -351,6 +351,20 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 	api.POST("/webhooks/inbound-email", h.Webhook.ProcessInboundEmail)
 
 	// ============================================================================
+	// APPFOLIO INTEGRATION API - Property Sync
+	// ============================================================================
+	appfolio := api.Group("/v1/appfolio")
+	{
+		appfolio.POST("/sync/properties", h.AppFolioSync.TriggerFullSync)
+		appfolio.GET("/sync/status", h.AppFolioSync.GetSyncStatus)
+		appfolio.POST("/sync/property/:id", h.AppFolioSync.SyncSingleProperty)
+		appfolio.GET("/vacancies", h.AppFolioSync.GetVacancies)
+		appfolio.GET("/properties", h.AppFolioSync.GetSyncedProperties)
+		appfolio.GET("/properties/:external_id", h.AppFolioSync.GetPropertyByExternalID)
+		appfolio.GET("/test-connection", h.AppFolioSync.TestConnection)
+	}
+
+	// ============================================================================
 	// TIER 2: TEAM COLLABORATION API
 	// ============================================================================
 

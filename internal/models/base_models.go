@@ -45,6 +45,11 @@ type Property struct {
 	Source string `json:"source" gorm:"default:'PropertyHub'"`
 	HarUrl string `json:"har_url"`
 
+	// External System Integration (AppFolio, etc.)
+	ExternalID     string     `json:"external_id" gorm:"index"`
+	ExternalSource string     `json:"external_source"`
+	LastSyncedAt   *time.Time `json:"last_synced_at"`
+
 	// Basic analytics
 	ViewCount int `json:"view_count" gorm:"default:0"`
 
