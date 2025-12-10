@@ -149,11 +149,15 @@
 </nav>
 <div class="property-layout">
 <div class="property-main">
-<div id="gallery" class="property-gallery mb-8">
-{% if Property.FeaturedImage %}
+<div id="gallery" class="property-image-gallery mb-8" x-data="propertyGallery()">
 <div class="gallery-main">
-<img src="{{ Property.FeaturedImage }}" alt="{{ PropertyAddress }}" style="width: 100%; height: auto; border-radius: 8px;">
-</div>
+{% if Property.FeaturedImage %}
+<img 
+    :src="currentImage || '{{ Property.FeaturedImage }}'" 
+    :alt="'{{ PropertyAddress }} - ' + currentCategory"
+    class="gallery-main-image"
+    @click="openLightbox()"
+>
 {% else %}
 <div class="image-placeholder">
 <div class="placeholder-icon"><svg height="80" width="80"><use href="#icon-home-modern"></use></svg></div>
@@ -161,13 +165,114 @@
 <p class="text-sm text-gray-400">Images are being professionally prepared for this listing</p>
 </div>
 {% endif %}
-<div class="gallery-thumbnails">
-<button class="btn btn-outline btn-sm"><svg class="inline-icon" height="16" width="16"><use href="#icon-camera"></use></svg> Photos</button>
-<button class="btn btn-outline btn-sm"><svg class="inline-icon" height="16" width="16"><use href="#icon-home-modern"></use></svg> Interior</button>
-<button class="btn btn-outline btn-sm"><svg class="inline-icon" height="16" width="16"><use href="#icon-truck"></use></svg> Parking</button>
-<button class="btn btn-outline btn-sm"><svg class="inline-icon" height="16" width="16"><use href="#icon-sparkles"></use></svg> Yard</button>
+</div>
+
+<div class="gallery-categories">
+<button 
+    class="btn btn-sm"
+    :class="currentCategory === 'all' ? 'btn-primary' : 'btn-outline'"
+    @click="filterCategory('all')"
+>
+    <svg class="inline-icon" height="16" width="16"><use href="#icon-camera"></use></svg>
+    All Photos
+    <span class="badge-count" x-text="allImages.length" x-show="allImages.length > 0"></span>
+</button>
+<button 
+    class="btn btn-sm"
+    :class="currentCategory === 'interior' ? 'btn-primary' : 'btn-outline'"
+    @click="filterCategory('interior')"
+    x-show="interiorImages.length > 0"
+>
+    <svg class="inline-icon" height="16" width="16"><use href="#icon-home-modern"></use></svg>
+    Interior
+    <span class="badge-count" x-text="interiorImages.length"></span>
+</button>
+<button 
+    class="btn btn-sm"
+    :class="currentCategory === 'exterior' ? 'btn-primary' : 'btn-outline'"
+    @click="filterCategory('exterior')"
+    x-show="exteriorImages.length > 0"
+>
+    <svg class="inline-icon" height="16" width="16"><use href="#icon-truck"></use></svg>
+    Exterior
+    <span class="badge-count" x-text="exteriorImages.length"></span>
+</button>
+</div>
+
+<div class="gallery-thumbnails" x-show="filteredImages.length > 1">
+<template x-for="(img, index) in filteredImages" :key="index">
+    <button 
+        class="gallery-thumb"
+        :class="{ 'gallery-thumb-active': currentImage === (typeof img === 'string' ? img : img.url) }"
+        @click="selectImage(typeof img === 'string' ? img : img.url)"
+    >
+        <img :src="typeof img === 'string' ? img : img.url" :alt="'Photo ' + (index + 1)">
+    </button>
+</template>
 </div>
 </div>
+
+<script>
+function propertyGallery() {
+    return {
+        currentCategory: 'all',
+        currentImage: '{{ Property.FeaturedImage }}',
+        currentIndex: 0,
+        
+        allImages: {{ ImagesJSON }},
+        
+        get interiorImages() {
+            return this.allImages.filter(img => typeof img === 'object' && img.category === 'interior');
+        },
+        
+        get exteriorImages() {
+            return this.allImages.filter(img => typeof img === 'object' && img.category === 'exterior');
+        },
+        
+        get filteredImages() {
+            if (this.currentCategory === 'all') return this.allImages;
+            return this.allImages.filter(img => typeof img === 'object' && img.category === this.currentCategory);
+        },
+        
+        filterCategory(category) {
+            this.currentCategory = category;
+            const images = this.filteredImages;
+            if (images.length > 0) {
+                const img = images[0];
+                this.currentImage = typeof img === 'string' ? img : img.url;
+                this.currentIndex = 0;
+            }
+        },
+        
+        selectImage(url) {
+            this.currentImage = url;
+            this.currentIndex = this.filteredImages.findIndex(img => 
+                (typeof img === 'string' ? img : img.url) === url
+            );
+        },
+        
+        nextImage() {
+            const images = this.filteredImages;
+            if (images.length === 0) return;
+            this.currentIndex = (this.currentIndex + 1) % images.length;
+            const img = images[this.currentIndex];
+            this.currentImage = typeof img === 'string' ? img : img.url;
+        },
+        
+        prevImage() {
+            const images = this.filteredImages;
+            if (images.length === 0) return;
+            this.currentIndex = (this.currentIndex - 1 + images.length) % images.length;
+            const img = images[this.currentIndex];
+            this.currentImage = typeof img === 'string' ? img : img.url;
+        },
+        
+        openLightbox() {
+            console.log('Open lightbox for', this.currentImage);
+        }
+    };
+}
+</script>
 <section id="details" class="property-section mb-8">
 <h2 class="text-heading-2 text-navy mb-4">Property Description</h2>
 <div class="property-description text-body text-gray-700">

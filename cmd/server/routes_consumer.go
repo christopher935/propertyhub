@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"html/template"
 	"net/http"
 	"time"
 
@@ -101,6 +103,13 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 			property.Price+500,
 		).Limit(3).Find(&similarProperties)
 
+		imagesJSON := "[]"
+		if len(property.Images) > 0 {
+			if jsonBytes, err := json.Marshal(property.Images); err == nil {
+				imagesJSON = string(jsonBytes)
+			}
+		}
+
 		c.HTML(http.StatusOK, "consumer/pages/property-detail.html", gin.H{
 			"Property":          property,
 			"PropertyAddress":   decryptedAddress,
@@ -109,6 +118,7 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 			"ContactPhone":      "(281) 925-7222",
 			"ListingAgent":      "Christopher Gross",
 			"CSRFToken":         c.GetString("csrf_token"),
+			"ImagesJSON":        template.JS(imagesJSON),
 			"Agent": gin.H{
 				"Name":          "Christopher Gross",
 				"Initials":      "CG",
