@@ -62,34 +62,44 @@ function homepageProperties() {
         },
         
         async openQuickView(propertyId) {
+            if (!propertyId) {
+                console.error('Invalid property ID');
+                return;
+            }
+            
             try {
                 const response = await fetch(`/api/properties/${propertyId}`);
                 const data = await response.json();
                 
                 if (data.success && data.data) {
                     this.selectedProperty = Array.isArray(data.data) ? data.data[0] : (data.data.property || data.data);
+                    
+                    if (!this.selectedProperty || !this.selectedProperty.id) {
+                        console.error('Invalid property data received');
+                        return;
+                    }
+                    
                     this.currentImageIndex = 0;
                     this.showModal = true;
                     
                     const modal = document.getElementById('quick-view-modal');
+                    if (!modal) return;
+                    
                     const backdrop = modal.querySelector('.modal-backdrop');
                     const wrapper = modal.querySelector('.modal-wrapper');
                     
                     modal.style.display = 'flex';
                     document.body.style.overflow = 'hidden';
                     
-                    // Trigger animation
                     requestAnimationFrame(() => {
                         if (backdrop) backdrop.classList.add('show');
                         if (wrapper) wrapper.classList.add('show');
                     });
                     
-                    // Update modal content
                     this.updateModalContent();
                 }
             } catch (err) {
                 console.error('Error fetching property details:', err);
-                alert('Failed to load property details');
             }
         },
         
@@ -212,9 +222,14 @@ function homepageProperties() {
         
         formatAddress(fullAddress) {
             if (!fullAddress) return '';
-            // Extract just street number and name (before first comma)
             const parts = fullAddress.split(',');
             return parts[0].trim();
+        },
+        
+        isNew(createdAt) {
+            if (!createdAt) return false;
+            const daysSinceListing = (Date.now() - new Date(createdAt)) / (1000 * 60 * 60 * 24);
+            return daysSinceListing < 7;
         }
     };
 }
