@@ -255,7 +255,15 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 		})
 	})
 	r.GET("/register", func(c *gin.Context) {
-		c.HTML(200, "consumer/pages/register.html", gin.H{"Title": "Create Account", "CSRFToken": c.GetString("csrf_token")})
+		recaptchaSiteKey := ""
+		if cfg != nil && cfg.RecaptchaSiteKey != "" {
+			recaptchaSiteKey = cfg.RecaptchaSiteKey
+		}
+		c.HTML(200, "consumer/pages/register.html", gin.H{
+			"Title":            "Create Account",
+			"CSRFToken":        c.GetString("csrf_token"),
+			"RecaptchaSiteKey": recaptchaSiteKey,
+		})
 	})
 	r.POST("/register", func(c *gin.Context) {
 		email := c.PostForm("email")
