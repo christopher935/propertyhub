@@ -278,6 +278,22 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 		v1.POST("/bookings/:id/no-show", h.Booking.MarkNoShow)
 		v1.PUT("/bookings/:id/reschedule", h.Booking.RescheduleBooking)
 	}
+
+	// Chart endpoints for dashboard
+	charts := api.Group("/charts")
+	{
+		charts.GET("/bookings", h.Chart.GetBookingTrendsChart)
+		charts.GET("/lead-sources", h.Chart.GetLeadSourcesChart)
+	}
+
+	// Admin settings endpoints
+	adminSettings := api.Group("/admin/settings")
+	{
+		adminSettings.GET("/profile", h.Settings.GetAdminProfile)
+	}
+
+	// System health endpoint
+	api.GET("/admin/system/health", h.Settings.GetSystemHealth)
 	
 	// Live Activity API (Admin Real-Time)
 	api.GET("/admin/live-activity", h.LiveActivity.GetLiveActivity)

@@ -176,6 +176,10 @@ log.Println("📅 Calendar handlers initialized")
 dashboardHandler := handlers.NewDashboardHandlers(gormDB)
 log.Println("📊 Dashboard handlers initialized")
 
+// Chart
+chartHandler := handlers.NewChartHandlers(gormDB)
+log.Println("📈 Chart handlers initialized")
+
 // Data Migration & Import
 dataMigrationHandler := handlers.NewDataMigrationHandlers(gormDB)
 log.Println("📥 Data migration handlers initialized")
@@ -543,6 +547,7 @@ var leadSafetyFilter *services.LeadSafetyFilter
 		Booking:               bookingHandler,
 		Calendar:              calendarHandler,
 		Dashboard:             dashboardHandler,
+		Chart:                 chartHandler,
 		DataMigration:         dataMigrationHandler,
 		EmailSender:           emailSenderHandler,
 		Unsubscribe:           unsubscribeHandler,
