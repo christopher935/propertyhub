@@ -4,9 +4,12 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
+
+	"chrisgross-ctrl-project/internal/config"
+
+	"github.com/gin-gonic/gin"
 )
 
 // CSRFProtection middleware prevents cross-site request forgery attacks
@@ -24,7 +27,10 @@ func CSRFProtection() gin.HandlerFunc {
 		if c.Request.Method == "GET" || c.Request.Method == "HEAD" || c.Request.Method == "OPTIONS" {
 			// Generate and set CSRF token for forms
 			token := generateCSRFToken()
-			c.SetCookie("csrf_token", token, 3600, "/", "", false, false)
+			cfg := config.GetConfig()
+			isSecure := cfg.IsSecureCookie()
+			c.SetSameSite(http.SameSiteLaxMode)
+			c.SetCookie("csrf_token", token, 3600, "/", "", isSecure, false)
 			c.Header("X-CSRF-Token", token)
 			// ISSUE #4 FIX: Set token in context so handlers can retrieve it
 			c.Set("csrf_token", token)

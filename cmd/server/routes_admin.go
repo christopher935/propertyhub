@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"chrisgross-ctrl-project/internal/auth"
+	"chrisgross-ctrl-project/internal/config"
 	"chrisgross-ctrl-project/internal/middleware"
 	"chrisgross-ctrl-project/internal/services"
 
@@ -74,14 +75,18 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 			maxAge = int(30 * 24 * time.Hour / time.Second) // 30 days
 		}
 
+		cfg := config.GetConfig()
+		isSecure := cfg.IsSecureCookie()
+
+		c.SetSameSite(http.SameSiteLaxMode)
 		c.SetCookie(
 			"admin_session_token",
 			loginResp.Token,
 			maxAge,
 			"/",
 			"",
-			false, // secure (set to true in production with HTTPS)
-			true,  // httpOnly
+			isSecure,
+			true,
 		)
 
 		// Redirect to dashboard
@@ -97,13 +102,17 @@ func RegisterAdminRoutes(r *gin.Engine, h *AllHandlers, propertyHubAI *services.
 		}
 
 		// Clear the cookie
+		cfg := config.GetConfig()
+		isSecure := cfg.IsSecureCookie()
+
+		c.SetSameSite(http.SameSiteLaxMode)
 		c.SetCookie(
 			"admin_session_token",
 			"",
 			-1,
 			"/",
 			"",
-			false,
+			isSecure,
 			true,
 		)
 
