@@ -141,9 +141,39 @@
 <h1 class="text-heading-1 font-serif text-navy text-center mb-2">Secure Your Account</h1>
 <p class="text-body text-gray-600 text-center mb-6">Create a strong password</p>
 <div class="form-group">
-<label class="form-label" for="password">Password</label>
-<input autocomplete="new-password" class="form-input" id="password" minlength="8" name="password" required="" type="password"/>
-<div class="form-help-text">At least 8 characters with letters and numbers</div>
+<label class="form-label" for="password">Password *</label>
+<div class="password-input-wrapper">
+<input autocomplete="new-password" class="form-input" id="password" minlength="8" name="password" required="" type="password" oninput="updatePasswordStrength(this.value)"/>
+<button type="button" class="password-toggle" onclick="togglePassword('password')">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
+</button>
+</div>
+<div class="password-strength">
+<div class="strength-bar">
+<div class="strength-fill" id="strengthFill"></div>
+</div>
+<span class="strength-text" id="strengthText">Enter a password</span>
+</div>
+<div class="password-requirements">
+<div class="requirement" id="req-length">
+<span class="req-icon">○</span> At least 8 characters
+</div>
+<div class="requirement" id="req-uppercase">
+<span class="req-icon">○</span> One uppercase letter
+</div>
+<div class="requirement" id="req-lowercase">
+<span class="req-icon">○</span> One lowercase letter
+</div>
+<div class="requirement" id="req-number">
+<span class="req-icon">○</span> One number
+</div>
+<div class="requirement" id="req-special">
+<span class="req-icon">○</span> One special character (!@#$%^&*)
+</div>
+</div>
 </div>
 <div class="form-group">
 <label class="form-label" for="password-confirm">Confirm Password</label>
@@ -199,6 +229,61 @@
 </div>
 </footer>
 <script>
+// Password strength indicator
+function updatePasswordStrength(password) {
+    const requirements = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /[0-9]/.test(password),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+    
+    Object.keys(requirements).forEach(req => {
+        const el = document.getElementById(`req-${req}`);
+        const icon = el.querySelector('.req-icon');
+        if (requirements[req]) {
+            el.classList.add('met');
+            icon.textContent = '✓';
+        } else {
+            el.classList.remove('met');
+            icon.textContent = '○';
+        }
+    });
+    
+    const score = Object.values(requirements).filter(Boolean).length;
+    
+    const fill = document.getElementById('strengthFill');
+    const text = document.getElementById('strengthText');
+    
+    const levels = [
+        { width: '0%', color: '#e5e7eb', text: 'Enter a password' },
+        { width: '20%', color: '#ef4444', text: 'Very Weak' },
+        { width: '40%', color: '#f97316', text: 'Weak' },
+        { width: '60%', color: '#eab308', text: 'Fair' },
+        { width: '80%', color: '#22c55e', text: 'Strong' },
+        { width: '100%', color: '#16a34a', text: 'Very Strong' }
+    ];
+    
+    const level = levels[score];
+    fill.style.width = level.width;
+    fill.style.backgroundColor = level.color;
+    text.textContent = level.text;
+    text.style.color = level.color;
+}
+
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.parentElement.querySelector('.password-toggle');
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+    } else {
+        input.type = 'password';
+        button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    }
+}
+
 // Registration wizard state
 let currentStep = 1;
 const formData = {};
