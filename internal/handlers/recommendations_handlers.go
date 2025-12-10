@@ -6,6 +6,7 @@ import (
 	"sort"
 	
 	"chrisgross-ctrl-project/internal/models"
+	"chrisgross-ctrl-project/internal/security"
 	"chrisgross-ctrl-project/internal/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -15,13 +16,15 @@ type RecommendationsHandler struct {
 	db                   *gorm.DB
 	propertyMatching     *services.PropertyMatchingService
 	behavioralScoring    *services.BehavioralScoringEngine
+	encryptionManager    *security.EncryptionManager
 }
 
-func NewRecommendationsHandler(db *gorm.DB, behavioralEngine *services.BehavioralScoringEngine) *RecommendationsHandler {
+func NewRecommendationsHandler(db *gorm.DB, behavioralEngine *services.BehavioralScoringEngine, encryptionManager *security.EncryptionManager) *RecommendationsHandler {
 	return &RecommendationsHandler{
 		db:                db,
 		propertyMatching:  services.NewPropertyMatchingService(db),
 		behavioralScoring: behavioralEngine,
+		encryptionManager: encryptionManager,
 	}
 }
 
@@ -261,8 +264,11 @@ func (h *RecommendationsHandler) GetSimilarProperties(c *gin.Context) {
 		Limit(6).
 		Find(&similarProperties)
 	
+	responseProperties := models.ToResponseList(similarProperties, h.encryptionManager)
+
 	c.JSON(http.StatusOK, gin.H{
-		"similar_properties": similarProperties,
-		"count":              len(similarProperties),
+		"similar_properties": responseProperties,
+		"count":              len(responseProperties),
+		"ai_reason":          "Similar properties based on price range and location",
 	})
 }

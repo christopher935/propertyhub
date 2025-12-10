@@ -420,7 +420,7 @@ var leadSafetyFilter *services.LeadSafetyFilter
 	savedPropertiesHandler := handlers.NewSavedPropertiesHandler(gormDB)
 	log.Println("💾 Saved properties handler initialized")
 	
-	recommendationsHandler := handlers.NewRecommendationsHandler(gormDB, scoringEngine)
+	recommendationsHandler := handlers.NewRecommendationsHandler(gormDB, scoringEngine, encryptionManager)
 	log.Println("🤖 AI recommendations handler initialized")
 	
 	// NOTE: email/SMS/notification/abandonmentRecovery services already initialized above (before campaignTriggers)

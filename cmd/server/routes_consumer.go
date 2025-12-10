@@ -101,11 +101,13 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 			property.Price+500,
 		).Limit(3).Find(&similarProperties)
 
+		similarPropertiesDecrypted := decryptPropertyAddresses(similarProperties, h.EncryptionManager)
+
 		c.HTML(http.StatusOK, "consumer/pages/property-detail.html", gin.H{
 			"Property":          property,
 			"PropertyAddress":   decryptedAddress,
 			"DaysOnMarket":      daysOnMarket,
-			"SimilarProperties": similarProperties,
+			"SimilarProperties": similarPropertiesDecrypted,
 			"ContactPhone":      "(281) 925-7222",
 			"ListingAgent":      "Christopher Gross",
 			"CSRFToken":         c.GetString("csrf_token"),
