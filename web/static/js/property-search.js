@@ -16,6 +16,11 @@ document.addEventListener('DOMContentLoaded', function() {
         search: ''
     };
 
+    let currentPage = 1;
+    const perPage = 20;
+    let totalCount = 0;
+    let totalPages = 1;
+
     function initFromURL() {
         const params = new URLSearchParams(window.location.search);
         
@@ -106,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 activeFilters.clear();
                 activeFilters.add('all');
                 updateActiveFiltersDisplay();
-                applyFilters();
+                applyFiltersResetPage();
                 return;
             }
             
@@ -139,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             updateActiveFiltersDisplay();
-            applyFilters();
+            applyFiltersResetPage();
         });
     });
     
@@ -186,11 +191,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 updateActiveFiltersDisplay();
-                applyFilters();
+                applyFiltersResetPage();
             });
             
             activeFiltersContainer.appendChild(filterTag);
         });
+    }
+    
+    function applyFiltersResetPage() {
+        currentPage = 1;
+        applyFilters();
     }
     
     async function applyFilters() {
@@ -227,8 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        params.set('page', '1');
-        params.set('limit', '20');
+        params.set('page', currentPage.toString());
+        params.set('limit', perPage.toString());
         
         try {
             const response = await fetch(`/api/v1/properties?${params}`);
@@ -243,8 +253,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const properties = data.data || [];
                 const pagination = data.pagination || {};
                 
+                totalCount = pagination.total_count || properties.length;
+                totalPages = Math.ceil(totalCount / perPage);
+                
                 renderProperties(properties);
-                updateResultsCount(pagination.total_count || properties.length);
+                updateResultsCount(totalCount);
+                renderPagination();
             } else {
                 throw new Error(data.message || 'Failed to fetch properties');
             }
@@ -362,6 +376,94 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    function getVisiblePages() {
+        const pages = [];
+        const total = totalPages;
+        const current = currentPage;
+        
+        if (total <= 7) {
+            for (let i = 1; i <= total; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (current > 3) pages.push('...');
+            
+            const start = Math.max(2, current - 1);
+            const end = Math.min(total - 1, current + 1);
+            
+            for (let i = start; i <= end; i++) pages.push(i);
+            
+            if (current < total - 2) pages.push('...');
+            pages.push(total);
+        }
+        return pages;
+    }
+    
+    function renderPagination() {
+        const container = document.getElementById('paginationContainer');
+        const pagesContainer = document.getElementById('paginationPages');
+        const prevBtn = document.getElementById('paginationPrev');
+        const nextBtn = document.getElementById('paginationNext');
+        const startSpan = document.getElementById('paginationStart');
+        const endSpan = document.getElementById('paginationEnd');
+        const totalSpan = document.getElementById('paginationTotal');
+        
+        if (!container) return;
+        
+        if (totalPages <= 1) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'flex';
+        
+        prevBtn.disabled = currentPage === 1;
+        prevBtn.classList.toggle('pagination-disabled', currentPage === 1);
+        
+        nextBtn.disabled = currentPage === totalPages;
+        nextBtn.classList.toggle('pagination-disabled', currentPage === totalPages);
+        
+        const visiblePages = getVisiblePages();
+        pagesContainer.innerHTML = visiblePages.map(page => {
+            if (page === '...') {
+                return `<span class="pagination-page pagination-ellipsis">...</span>`;
+            }
+            return `<button 
+                class="pagination-page ${page === currentPage ? 'pagination-active' : ''}"
+                data-page="${page}"
+            >${page}</button>`;
+        }).join('');
+        
+        pagesContainer.querySelectorAll('button[data-page]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                goToPage(parseInt(this.dataset.page));
+            });
+        });
+        
+        const startNum = ((currentPage - 1) * perPage) + 1;
+        const endNum = Math.min(currentPage * perPage, totalCount);
+        startSpan.textContent = startNum;
+        endSpan.textContent = endNum;
+        totalSpan.textContent = totalCount;
+    }
+    
+    function goToPage(page) {
+        if (page < 1 || page > totalPages || page === currentPage) return;
+        currentPage = page;
+        applyFilters();
+        document.querySelector('.properties-grid')?.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    const paginationPrev = document.getElementById('paginationPrev');
+    const paginationNext = document.getElementById('paginationNext');
+    
+    if (paginationPrev) {
+        paginationPrev.addEventListener('click', () => goToPage(currentPage - 1));
+    }
+    
+    if (paginationNext) {
+        paginationNext.addEventListener('click', () => goToPage(currentPage + 1));
+    }
+    
     const clearFiltersButtons = document.querySelectorAll('.clear-filters-btn');
     clearFiltersButtons.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -392,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             updateActiveFiltersDisplay();
-            applyFilters();
+            applyFiltersResetPage();
         });
     });
     
@@ -404,21 +506,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (bedroomFilter) {
         bedroomFilter.addEventListener('change', function() {
             currentFilters.bedrooms = this.value;
-            applyFilters();
+            applyFiltersResetPage();
         });
     }
     
     if (bathroomFilter) {
         bathroomFilter.addEventListener('change', function() {
             currentFilters.bathrooms = this.value;
-            applyFilters();
+            applyFiltersResetPage();
         });
     }
     
     if (locationFilter) {
         locationFilter.addEventListener('change', function() {
             currentFilters.city = this.value;
-            applyFilters();
+            applyFiltersResetPage();
         });
     }
     
@@ -452,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentFilters.sortOrder = 'desc';
             }
             
-            applyFilters();
+            applyFiltersResetPage();
         });
     }
     
@@ -462,7 +564,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 currentFilters.search = this.value.trim();
-                applyFilters();
+                applyFiltersResetPage();
             }, 500);
         });
         
@@ -470,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') {
                 clearTimeout(searchTimeout);
                 currentFilters.search = this.value.trim();
-                applyFilters();
+                applyFiltersResetPage();
             }
         });
     }
@@ -480,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function() {
         searchButton.addEventListener('click', function() {
             if (searchInput) {
                 currentFilters.search = searchInput.value.trim();
-                applyFilters();
+                applyFiltersResetPage();
             }
         });
     }

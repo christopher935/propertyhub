@@ -253,6 +253,41 @@
 </div>
             {% endfor %}
         </div>
+<!-- Pagination -->
+<div class="pagination-container" id="paginationContainer" style="display: none;">
+    <nav class="pagination" aria-label="Property pagination">
+        <button 
+            class="pagination-btn pagination-prev"
+            id="paginationPrev"
+            disabled
+        >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Previous
+        </button>
+        
+        <div class="pagination-pages" id="paginationPages">
+        </div>
+        
+        <button 
+            class="pagination-btn pagination-next"
+            id="paginationNext"
+            disabled
+        >
+            Next
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+    </nav>
+    
+    <div class="pagination-info">
+        Showing <span id="paginationStart">1</span> - 
+        <span id="paginationEnd">20</span> 
+        of <span id="paginationTotal">0</span> properties
+    </div>
+</div>
 <!-- Empty State (hidden by default, shown when no results) -->
 <div aria-live="polite" class="properties-empty-state hidden" id="emptyState" role="status">
 <div class="empty-state-icon">
