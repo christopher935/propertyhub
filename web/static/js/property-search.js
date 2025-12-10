@@ -207,6 +207,16 @@ document.addEventListener('DOMContentLoaded', function() {
             params.set('min_price', '4500');
         }
         
+        if (activeFilters.has('pet-friendly')) {
+            params.set('pet_friendly', 'true');
+        }
+        if (activeFilters.has('single-story')) {
+            params.set('single_story', 'true');
+        }
+        if (activeFilters.has('available')) {
+            params.set('available_now', 'true');
+        }
+        
         if (currentFilters.bedrooms) {
             params.set('bedrooms', currentFilters.bedrooms);
         }

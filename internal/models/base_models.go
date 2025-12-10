@@ -3,9 +3,10 @@ package models
 import (
 	"chrisgross-ctrl-project/internal/security"
 	"fmt"
+	"time"
+
 	"github.com/lib/pq"
 	"gorm.io/gorm"
-	"time"
 )
 
 // Property - Core property model for real estate listings
@@ -53,6 +54,11 @@ type Property struct {
 	ScrapedAt         *time.Time `json:"scraped_at"`
 	YearBuilt         int        `json:"year_built"`
 	ManagementCompany string     `json:"management_company"`
+
+	// Filter-specific fields
+	PetFriendly   bool       `json:"pet_friendly" gorm:"default:false"`
+	Stories       int        `json:"stories" gorm:"default:1"`
+	AvailableDate *time.Time `json:"available_date"`
 
 	// Timestamps
 	DateAdded *time.Time     `json:"date_added"`

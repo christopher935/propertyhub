@@ -122,6 +122,9 @@ func (h *PropertiesHandler) GetConsumerProperties(w http.ResponseWriter, r *http
 	bathrooms := r.URL.Query().Get("bathrooms")
 	sortBy := r.URL.Query().Get("sort_by")
 	sortOrder := r.URL.Query().Get("sort_order")
+	petFriendly := r.URL.Query().Get("pet_friendly")
+	singleStory := r.URL.Query().Get("single_story")
+	availableNow := r.URL.Query().Get("available_now")
 
 	query := h.db.Model(&models.Property{}).Where("status = ?", "active")
 
@@ -155,6 +158,16 @@ func (h *PropertiesHandler) GetConsumerProperties(w http.ResponseWriter, r *http
 
 	if search != "" {
 		query = query.Where("address ILIKE ? OR description ILIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+
+	if petFriendly == "true" {
+		query = query.Where("pet_friendly = ?", true)
+	}
+	if singleStory == "true" {
+		query = query.Where("stories = ?", 1)
+	}
+	if availableNow == "true" {
+		query = query.Where("available_date IS NULL OR available_date <= ?", time.Now())
 	}
 
 	var totalCount int64
