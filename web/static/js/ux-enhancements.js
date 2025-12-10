@@ -19,8 +19,13 @@ function searchJourney() {
 function continueBanner() {
     return {
         get hasIncompleteAction() {
-            return localStorage.getItem('incomplete_booking') || 
-                   localStorage.getItem('saved_properties')?.length > 0;
+            if (localStorage.getItem('incomplete_booking')) return true;
+            try {
+                const saved = JSON.parse(localStorage.getItem('saved_properties') || '[]');
+                return saved.length > 0;
+            } catch {
+                return false;
+            }
         },
         get bannerTitle() {
             if (localStorage.getItem('incomplete_booking')) return "You have an unfinished booking";

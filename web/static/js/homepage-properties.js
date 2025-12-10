@@ -13,6 +13,12 @@ function homepageProperties() {
         showModal: false,
         currentImageIndex: 0,
         
+        isNew(createdAt) {
+            if (!createdAt) return false;
+            const daysSinceListing = (Date.now() - new Date(createdAt)) / (1000 * 60 * 60 * 24);
+            return daysSinceListing < 7;
+        },
+        
         async init() {
             await this.loadProperties();
             // Setup infinite scroll
