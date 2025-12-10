@@ -2998,6 +2998,117 @@ body.page-analytics {
     box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
 }
 
+/* ============================================================================
+   PAGINATION COMPONENT
+   ============================================================================ */
+
+.pagination-container {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: var(--font-weight-medium);
+    color: var(--navy-primary);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--gray-100);
+    border-color: var(--gray-300);
+}
+
+.pagination-btn svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.pagination-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-pages {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.pagination-page {
+    min-width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    cursor: pointer;
+    font-weight: var(--font-weight-medium);
+    color: var(--navy-primary);
+    transition: all 0.2s ease;
+}
+
+.pagination-page:hover:not(.pagination-active):not(.pagination-ellipsis) {
+    background: var(--gray-100);
+    border-color: var(--gray-300);
+}
+
+.pagination-active {
+    background: var(--navy-primary);
+    color: var(--white);
+    border-color: var(--navy-primary);
+}
+
+.pagination-ellipsis {
+    border: none;
+    cursor: default;
+    background: transparent;
+}
+
+.pagination-info {
+    color: var(--gray-500);
+    font-size: var(--font-size-sm);
+}
+
+@media (max-width: 640px) {
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .pagination-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: var(--font-size-sm);
+    }
+    
+    .pagination-btn span {
+        display: none;
+    }
+    
+    .pagination-page {
+        min-width: 2rem;
+        height: 2rem;
+        font-size: var(--font-size-sm);
+    }
+}
+
 .page-booking .btn-primary:active:not(:disabled) {
     transform: translateY(0);
 }
