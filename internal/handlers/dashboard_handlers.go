@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -314,11 +315,65 @@ func (h *DashboardHandlers) GetAlerts(c *gin.Context) {
 }
 
 func (h *DashboardHandlers) GetMaintenanceRequests(c *gin.Context) {
+	var openRequests int64
+	h.DB.Table("maintenance_requests").
+		Where("status IN ?", []string{"open", "in_progress"}).
+		Count(&openRequests)
+
+	var emergencyRequests int64
+	h.DB.Table("maintenance_requests").
+		Where("priority = ? AND status IN ?", "emergency", []string{"open", "in_progress"}).
+		Count(&emergencyRequests)
+
+	var highPriorityRequests int64
+	h.DB.Table("maintenance_requests").
+		Where("priority = ? AND status IN ?", "high", []string{"open", "in_progress"}).
+		Count(&highPriorityRequests)
+
+	type RecentMaintenanceRequest struct {
+		ID              uint      `json:"id"`
+		PropertyAddress string    `json:"propertyAddress"`
+		Description     string    `json:"description"`
+		Priority        string    `json:"priority"`
+		Status          string    `json:"status"`
+		Category        string    `json:"category"`
+		TenantName      string    `json:"tenantName"`
+		SuggestedVendor string    `json:"suggestedVendor"`
+		ResponseTime    string    `json:"responseTime"`
+		CreatedAt       time.Time `json:"createdAt"`
+	}
+
+	var recentRequests []RecentMaintenanceRequest
+	h.DB.Table("maintenance_requests").
+		Select("id, property_address, description, priority, status, category, tenant_name, suggested_vendor, response_time, created_at").
+		Where("status IN ?", []string{"open", "in_progress"}).
+		Order("CASE priority WHEN 'emergency' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 END").
+		Order("created_at DESC").
+		Limit(5).
+		Find(&recentRequests)
+
+	var avgResolutionHours float64
+	h.DB.Table("maintenance_requests").
+		Select("COALESCE(AVG(EXTRACT(EPOCH FROM (completed_date - created_at))/3600), 0)").
+		Where("status = ? AND completed_date IS NOT NULL", "completed").
+		Scan(&avgResolutionHours)
+
+	avgResponseTime := "N/A"
+	if avgResolutionHours > 0 {
+		if avgResolutionHours < 24 {
+			avgResponseTime = fmt.Sprintf("%.1f hours", avgResolutionHours)
+		} else {
+			avgResponseTime = fmt.Sprintf("%.1f days", avgResolutionHours/24)
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"openRequests":    0,
-		"urgentRequests":  0,
-		"avgResponseTime": "N/A",
-		"recentRequests":  []map[string]interface{}{},
+		"openRequests":    openRequests,
+		"urgentRequests":  emergencyRequests + highPriorityRequests,
+		"emergencyCount":  emergencyRequests,
+		"highPriorityCount": highPriorityRequests,
+		"avgResponseTime": avgResponseTime,
+		"recentRequests":  recentRequests,
 	})
 }
 
