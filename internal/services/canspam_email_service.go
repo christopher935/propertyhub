@@ -1,6 +1,10 @@
 package services
 
 import (
+	"crypto/hmac"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
@@ -149,10 +153,18 @@ type RenderedEmail struct {
 	ComplianceScore int               `json:"compliance_score"`
 }
 
-// generateUnsubscribeID generates a unique unsubscribe ID
+// generateUnsubscribeID generates a cryptographically secure unsubscribe ID
 func (c *CANSPAMEmailService) generateUnsubscribeID(email string) string {
-	// In production, this would be more secure
-	return fmt.Sprintf("%d_%s", time.Now().UnixNano(), strings.ReplaceAll(email, "@", "_"))
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		b = []byte(fmt.Sprintf("%d%s", time.Now().UnixNano(), email))
+	}
+
+	h := hmac.New(sha256.New, []byte(c.companyInfo.Email))
+	h.Write([]byte(email))
+	h.Write(b)
+
+	return base64.URLEncoding.EncodeToString(h.Sum(nil))[:32]
 }
 
 // initializeDefaultTemplates creates default CAN-SPAM compliant email templates

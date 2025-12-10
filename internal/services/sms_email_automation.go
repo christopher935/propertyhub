@@ -16,13 +16,15 @@ import (
 
 // SMSEmailAutomationService handles automated SMS and email communication via FUB
 type SMSEmailAutomationService struct {
-	db          *gorm.DB
-	fubAPIKey   string
-	twilioSID   string
-	twilioToken string
-	twilioPhone string
-	httpClient  *http.Client
-	mutex       sync.RWMutex
+	db           *gorm.DB
+	fubAPIKey    string
+	twilioSID    string
+	twilioToken  string
+	twilioPhone  string
+	httpClient   *http.Client
+	mutex        sync.RWMutex
+	emailService *EmailService
+	smsService   *SMSService
 }
 
 // AutomationRule defines when and how to send automated messages
@@ -94,6 +96,12 @@ func NewSMSEmailAutomationService(db *gorm.DB) *SMSEmailAutomationService {
 			Timeout: 30 * time.Second,
 		},
 	}
+}
+
+// SetServices sets the email and SMS services for unsubscribe checking
+func (s *SMSEmailAutomationService) SetServices(emailService *EmailService, smsService *SMSService) {
+	s.emailService = emailService
+	s.smsService = smsService
 }
 
 // TriggerAutomation triggers automation rules for a specific event
@@ -184,12 +192,33 @@ func (s *SMSEmailAutomationService) executeAutomationRule(executionID uint, rule
 	var sendErr error
 	switch rule.MessageType {
 	case "email":
+		if s.isEmailUnsubscribed(contact.Email) {
+			log.Printf("Skipping unsubscribed email recipient: %s", contact.Email)
+			s.markExecutionFailed(executionID, "recipient unsubscribed from email")
+			return
+		}
 		sendErr = s.sendEmailViaFUB(contact, "PropertyHub Update", message)
 	case "sms":
+		if s.isPhoneUnsubscribed(contact.Phone) {
+			log.Printf("Skipping unsubscribed SMS recipient: %s", contact.Phone)
+			s.markExecutionFailed(executionID, "recipient unsubscribed from SMS")
+			return
+		}
 		sendErr = s.sendSMSViaFUB(contact, message)
 	case "both":
-		emailErr := s.sendEmailViaFUB(contact, "PropertyHub Update", message)
-		smsErr := s.sendSMSViaFUB(contact, message)
+		var emailErr, smsErr error
+		if s.isEmailUnsubscribed(contact.Email) {
+			log.Printf("Skipping unsubscribed email recipient: %s", contact.Email)
+			emailErr = fmt.Errorf("recipient unsubscribed from email")
+		} else {
+			emailErr = s.sendEmailViaFUB(contact, "PropertyHub Update", message)
+		}
+		if s.isPhoneUnsubscribed(contact.Phone) {
+			log.Printf("Skipping unsubscribed SMS recipient: %s", contact.Phone)
+			smsErr = fmt.Errorf("recipient unsubscribed from SMS")
+		} else {
+			smsErr = s.sendSMSViaFUB(contact, message)
+		}
 		if emailErr != nil && smsErr != nil {
 			sendErr = fmt.Errorf("email: %v, sms: %v", emailErr, smsErr)
 		}
@@ -389,6 +418,51 @@ func (s *SMSEmailAutomationService) marshalJSON(data interface{}) string {
 		return string(jsonData)
 	}
 	return "{}"
+}
+
+// isEmailUnsubscribed checks if email is unsubscribed using the EmailService
+func (s *SMSEmailAutomationService) isEmailUnsubscribed(email string) bool {
+	if s.emailService != nil {
+		return s.emailService.IsUnsubscribed(email, "marketing")
+	}
+	if s.db == nil {
+		return false
+	}
+	email = strings.ToLower(strings.TrimSpace(email))
+	var count int64
+	s.db.Table("unsubscribe_records").
+		Where("LOWER(email) = ? AND (unsubscribe_type = 'marketing' OR unsubscribe_type = 'all') AND is_active = ? AND resubscribe_date IS NULL",
+			email, true).
+		Count(&count)
+	return count > 0
+}
+
+// isPhoneUnsubscribed checks if phone is unsubscribed using the SMSService
+func (s *SMSEmailAutomationService) isPhoneUnsubscribed(phone string) bool {
+	if s.smsService != nil {
+		return s.smsService.IsPhoneUnsubscribed(phone)
+	}
+	if s.db == nil {
+		return false
+	}
+	normalizedPhone := s.normalizePhone(phone)
+	var count int64
+	s.db.Table("unsubscribe_records").
+		Where("email = ? AND (unsubscribe_type = 'sms' OR unsubscribe_type = 'all') AND is_active = ? AND resubscribe_date IS NULL",
+			normalizedPhone, true).
+		Count(&count)
+	return count > 0
+}
+
+// normalizePhone removes non-digit characters from phone number
+func (s *SMSEmailAutomationService) normalizePhone(phone string) string {
+	var normalized strings.Builder
+	for _, r := range phone {
+		if r >= '0' && r <= '9' {
+			normalized.WriteRune(r)
+		}
+	}
+	return normalized.String()
 }
 
 // SetupDefaultAutomationRules creates default automation rules
