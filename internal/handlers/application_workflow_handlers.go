@@ -19,6 +19,7 @@ type ApplicationWorkflowHandlers struct {
 	service           *services.ApplicationWorkflowService
 	behavioralService *services.BehavioralEventService
 	notificationHub   *services.AdminNotificationHub
+	appfolioTenantSync *services.AppFolioTenantSync
 }
 
 // NewApplicationWorkflowHandlers creates new application workflow handlers
@@ -411,12 +412,28 @@ func (awh *ApplicationWorkflowHandlers) ApproveApplication(c *gin.Context) {
 		}
 	}
 
+	var appfolioTenantID string
+	var appfolioSyncError string
+	if awh.appfolioTenantSync != nil {
+		go func() {
+			tenant, err := awh.appfolioTenantSync.PushTenantFromApplication(appNumber)
+			if err != nil {
+				fmt.Printf("⚠️ Failed to push tenant to AppFolio: %v\n", err)
+			} else if tenant != nil {
+				fmt.Printf("✅ Tenant pushed to AppFolio: %s (ID: %s)\n", tenant.Name, tenant.ID)
+			}
+		}()
+		appfolioTenantID = "pending_async"
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Application approved successfully",
 		"data": gin.H{
-			"application_id": appNumber.ID,
-			"status":         appNumber.Status,
+			"application_id":       appNumber.ID,
+			"status":               appNumber.Status,
+			"appfolio_tenant_id":   appfolioTenantID,
+			"appfolio_sync_error":  appfolioSyncError,
 		},
 	})
 }
@@ -534,4 +551,8 @@ func (awh *ApplicationWorkflowHandlers) RequestMoreInfo(c *gin.Context) {
 
 func (awh *ApplicationWorkflowHandlers) SetNotificationHub(hub *services.AdminNotificationHub) {
 	awh.notificationHub = hub
+}
+
+func (awh *ApplicationWorkflowHandlers) SetAppFolioTenantSync(tenantSync *services.AppFolioTenantSync) {
+	awh.appfolioTenantSync = tenantSync
 }

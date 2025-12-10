@@ -465,4 +465,9 @@ func RegisterAPIRoutes(api *gin.RouterGroup, h *AllHandlers, propertyValuationHa
 
 	// Also add without v1 prefix for JS compatibility
 	api.GET("/availability/check", h.Availability.CheckAvailabilityGin)
+
+	// ============================================================================
+	// APPFOLIO INTEGRATION API - Tenant & Property Sync
+	// ============================================================================
+	handlers.RegisterAppFolioRoutes(v1, h.DB)
 }

@@ -426,9 +426,26 @@ type Lead struct {
 	Tags            StringArray `json:"tags" gorm:"type:json"`
 	CustomFields    JSONB       `json:"custom_fields" gorm:"type:json"`
 
+	AppFolioTenantID string     `json:"appfolio_tenant_id" gorm:"index"`
+	TenantStatus     string     `json:"tenant_status"`
+	LeaseStart       *time.Time `json:"lease_start"`
+	LeaseEnd         *time.Time `json:"lease_end"`
+	AppFolioUnitID   string     `json:"appfolio_unit_id"`
+	MoveInDate       *time.Time `json:"move_in_date"`
+	MoveOutDate      *time.Time `json:"move_out_date"`
+	MonthlyRent      *float64   `json:"monthly_rent"`
+	SecurityDeposit  *float64   `json:"security_deposit"`
+
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+const (
+	TenantStatusProspect  = "prospect"
+	TenantStatusApplicant = "applicant"
+	TenantStatusTenant    = "tenant"
+	TenantStatusFormer    = "former"
+)
 
 // FUB-specific models for integration (FUBLead is defined in fub_models.go)
 
