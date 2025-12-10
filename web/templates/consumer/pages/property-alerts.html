@@ -115,24 +115,36 @@
                     </div>
                 </div>
 
-                <div class="form-section">
-                    <h3 class="form-section-title">Alert Frequency</h3>
-                    <div class="frequency-options">
-                        <div class="frequency-option" data-value="instant">
-                            <div class="frequency-option-title">Instant</div>
-                            <div class="frequency-option-desc">As listed</div>
-                        </div>
-                        <div class="frequency-option" data-value="daily">
-                            <div class="frequency-option-title">Daily</div>
-                            <div class="frequency-option-desc">Once per day</div>
-                        </div>
-                        <div class="frequency-option" data-value="weekly">
-                            <div class="frequency-option-title">Weekly</div>
-                            <div class="frequency-option-desc">Once per week</div>
-                        </div>
-                    </div>
-                    <input type="hidden" id="frequency" value="instant">
-                </div>
+<div class="form-section">
+    <h3 class="form-section-title">Alert Frequency</h3>
+    <fieldset class="frequency-fieldset">
+        <legend class="sr-only">Choose how often to receive alerts</legend>
+        
+        <label class="frequency-option">
+            <input type="radio" name="frequency" value="instant" checked class="frequency-radio">
+            <span class="frequency-option-content">
+                <span class="frequency-option-title">Instant</span>
+                <span class="frequency-option-desc">As listed</span>
+            </span>
+        </label>
+        
+        <label class="frequency-option">
+            <input type="radio" name="frequency" value="daily" class="frequency-radio">
+            <span class="frequency-option-content">
+                <span class="frequency-option-title">Daily</span>
+                <span class="frequency-option-desc">Once per day</span>
+            </span>
+        </label>
+        
+        <label class="frequency-option">
+            <input type="radio" name="frequency" value="weekly" class="frequency-radio">
+            <span class="frequency-option-content">
+                <span class="frequency-option-title">Weekly</span>
+                <span class="frequency-option-desc">Once per week</span>
+            </span>
+        </label>
+    </fieldset>
+</div>
 
                 <button type="submit" class="btn btn-primary">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;margin-right:8px;">
@@ -150,17 +162,6 @@
 </main>
 
 <script>
-document.querySelectorAll('.frequency-option').forEach(option => {
-    option.addEventListener('click', function() {
-        document.querySelectorAll('.frequency-option').forEach(o => o.classList.remove('selected'));
-        this.classList.add('selected');
-        document.getElementById('frequency').value = this.dataset.value;
-    });
-});
-document.querySelector('.frequency-option').classList.add('selected');
-</script>
-
-<script>
 document.getElementById('alertForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -176,7 +177,7 @@ document.getElementById('alertForm').addEventListener('submit', async (e) => {
         min_bathrooms: parseFloat(document.getElementById('minBathrooms').value) || 0,
         preferred_cities: document.getElementById('cities').value,
         property_types: propertyTypes,
-        alert_frequency: document.getElementById('frequency').value,
+        alert_frequency: document.querySelector('input[name="frequency"]:checked')?.value || 'instant',
         active: true
     };
     
@@ -220,7 +221,9 @@ async function loadExistingPreferences() {
             document.getElementById('minBedrooms').value = pref.min_bedrooms || 0;
             document.getElementById('minBathrooms').value = pref.min_bathrooms || 0;
             document.getElementById('cities').value = pref.preferred_cities || '';
-            document.getElementById('frequency').value = pref.alert_frequency || 'instant';
+            const freqValue = pref.alert_frequency || 'instant';
+            const freqRadio = document.querySelector(`input[name="frequency"][value="${freqValue}"]`);
+            if (freqRadio) freqRadio.checked = true;
             
             if (pref.property_types) {
                 const types = pref.property_types.split(',');
