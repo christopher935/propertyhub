@@ -76,6 +76,12 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 			"CSRFToken": c.GetString("csrf_token"),
 		})
 	})
+	r.GET("/account", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "consumer/pages/account.html", gin.H{
+			"Title":     "My Account",
+			"CSRFToken": c.GetString("csrf_token"),
+		})
+	})
 	r.GET("/property/:id", func(c *gin.Context) {
 		propertyID := c.Param("id")
 		var property models.Property
