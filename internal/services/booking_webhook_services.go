@@ -123,11 +123,17 @@ func (bs *BookingService) CreateBooking(req *CreateBookingRequest) (*models.Book
 	// Auto-convert to FUB lead if FUB service is available
 	if bs.fubService != nil {
 		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Printf("❌ Panic in FUB lead conversion: %v", r)
+				}
+			}()
+
 			conversionRules := []string{"urgent_showing", "high_value_property"}
 			_, err := bs.fubService.AutoConvertBookingToLead(booking, conversionRules)
 			if err != nil {
-				// Log error but don't fail the booking
-				// TODO: Add proper logging
+				log.Printf("❌ Failed to convert booking to FUB lead: %v", err)
+				bs.queueFailedConversion(booking.ID, err)
 			}
 		}()
 	}
@@ -151,6 +157,20 @@ func (bs *BookingService) CancelBooking(id uint, reason string) error {
 // RescheduleBooking reschedules a booking
 func (bs *BookingService) RescheduleBooking(id uint, newDate time.Time) error {
 	return bs.db.Model(&models.Booking{}).Where("id = ?", id).Update("showing_date", newDate).Error
+}
+
+// queueFailedConversion queues a failed FUB conversion for retry
+func (bs *BookingService) queueFailedConversion(bookingID uint, err error) {
+	failedConversion := &models.FailedConversion{
+		BookingID:  bookingID,
+		Error:      err.Error(),
+		RetryCount: 0,
+		CreatedAt:  time.Now(),
+	}
+
+	if dbErr := bs.db.Create(failedConversion).Error; dbErr != nil {
+		log.Printf("❌ Failed to queue conversion for retry: %v", dbErr)
+	}
 }
 
 // WebhookService handles webhook operations

@@ -7,9 +7,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -153,10 +155,8 @@ func (w *WebhookHandlers) ProcessFUBWebhook(c *gin.Context) {
 		return
 	}
 
-	// Verify FUB signature if configured
-	signature := c.GetHeader("X-FUB-Signature")
-	if w.fubAPIKey != "" && !w.verifyFUBSignature(body, signature) {
-		utils.ErrorResponse(c, http.StatusUnauthorized, "Invalid FUB signature", nil)
+	// SECURITY: Always verify FUB webhook signature
+	if !w.verifyFUBWebhook(c, body) {
 		return
 	}
 
@@ -394,8 +394,19 @@ func (w *WebhookHandlers) verifyTwilioSignature(req *http.Request, signature str
 }
 
 func (w *WebhookHandlers) verifyFUBSignature(payload []byte, signature string) bool {
-	if w.fubAPIKey == "" || signature == "" {
-		return true // Skip verification in development
+	if w.fubAPIKey == "" {
+		log.Printf("⚠️ FUB webhook rejected - API key not configured")
+		return false
+	}
+
+	if signature == "" {
+		log.Printf("⚠️ FUB webhook rejected - no signature provided")
+		return false
+	}
+
+	if !strings.HasPrefix(signature, "sha256=") {
+		log.Printf("⚠️ FUB webhook rejected - invalid signature format")
+		return false
 	}
 
 	mac := hmac.New(sha256.New, []byte(w.fubAPIKey))
@@ -403,6 +414,30 @@ func (w *WebhookHandlers) verifyFUBSignature(payload []byte, signature string) b
 	expected := "sha256=" + hex.EncodeToString(mac.Sum(nil))
 
 	return hmac.Equal([]byte(signature), []byte(expected))
+}
+
+func (w *WebhookHandlers) verifyFUBWebhook(c *gin.Context, body []byte) bool {
+	signature := c.GetHeader("X-FUB-Signature")
+	timestamp := c.GetHeader("X-FUB-Timestamp")
+
+	if !w.verifyFUBSignature(body, signature) {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "Invalid or missing FUB signature", nil)
+		return false
+	}
+
+	if timestamp != "" {
+		ts, err := strconv.ParseInt(timestamp, 10, 64)
+		if err == nil {
+			webhookTime := time.Unix(ts, 0)
+			if time.Since(webhookTime) > 5*time.Minute {
+				log.Printf("⚠️ FUB webhook rejected - timestamp too old: %v", webhookTime)
+				utils.ErrorResponse(c, http.StatusUnauthorized, "Webhook timestamp too old", nil)
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 // Helper functions

@@ -160,6 +160,19 @@ type BookingStatusLog struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// FailedConversion tracks failed FUB lead conversions for retry
+type FailedConversion struct {
+	ID         uint      `json:"id" gorm:"primaryKey"`
+	BookingID  uint      `json:"booking_id" gorm:"not null;index"`
+	Error      string    `json:"error" gorm:"type:text"`
+	RetryCount int       `json:"retry_count" gorm:"default:0"`
+	LastRetry  *time.Time `json:"last_retry"`
+	Resolved   bool      `json:"resolved" gorm:"default:false"`
+	ResolvedAt *time.Time `json:"resolved_at"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
 // SystemSettings represents application-wide settings
 type SystemSettings struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
