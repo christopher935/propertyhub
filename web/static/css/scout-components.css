@@ -11970,6 +11970,48 @@ html {
   text-decoration: underline;
 }
 
+/* Radio Group Styles */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.radio-option:hover {
+  background: var(--gray-100);
+  border-color: var(--gray-300);
+}
+
+.radio-option:has(input:checked) {
+  background: var(--navy-50, #f0f4f8);
+  border-color: var(--navy-primary, #1a365d);
+}
+
+.radio-option input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--navy-primary, #1a365d);
+  cursor: pointer;
+}
+
+.radio-option span {
+  font-size: var(--text-base);
+  color: var(--foreground);
+  user-select: none;
+}
+
 /* 6. MFA Setup Page */
 .mfa-container {
   background: var(--gray-50);
