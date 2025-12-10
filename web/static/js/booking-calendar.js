@@ -98,10 +98,13 @@ function bookingForm() {
             const urlPropertyId = new URLSearchParams(window.location.search).get('property_id');
             if (urlPropertyId) {
                 this.form.propertyId = urlPropertyId;
-                const selectEl = document.getElementById('propertySelect');
-                if (selectEl) {
-                    selectEl.value = urlPropertyId;
-                }
+                this.$nextTick(() => {
+                    const selectEl = document.getElementById('propertySelect');
+                    if (selectEl) {
+                        selectEl.value = urlPropertyId;
+                        selectEl.dispatchEvent(new Event('change'));
+                    }
+                });
             }
         },
         
