@@ -523,6 +523,9 @@ type PropertyState struct {
 	// Core Property Data
 	MLSId        string   `json:"mls_id" gorm:"uniqueIndex"`
 	Address      string   `json:"address"`
+	City         string   `json:"city"`
+	State        string   `json:"state"`
+	ZipCode      string   `json:"zip_code"`
 	Price        *float64 `json:"price"`
 	Bedrooms     *int     `json:"bedrooms"`
 	Bathrooms    *float32 `json:"bathrooms"`
@@ -530,9 +533,15 @@ type PropertyState struct {
 	PropertyType string   `json:"property_type"`
 
 	// Status Management (unified across all systems)
-	Status          string    `json:"status"`        // active, pending, sold, off_market
-	StatusSource    string    `json:"status_source"` // har, fub, email, manual
+	Status          string    `json:"status"`        // active, pending, sold, off_market, vacant, occupied
+	StatusSource    string    `json:"status_source"` // har, fub, email, manual, appfolio
 	StatusUpdatedAt time.Time `json:"status_updated_at"`
+
+	// AppFolio Integration
+	AppFolioID   string   `json:"appfolio_id" gorm:"index"`
+	RentAmount   *float64 `json:"rent_amount"`
+	IsVacant     bool     `json:"is_vacant" gorm:"index"`
+	AppFolioData JSONB    `json:"appfolio_data" gorm:"type:json"`
 
 	// System Integration Tracking
 	ExternalData    JSONB `json:"external_data" gorm:"type:json"`
@@ -566,6 +575,9 @@ func (ps PropertyState) ToDict() map[string]interface{} {
 		"id":                ps.ID,
 		"mls_id":            ps.MLSId,
 		"address":           ps.Address,
+		"city":              ps.City,
+		"state":             ps.State,
+		"zip_code":          ps.ZipCode,
 		"price":             ps.Price,
 		"bedrooms":          ps.Bedrooms,
 		"bathrooms":         ps.Bathrooms,
@@ -574,6 +586,9 @@ func (ps PropertyState) ToDict() map[string]interface{} {
 		"status":            ps.Status,
 		"status_source":     ps.StatusSource,
 		"status_updated_at": ps.StatusUpdatedAt,
+		"appfolio_id":       ps.AppFolioID,
+		"rent_amount":       ps.RentAmount,
+		"is_vacant":         ps.IsVacant,
 		"is_bookable":       ps.IsBookable,
 		"booking_count":     ps.BookingCount,
 		"last_booking_date": ps.LastBookingDate,

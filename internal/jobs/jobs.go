@@ -104,16 +104,30 @@ const (
 
 // Job types
 const (
-	JobTypeFridayReport      = "friday_report"
-	JobTypeFUBSync           = "fub_sync"
-	JobTypeAnalyticsAggregation = "analytics_aggregation"
-	JobTypeEmailNotification = "email_notification"
-	JobTypeDataCleanup       = "data_cleanup"
-	JobTypeBackup           = "backup"
-	JobTypeHealthCheck      = "health_check"
-	JobTypeReportGeneration = "report_generation"
-	JobTypeScheduledActions = "scheduled_actions"
+	JobTypeFridayReport            = "friday_report"
+	JobTypeFUBSync                 = "fub_sync"
+	JobTypeAnalyticsAggregation    = "analytics_aggregation"
+	JobTypeEmailNotification       = "email_notification"
+	JobTypeDataCleanup             = "data_cleanup"
+	JobTypeBackup                  = "backup"
+	JobTypeHealthCheck             = "health_check"
+	JobTypeReportGeneration        = "report_generation"
+	JobTypeScheduledActions        = "scheduled_actions"
+	JobTypeAppFolioPropertySync    = "appfolio_property_sync"
+	JobTypeAppFolioTenantSync      = "appfolio_tenant_sync"
+	JobTypeAppFolioMaintenanceSync = "appfolio_maintenance_sync"
+	JobTypeFullIntegrationSync     = "full_integration_sync"
+	JobTypeSyncReconciliation      = "sync_reconciliation"
 )
+
+// IntegrationOrchestrator interface for job handlers
+type IntegrationOrchestratorInterface interface {
+	RunFullSync() (interface{}, error)
+	SyncPropertiesFromAppFolio() (interface{}, error)
+	SyncMaintenanceFromAppFolio() (interface{}, error)
+	SyncLeadsWithFUB() (int, error)
+	RetryFailedSyncs() (interface{}, error)
+}
 
 // NewJobManager creates a new job manager
 func NewJobManager(db *gorm.DB, harService interface{}, fubService interface{}, biService interface{}, notificationService interface{}) *JobManager {
@@ -207,11 +221,63 @@ func (jm *JobManager) registerDefaultJobs(harService, fubService, biService, not
 		Name:        "Scheduled Actions Processor",
 		Type:        JobTypeScheduledActions,
 		Description: "Process pending scheduled actions (emails, SMS, notifications)",
-// 		Handler:     NewScheduledActionsHandler(jm.db),
 		Timeout:     5 * time.Minute,
 		MaxRetries:  2,
 		RetryDelay:  1 * time.Minute,
 	})
+}
+
+// RegisterIntegrationJobs registers all integration sync jobs
+func (jm *JobManager) RegisterIntegrationJobs(orchestrator IntegrationOrchestratorInterface) {
+	// AppFolio Property Sync - Every 15 minutes
+	jm.RegisterJob(&Job{
+		ID:          "appfolio_property_sync",
+		Name:        "AppFolio Property Sync",
+		Type:        JobTypeAppFolioPropertySync,
+		Description: "Sync properties and vacancies from AppFolio",
+		Handler:     &AppFolioPropertySyncHandler{orchestrator: orchestrator},
+		Timeout:     30 * time.Minute,
+		MaxRetries:  3,
+		RetryDelay:  5 * time.Minute,
+	})
+
+	// AppFolio Maintenance Sync - Every 15 minutes
+	jm.RegisterJob(&Job{
+		ID:          "appfolio_maintenance_sync",
+		Name:        "AppFolio Maintenance Sync",
+		Type:        JobTypeAppFolioMaintenanceSync,
+		Description: "Sync maintenance requests from AppFolio",
+		Handler:     &AppFolioMaintenanceSyncHandler{orchestrator: orchestrator},
+		Timeout:     20 * time.Minute,
+		MaxRetries:  3,
+		RetryDelay:  5 * time.Minute,
+	})
+
+	// Full Integration Sync - Daily
+	jm.RegisterJob(&Job{
+		ID:          "full_integration_sync",
+		Name:        "Full 3-Way Integration Sync",
+		Type:        JobTypeFullIntegrationSync,
+		Description: "Full synchronization across PropertyHub, FUB, and AppFolio",
+		Handler:     &FullIntegrationSyncHandler{orchestrator: orchestrator},
+		Timeout:     60 * time.Minute,
+		MaxRetries:  2,
+		RetryDelay:  30 * time.Minute,
+	})
+
+	// Sync Reconciliation - Every 30 minutes
+	jm.RegisterJob(&Job{
+		ID:          "sync_reconciliation",
+		Name:        "Sync Reconciliation & Retry",
+		Type:        JobTypeSyncReconciliation,
+		Description: "Reconcile data and retry failed sync items",
+		Handler:     &SyncReconciliationHandler{orchestrator: orchestrator},
+		Timeout:     15 * time.Minute,
+		MaxRetries:  2,
+		RetryDelay:  5 * time.Minute,
+	})
+
+	log.Println("✅ Integration sync jobs registered")
 }
 
 // RegisterJob registers a new job
@@ -527,6 +593,9 @@ func (jm *JobManager) parseNextCronTime(cronExpr string) (time.Time, error) {
 			next = next.Add(24 * time.Hour)
 		}
 		return time.Date(next.Year(), next.Month(), next.Day(), 9, 0, 0, 0, next.Location()), nil
+	case "0 2 * * *": // Daily at 2 AM
+		next := now.Add(24 * time.Hour)
+		return time.Date(next.Year(), next.Month(), next.Day(), 2, 0, 0, 0, next.Location()), nil
 	case "0 */4 * * *": // Every 4 hours
 		next := now.Add(4 * time.Hour)
 		return time.Date(next.Year(), next.Month(), next.Day(), next.Hour(), 0, 0, 0, next.Location()), nil
@@ -536,6 +605,15 @@ func (jm *JobManager) parseNextCronTime(cronExpr string) (time.Time, error) {
 	case "0 * * * *": // Every hour
 		next := now.Add(1 * time.Hour)
 		return time.Date(next.Year(), next.Month(), next.Day(), next.Hour(), 0, 0, 0, next.Location()), nil
+	case "*/30 * * * *": // Every 30 minutes
+		next := now.Add(30 * time.Minute)
+		return time.Date(next.Year(), next.Month(), next.Day(), next.Hour(), next.Minute(), 0, 0, next.Location()), nil
+	case "*/15 * * * *": // Every 15 minutes
+		next := now.Add(15 * time.Minute)
+		return time.Date(next.Year(), next.Month(), next.Day(), next.Hour(), next.Minute(), 0, 0, next.Location()), nil
+	case "* * * * *": // Every minute
+		next := now.Add(1 * time.Minute)
+		return time.Date(next.Year(), next.Month(), next.Day(), next.Hour(), next.Minute(), 0, 0, next.Location()), nil
 	default:
 		return now.Add(1 * time.Hour), nil // Default to 1 hour
 	}
@@ -706,4 +784,215 @@ func (h *HealthCheckHandler) Execute(ctx context.Context, params map[string]inte
 		},
 		Duration: time.Minute * 2,
 	}, nil
+}
+
+// ============================================================================
+// INTEGRATION SYNC JOB HANDLERS
+// ============================================================================
+
+// AppFolioPropertySyncHandler handles AppFolio property synchronization
+type AppFolioPropertySyncHandler struct {
+	orchestrator IntegrationOrchestratorInterface
+}
+
+func (h *AppFolioPropertySyncHandler) Execute(ctx context.Context, params map[string]interface{}) (*JobResult, error) {
+	log.Println("🏠 Starting AppFolio property sync job...")
+	startTime := time.Now()
+
+	if h.orchestrator == nil {
+		return &JobResult{
+			Success:      false,
+			ErrorMessage: "Integration orchestrator not configured",
+			Duration:     time.Since(startTime),
+		}, fmt.Errorf("orchestrator not configured")
+	}
+
+	result, err := h.orchestrator.SyncPropertiesFromAppFolio()
+	if err != nil {
+		return &JobResult{
+			Success:      false,
+			ErrorMessage: err.Error(),
+			Duration:     time.Since(startTime),
+		}, err
+	}
+
+	return &JobResult{
+		Success: true,
+		Data: map[string]interface{}{
+			"result": result,
+		},
+		Duration: time.Since(startTime),
+	}, nil
+}
+
+// AppFolioMaintenanceSyncHandler handles AppFolio maintenance synchronization
+type AppFolioMaintenanceSyncHandler struct {
+	orchestrator IntegrationOrchestratorInterface
+}
+
+func (h *AppFolioMaintenanceSyncHandler) Execute(ctx context.Context, params map[string]interface{}) (*JobResult, error) {
+	log.Println("🔧 Starting AppFolio maintenance sync job...")
+	startTime := time.Now()
+
+	if h.orchestrator == nil {
+		return &JobResult{
+			Success:      false,
+			ErrorMessage: "Integration orchestrator not configured",
+			Duration:     time.Since(startTime),
+		}, fmt.Errorf("orchestrator not configured")
+	}
+
+	result, err := h.orchestrator.SyncMaintenanceFromAppFolio()
+	if err != nil {
+		return &JobResult{
+			Success:      false,
+			ErrorMessage: err.Error(),
+			Duration:     time.Since(startTime),
+		}, err
+	}
+
+	return &JobResult{
+		Success: true,
+		Data: map[string]interface{}{
+			"result": result,
+		},
+		Duration: time.Since(startTime),
+	}, nil
+}
+
+// FullIntegrationSyncHandler handles full 3-way integration sync
+type FullIntegrationSyncHandler struct {
+	orchestrator IntegrationOrchestratorInterface
+}
+
+func (h *FullIntegrationSyncHandler) Execute(ctx context.Context, params map[string]interface{}) (*JobResult, error) {
+	log.Println("🔄 Starting full integration sync job...")
+	startTime := time.Now()
+
+	if h.orchestrator == nil {
+		return &JobResult{
+			Success:      false,
+			ErrorMessage: "Integration orchestrator not configured",
+			Duration:     time.Since(startTime),
+		}, fmt.Errorf("orchestrator not configured")
+	}
+
+	result, err := h.orchestrator.RunFullSync()
+	if err != nil {
+		return &JobResult{
+			Success:      false,
+			ErrorMessage: err.Error(),
+			Duration:     time.Since(startTime),
+		}, err
+	}
+
+	return &JobResult{
+		Success: true,
+		Data: map[string]interface{}{
+			"report": result,
+		},
+		Duration: time.Since(startTime),
+	}, nil
+}
+
+// SyncReconciliationHandler handles sync reconciliation and retry
+type SyncReconciliationHandler struct {
+	orchestrator IntegrationOrchestratorInterface
+}
+
+func (h *SyncReconciliationHandler) Execute(ctx context.Context, params map[string]interface{}) (*JobResult, error) {
+	log.Println("🔗 Starting sync reconciliation job...")
+	startTime := time.Now()
+
+	if h.orchestrator == nil {
+		return &JobResult{
+			Success:      false,
+			ErrorMessage: "Integration orchestrator not configured",
+			Duration:     time.Since(startTime),
+		}, fmt.Errorf("orchestrator not configured")
+	}
+
+	result, err := h.orchestrator.RetryFailedSyncs()
+	if err != nil {
+		return &JobResult{
+			Success:      false,
+			ErrorMessage: err.Error(),
+			Duration:     time.Since(startTime),
+		}, err
+	}
+
+	return &JobResult{
+		Success: true,
+		Data: map[string]interface{}{
+			"report": result,
+		},
+		Duration: time.Since(startTime),
+	}, nil
+}
+
+// ============================================================================
+// INTEGRATION SYNC SCHEDULING
+// ============================================================================
+
+// StartAppFolioPropertySync schedules AppFolio property sync every 15 minutes
+func (jm *JobManager) StartAppFolioPropertySync() {
+	err := jm.ScheduleJob("appfolio_property_sync", "AppFolio Property Sync", "*/15 * * * *", map[string]interface{}{
+		"include_vacancies": true,
+	})
+	if err != nil {
+		log.Printf("Failed to schedule AppFolio property sync: %v", err)
+	}
+}
+
+// StartAppFolioMaintenanceSync schedules AppFolio maintenance sync every 15 minutes
+func (jm *JobManager) StartAppFolioMaintenanceSync() {
+	err := jm.ScheduleJob("appfolio_maintenance_sync", "AppFolio Maintenance Sync", "*/15 * * * *", map[string]interface{}{
+		"include_emergency": true,
+	})
+	if err != nil {
+		log.Printf("Failed to schedule AppFolio maintenance sync: %v", err)
+	}
+}
+
+// StartFullIntegrationSync schedules full integration sync daily at 2 AM
+func (jm *JobManager) StartFullIntegrationSync() {
+	err := jm.ScheduleJob("full_integration_sync", "Daily Full Integration Sync", "0 2 * * *", map[string]interface{}{
+		"reconcile": true,
+	})
+	if err != nil {
+		log.Printf("Failed to schedule full integration sync: %v", err)
+	}
+}
+
+// StartSyncReconciliation schedules sync reconciliation every 30 minutes
+func (jm *JobManager) StartSyncReconciliation() {
+	err := jm.ScheduleJob("sync_reconciliation", "Sync Reconciliation", "*/30 * * * *", map[string]interface{}{
+		"retry_failed": true,
+	})
+	if err != nil {
+		log.Printf("Failed to schedule sync reconciliation: %v", err)
+	}
+}
+
+// StartAllIntegrationSyncs starts all integration sync schedules
+func (jm *JobManager) StartAllIntegrationSyncs() {
+	log.Println("📅 Starting all integration sync schedules...")
+	
+	jm.StartAppFolioPropertySync()
+	jm.StartAppFolioMaintenanceSync()
+	jm.StartFullIntegrationSync()
+	jm.StartSyncReconciliation()
+	
+	// Update FUB sync to run every 30 minutes instead of 2 hours
+	err := jm.ScheduleJob("fub_sync", "FUB Bidirectional Sync", "*/30 * * * *", map[string]interface{}{
+		"sync_scores":  true,
+		"sync_notes":   true,
+		"sync_tasks":   true,
+		"bidirectional": true,
+	})
+	if err != nil {
+		log.Printf("Failed to schedule FUB sync: %v", err)
+	}
+	
+	log.Println("✅ All integration sync schedules started")
 }
