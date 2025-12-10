@@ -88,6 +88,10 @@ func main() {
                 &models.PropertyApplicationGroup{},
                 &models.ApplicationNumber{},
                 &models.ApplicationApplicant{},
+                &models.Vendor{},
+                &models.MaintenanceRequest{},
+                &models.MaintenanceStatusLog{},
+                &models.MaintenanceAlert{},
         }
 
         for _, model := range safeModels {
@@ -469,6 +473,10 @@ var leadSafetyFilter *services.LeadSafetyFilter
 	adminNotificationHub := services.NewAdminNotificationHub(gormDB)
 	log.Println("🔔 Admin notification hub initialized")
 
+	// AppFolio Maintenance Sync Service
+	appfolioMaintenanceSync := services.NewAppFolioMaintenanceSync(gormDB, adminNotificationHub)
+	log.Println("🔧 AppFolio maintenance sync service initialized")
+
 	adminNotificationHandler := handlers.NewAdminNotificationHandler(adminNotificationHub, gormDB)
 	log.Println("📢 Admin notification handler initialized")
 
@@ -658,6 +666,10 @@ var leadSafetyFilter *services.LeadSafetyFilter
 	log.Println("🛣️ Registering central property sync routes...")
 	handlers.RegisterCentralPropertySyncRoutes(r, gormDB)
 	log.Println("✅ Central property sync routes registered")
+
+	log.Println("🛣️ Registering AppFolio maintenance routes...")
+	handlers.RegisterAppFolioMaintenanceRoutes(r, gormDB, appfolioMaintenanceSync)
+	log.Println("✅ AppFolio maintenance routes registered")
 
 	log.Println("✅ All routes consolidated to Gin router (ServeMux eliminated)")
 
