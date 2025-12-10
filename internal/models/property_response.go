@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"chrisgross-ctrl-project/internal/security"
 )
 
@@ -28,10 +30,13 @@ type PropertyResponse struct {
 	PropertyFeatures  string   `json:"property_features"`
 	Source            string   `json:"source"`
 	HarUrl            string   `json:"har_url"`
-	ViewCount         int      `json:"view_count"`
-	DaysOnMarket      *int     `json:"days_on_market"`
-	YearBuilt         int      `json:"year_built"`
-	ManagementCompany string   `json:"management_company"`
+	ViewCount         int        `json:"view_count"`
+	DaysOnMarket      *int       `json:"days_on_market"`
+	YearBuilt         int        `json:"year_built"`
+	ManagementCompany string     `json:"management_company"`
+	PetFriendly       bool       `json:"pet_friendly"`
+	Stories           int        `json:"stories"`
+	AvailableDate     *time.Time `json:"available_date"`
 }
 
 // ToResponse converts a Property to PropertyResponse with decrypted address
@@ -69,6 +74,9 @@ func ToResponse(property Property, encryptionManager *security.EncryptionManager
 		DaysOnMarket:      property.DaysOnMarket,
 		YearBuilt:         property.YearBuilt,
 		ManagementCompany: property.ManagementCompany,
+		PetFriendly:       property.PetFriendly,
+		Stories:           property.Stories,
+		AvailableDate:     property.AvailableDate,
 	}
 }
 
