@@ -236,29 +236,33 @@ class PropertyHubBooking {
                     </p>
                 </div>
 
-                ${disclosures.map(disclosure => `
-                    <div class="disclosure-section" data-disclosure="${disclosure.id}">
+                ${disclosures.map(disclosure => {
+                    const safeDisclosure = Sanitizer.sanitizeObject(disclosure);
+                    return `
+                    <div class="disclosure-section" data-disclosure="${safeDisclosure.id}">
                         <div class="disclosure-title">
-                            <h4>${disclosure.title}</h4>
+                            <h4>${safeDisclosure.title}</h4>
                             <span class="required-badge">Required by TREC</span>
                         </div>
                         
                         <div class="disclosure-content">
                             <div class="disclosure-text">
-                                ${disclosure.content}
+                                ${safeDisclosure.content}
                             </div>
                             
                             ${disclosure.additionalDocuments ? `
                                 <div class="additional-documents">
                                     <h5>Related Documents:</h5>
                                     <ul>
-                                        ${disclosure.additionalDocuments.map(doc => `
+                                        ${disclosure.additionalDocuments.map(doc => {
+                                            const safeDoc = Sanitizer.sanitizeObject(doc);
+                                            return `
                                             <li>
-                                                <a href="${doc.url}" target="_blank" rel="noopener">
-                                                    <i class="fas fa-file-pdf"></i> ${doc.title}
+                                                <a href="${safeDoc.url}" target="_blank" rel="noopener">
+                                                    <i class="fas fa-file-pdf"></i> ${safeDoc.title}
                                                 </a>
                                             </li>
-                                        `).join('')}
+                                        `;}).join('')}
                                     </ul>
                                 </div>
                             ` : ''}
@@ -268,8 +272,8 @@ class PropertyHubBooking {
                             <label class="checkbox-label">
                                 <input type="checkbox" 
                                        name="disclosure_acknowledged" 
-                                       value="${disclosure.id}"
-                                       onchange="PropertyHubBooking.handleDisclosureAcknowledgment('${disclosure.id}', this.checked)">
+                                       value="${safeDisclosure.id}"
+                                       onchange="PropertyHubBooking.handleDisclosureAcknowledgment('${safeDisclosure.id}', this.checked)">
                                 I acknowledge that I have read and understand this disclosure
                             </label>
                             
@@ -278,7 +282,7 @@ class PropertyHubBooking {
                                 <input type="text" 
                                        class="form-control signature-input" 
                                        placeholder="Type your full legal name"
-                                       data-disclosure="${disclosure.id}">
+                                       data-disclosure="${safeDisclosure.id}">
                                 <p class="signature-note">
                                     By typing your name above, you are providing your electronic signature 
                                     as acknowledgment of this disclosure.
@@ -286,7 +290,7 @@ class PropertyHubBooking {
                             </div>
                         </div>
                     </div>
-                `).join('')}
+                `;}).join('')}
 
                 <div class="disclosure-completion">
                     <div class="progress-indicator">
@@ -374,14 +378,15 @@ class PropertyHubBooking {
         const container = document.getElementById('purchase-contract');
         if (!container) return;
 
+        const safeContract = Sanitizer.sanitizeObject(contract);
         container.innerHTML = `
             <div class="contract-container">
                 <div class="contract-header">
                     <h3>Residential Purchase Contract</h3>
                     <div class="contract-info">
-                        <p><strong>Contract #:</strong> ${contract.contractNumber}</p>
+                        <p><strong>Contract #:</strong> ${safeContract.contractNumber}</p>
                         <p><strong>Generated:</strong> ${new Date(contract.generatedAt).toLocaleString()}</p>
-                        <p><strong>TREC Form:</strong> ${contract.trecForm}</p>
+                        <p><strong>TREC Form:</strong> ${safeContract.trecForm}</p>
                     </div>
                 </div>
 
@@ -391,15 +396,15 @@ class PropertyHubBooking {
                         <div class="terms-grid">
                             <div class="term-item">
                                 <label>Property Address:</label>
-                                <span>${contract.property.address}</span>
+                                <span>${safeContract.property.address}</span>
                             </div>
                             <div class="term-item">
                                 <label>Legal Description:</label>
-                                <span>${contract.property.legalDescription}</span>
+                                <span>${safeContract.property.legalDescription}</span>
                             </div>
                             <div class="term-item">
                                 <label>MLS Number:</label>
-                                <span>${contract.property.mlsNumber}</span>
+                                <span>${safeContract.property.mlsNumber}</span>
                             </div>
                         </div>
                     </div>
@@ -451,15 +456,17 @@ class PropertyHubBooking {
                     <div class="terms-section">
                         <h4>Contingencies</h4>
                         <ul class="contingencies-list">
-                            ${contract.contingencies.map(contingency => `
+                            ${contract.contingencies.map(contingency => {
+                                const safeContingency = Sanitizer.sanitizeObject(contingency);
+                                return `
                                 <li>
-                                    <strong>${contingency.title}:</strong> 
-                                    ${contingency.description}
+                                    <strong>${safeContingency.title}:</strong> 
+                                    ${safeContingency.description}
                                     <span class="contingency-deadline">
                                         (Deadline: ${new Date(contingency.deadline).toLocaleDateString()})
                                     </span>
                                 </li>
-                            `).join('')}
+                            `;}).join('')}
                         </ul>
                     </div>
                 </div>
@@ -685,18 +692,20 @@ class PropertyHubBooking {
             </div>
             
             <div class="steps-list">
-                ${this.currentBooking.steps.map((step, index) => `
+                ${this.currentBooking.steps.map((step, index) => {
+                    const safeStep = Sanitizer.sanitizeObject(step);
+                    return `
                     <div class="step-item ${step.completed ? 'completed' : ''} ${index === this.currentStep ? 'current' : ''}">
                         <div class="step-icon">
                             ${step.completed ? '<i class="fas fa-check"></i>' : (index === this.currentStep ? '<i class="fas fa-circle"></i>' : '<i class="far fa-circle"></i>')}
                         </div>
                         <div class="step-content">
-                            <h5>${step.title}</h5>
-                            <p>${step.description}</p>
+                            <h5>${safeStep.title}</h5>
+                            <p>${safeStep.description}</p>
                             ${step.duration ? `<span class="step-duration">${step.duration} days</span>` : ''}
                         </div>
                     </div>
-                `).join('')}
+                `;}).join('')}
             </div>
         `;
     }
@@ -831,11 +840,12 @@ class PropertyHubBooking {
         console.error(message, error);
         const container = document.getElementById('booking-step-content');
         if (container) {
+            const safeMessage = Sanitizer.escapeHtml(message);
             container.innerHTML = `
                 <div class="booking-error">
                     <i class="fas fa-exclamation-triangle fa-2x"></i>
                     <h3>Booking Error</h3>
-                    <p>${message}</p>
+                    <p>${safeMessage}</p>
                     <button class="btn btn-primary" onclick="location.reload()">
                         Retry
                     </button>

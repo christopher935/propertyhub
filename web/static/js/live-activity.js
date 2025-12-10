@@ -47,12 +47,13 @@ const LiveActivity = {
         }
 
         container.innerHTML = activities.slice(0, 20).map(activity => {
+            const safe = Sanitizer.sanitizeObject(activity);
             const timeAgo = this.timeAgo(new Date(activity.timestamp));
             const icon = this.getEventIcon(activity.event_type);
-            const description = this.getEventDescription(activity);
+            const description = this.getEventDescription(safe);
 
             return `
-                <div class="activity-item" data-session="${activity.session_id}">
+                <div class="activity-item" data-session="${safe.session_id}">
                     <div class="activity-icon ${this.getEventColor(activity.event_type)}">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             ${this.getEventSvgPath(activity.event_type)}
@@ -77,13 +78,14 @@ const LiveActivity = {
         }
 
         container.innerHTML = sessions.map(session => {
+            const safe = Sanitizer.sanitizeObject(session);
             const duration = Math.floor(session.duration_seconds / 60);
             const isActive = session.is_active;
 
             return `
                 <div class="session-card ${isActive ? 'active' : ''}">
                     <div class="session-header">
-                        <div class="session-id">Session ${session.session_id.substring(0, 8)}...</div>
+                        <div class="session-id">Session ${safe.session_id.substring(0, 8)}...</div>
                         ${isActive ? '<span class="badge badge-green">🟢 Active</span>' : ''}
                     </div>
                     <div class="session-stats">
@@ -100,7 +102,7 @@ const LiveActivity = {
                             <span class="stat-value">${duration}m</span>
                         </div>
                     </div>
-                    <button class="btn btn-sm btn-outline" onclick="LiveActivity.viewSessionDetails('${session.session_id}')">
+                    <button class="btn btn-sm btn-outline" onclick="LiveActivity.viewSessionDetails('${safe.session_id}')">
                         View Details
                     </button>
                 </div>
@@ -154,7 +156,7 @@ const LiveActivity = {
 
     getEventDescription(activity) {
         if (activity.property_address) {
-            return `Viewed <strong>${activity.property_address}</strong>`;
+            return `Viewed <strong>${Sanitizer.escapeHtml(activity.property_address)}</strong>`;
         }
         
         switch(activity.event_type) {

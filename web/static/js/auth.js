@@ -791,7 +791,7 @@ class PropertyHubAuth {
                 errorDiv.textContent = result.error;
             } else {
                 const form = document.getElementById('mfa-form');
-                form.insertAdjacentHTML('afterbegin', `<div class="error">${result.error}</div>`);
+                form.insertAdjacentHTML('afterbegin', `<div class="error">${Sanitizer.escapeHtml(result.error)}</div>`);
             }
         }
         
