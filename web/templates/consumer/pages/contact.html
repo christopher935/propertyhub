@@ -14,7 +14,7 @@
     <link href="/static/css/scout-components.css" rel="stylesheet"/>
     <link href="/static/css/modals.css" rel="stylesheet"/>
     <script src="/static/js/modals.js" defer></script>
-    <script src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_SITE_KEY"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render={{ RecaptchaSiteKey }}"></script>
 </head>
 <body class="page-contact">
     
@@ -115,6 +115,23 @@
                 </form>
                 
                 <script>
+                    function showToast(message, type = 'info') {
+                        const toast = document.createElement('div');
+                        toast.className = `toast toast-${type}`;
+                        toast.innerHTML = `
+                            <div class="toast-content">
+                                <span class="toast-icon">${type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</span>
+                                <span class="toast-message">${message}</span>
+                            </div>
+                        `;
+                        document.body.appendChild(toast);
+                        requestAnimationFrame(() => toast.classList.add('toast-visible'));
+                        setTimeout(() => {
+                            toast.classList.remove('toast-visible');
+                            setTimeout(() => toast.remove(), 300);
+                        }, 4000);
+                    }
+
                     document.getElementById('contact-submit').addEventListener('click', async () => {
                         const form = document.getElementById('contact-form');
                         if (!form.checkValidity()) {
@@ -123,7 +140,7 @@
                         }
                         
                         try {
-                            const token = await grecaptcha.execute('YOUR_RECAPTCHA_SITE_KEY', { action: 'contact' });
+                            const token = await grecaptcha.execute('{{ RecaptchaSiteKey }}', { action: 'contact' });
                             
                             const formData = {
                                 name: document.getElementById('name').value,

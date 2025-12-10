@@ -154,9 +154,14 @@ func RegisterConsumerRoutes(r *gin.Engine, h *AllHandlers, cfg *config.Config) {
 		c.HTML(http.StatusOK, "consumer/pages/booking-confirmation.html", gin.H{"Title": "Booking Confirmed"})
 	})
 	r.GET("/contact", func(c *gin.Context) {
+		recaptchaSiteKey := ""
+		if cfg != nil && cfg.RecaptchaSiteKey != "" {
+			recaptchaSiteKey = cfg.RecaptchaSiteKey
+		}
 		c.HTML(http.StatusOK, "consumer/pages/contact.html", gin.H{
-			"Title":     "Contact",
-			"CSRFToken": c.GetString("csrf_token"),
+			"Title":            "Contact",
+			"CSRFToken":        c.GetString("csrf_token"),
+			"RecaptchaSiteKey": recaptchaSiteKey,
 		})
 	})
 	r.GET("/about", func(c *gin.Context) {
